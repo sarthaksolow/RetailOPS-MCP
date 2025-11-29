@@ -1,0 +1,20 @@
+{
+    "version": "1.0",
+    "name": "forecasting-server",
+    "description": "Predicts future demand using sales history + seasonal events.",
+    "tools": [
+      {
+        "name": "getForecast",
+        "description": "Generate a demand forecast for a category or product.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "category": { "type": "string" },
+            "days_ahead": { "type": "number", "default": 30 }
+          },
+          "required": ["category"]
+        }
+      }
+    ]
+  }
+  

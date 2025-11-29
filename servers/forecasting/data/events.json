@@ -1,0 +1,15 @@
+{
+    "events": [
+      {
+        "name": "Diwali",
+        "date": "2025-10-20",
+        "multiplier": 1.45
+      },
+      {
+        "name": "Christmas",
+        "date": "2025-12-25",
+        "multiplier": 1.30
+      }
+    ]
+  }
+  

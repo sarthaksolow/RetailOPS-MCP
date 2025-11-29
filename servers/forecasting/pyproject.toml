@@ -1,0 +1,13 @@
+[project]
+name = "forecasting"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastmcp>=2.13.1",
+    "numpy>=2.2.6",
+    "openai>=2.8.1",
+    "pandas>=2.3.3",
+    "python-dotenv>=1.2.1",
+]
