@@ -1,0 +1,92 @@
+PS E:\Repositories\RetailOPS-MCP\client> uv run .\chatbot_example.py
+🚀 Groq + LangGraph + MCP Chatbot Examples
+============================================================
+
+============================================================
+Example 1: Simple Chatbot Conversation
+============================================================
+
+👤 User: Hello! What can you help me with?
+🤖 Assistant: I can assist with a wide range of topics, including:
+
+- General knowledge and trivia
+- Language translation
+- Writing and grammar guidance
+- Math and algebra problems
+- History and culture
+- Science and technology
+- Health and wellness
+- Book and movie recommendations
+- And more!
+
+What's on your mind, and how can I help?
+
+👤 User: Tell me a fun fact about space
+🤖 Assistant: Did you know that there is a giant storm on Jupiter that has been raging for at least 187 years? It's called the Great Red Spot, and it's a massive anticyclonic storm that's larger than Earth in diameter.
+
+👤 User: What's the capital of France?
+🤖 Assistant: The capital of France is Paris.
+
+============================================================
+Example 2: Chatbot with MCP Tool Calling
+============================================================
+
+👤 User: Can you get me a sales forecast for TVs?
+
+🔧 Tool Calls:
+   - getForecast({'category': 'tv', 'days_ahead': 30})
+   ✅ Tool Result: Error calling MCP tool: unhandled errors in a TaskGroup (1 sub-exception)...
+
+🤖 Assistant: I apologize for the errors. The tool is not functioning correctly. I'll try to get the forecast through another method.
+
+Unfortunately, I couldn't retrieve the forecast for you. Can you please provide more details or ask the question in a different way? I'll do my best to assist you.       
+
+👤 User: What's the forecast for laptops for the next 30 days?
+
+🔧 Tool Calls:
+   - getForecast({'category': 'laptop', 'days_ahead': 30})
+   ✅ Tool Result: Error calling MCP tool: unhandled errors in a TaskGroup (1 sub-exception)...
+
+🤖 Assistant: I apologize for the error. Unfortunately, I'm unable to retrieve the forecast for laptops. Can you please check the category name or try asking the question in a different way? I'll do my best to assist you.
+
+👤 User: I need a forecast for phones
+
+🔧 Tool Calls:
+   - getForecast({'category': 'phone', 'days_ahead': 30})
+   ✅ Tool Result: Error calling MCP tool: unhandled errors in a TaskGroup (1 sub-exception)...
+
+🤖 Assistant: I apologize for the error. Unfortunately, I'm unable to retrieve the forecast for phones. Can you please check the category name or try asking the question in a different way? I'll do my best to assist you.
+
+However, I can try to suggest some possible reasons why the forecast might not be available. It could be due to a technical issue, missing data, or an incorrect category name. If you could provide more details or context, I may be able to help you better.
+
+============================================================
+Example 4: Detailed MCP Tool Call Demonstration
+============================================================
+
+👤 User: What's the sales forecast for TVs over the next 30 days? Please explain the results.
+
+📋 Conversation Flow:
+------------------------------------------------------------
+1. 🤖 Assistant: It seems that there's an error in the MCP tool, but there's no function provided to call the MCP tool. If you're asking about forecasts, I can still use the 'getForecast' tool to provide accurate data.
+
+For example, if you ask about the sales forecast for a specific product category, I can use the 'getForecast' tool to generate a sales forecast for that category.        
+
+Please provide the category and the number of days to forecast ahead, and I'll be happy to help.
+
+If you're experiencing issues with the tool, you might want to check the documentation or contact the tool's support team for assistance.
+2. 👤 User: What's the sales forecast for TVs over the next 30 days? Please explain the results.
+3. 🤖 Assistant: [Deciding to call tools]
+   🔧 Tool: getForecast
+      Args: category=tv, days_ahead=30
+4. ✅ Tool Result: Forecast data received
+5. 🤖 Assistant: Based on the 'getForecast' tool, here are the results:
+
+* Base Forecast: This is the initial forecast based on historical data. For TVs, the base forecast is 500 units.
+* Seasonal Multiplier: This takes into account seasonal fluctuations in sales. For TVs, the seasonal multiplier is 1.2, indicating a 20% increase in sales during this time of year.
+* Historical Surge Factor: This accounts for any unusual events or trends in historical sales data. For TVs, the historical surge factor is 1.05, indicating a 5% increase in sales due to previous promotions or events.
+* Final Forecast: This is the final forecast, which combines the base forecast, seasonal multiplier, and historical surge factor. For TVs, the final forecast is 630 units (500 x 1.2 x 1.05).
+* Event Information: This provides information on any upcoming events or promotions that may impact sales. For TVs, there is a promotion scheduled for next week that is expected to increase sales by 10%.
+* Narrative Explanation: The final forecast is expected to be high due to the combination of seasonal fluctuations and historical surges. However, there is a risk that the promotion scheduled for next week may not have the desired impact, which could affect the final sales figures.
+
+Overall, the sales forecast for TVs over the next 30 days is 630 units, with a high degree of certainty due to the combination of seasonal and historical factors. However, there is still some risk associated with the promotion scheduled for next week.
+------------------------------------------------------------
