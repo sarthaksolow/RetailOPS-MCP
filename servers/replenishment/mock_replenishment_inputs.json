@@ -1,0 +1,243 @@
+[
+    {
+      "category": "electronics",
+      "forecast": {
+        "forecasted_demand": 480,
+        "forecast_period_days": 30,
+        "avg_daily_demand": 16,
+        "demand_volatility": "high",
+        "event": {
+          "name": "Diwali",
+          "days_to_event": 9
+        },
+        "forecast_confidence": "medium"
+      },
+      "inventory": {
+        "current_stock": 310,
+        "in_transit_stock": 40,
+        "last_restock_date": "2025-08-02"
+      },
+      "supplier": {
+        "lead_time_days": 10,
+        "lead_time_variability": "medium",
+        "minimum_order_quantity": 50
+      }
+    },
+    {
+      "category": "groceries",
+      "forecast": {
+        "forecasted_demand": 900,
+        "forecast_period_days": 30,
+        "avg_daily_demand": 30,
+        "demand_volatility": "low",
+        "event": {
+          "name": null,
+          "days_to_event": null
+        },
+        "forecast_confidence": "high"
+      },
+      "inventory": {
+        "current_stock": 720,
+        "in_transit_stock": 120,
+        "last_restock_date": "2025-08-10"
+      },
+      "supplier": {
+        "lead_time_days": 5,
+        "lead_time_variability": "low",
+        "minimum_order_quantity": 100
+      }
+    },
+    {
+      "category": "fashion_apparel",
+      "forecast": {
+        "forecasted_demand": 650,
+        "forecast_period_days": 30,
+        "avg_daily_demand": 22,
+        "demand_volatility": "high",
+        "event": {
+          "name": "Festive Sale",
+          "days_to_event": 6
+        },
+        "forecast_confidence": "low"
+      },
+      "inventory": {
+        "current_stock": 400,
+        "in_transit_stock": 50,
+        "last_restock_date": "2025-07-28"
+      },
+      "supplier": {
+        "lead_time_days": 14,
+        "lead_time_variability": "high",
+        "minimum_order_quantity": 80
+      }
+    },
+    {
+      "category": "home_appliances",
+      "forecast": {
+        "forecasted_demand": 220,
+        "forecast_period_days": 30,
+        "avg_daily_demand": 7,
+        "demand_volatility": "medium",
+        "event": {
+          "name": "Diwali",
+          "days_to_event": 12
+        },
+        "forecast_confidence": "medium"
+      },
+      "inventory": {
+        "current_stock": 190,
+        "in_transit_stock": 20,
+        "last_restock_date": "2025-08-01"
+      },
+      "supplier": {
+        "lead_time_days": 12,
+        "lead_time_variability": "medium",
+        "minimum_order_quantity": 20
+      }
+    },
+    {
+      "category": "mobile_accessories",
+      "forecast": {
+        "forecasted_demand": 1200,
+        "forecast_period_days": 30,
+        "avg_daily_demand": 40,
+        "demand_volatility": "medium",
+        "event": {
+          "name": "Online Mega Sale",
+          "days_to_event": 4
+        },
+        "forecast_confidence": "high"
+      },
+      "inventory": {
+        "current_stock": 850,
+        "in_transit_stock": 100,
+        "last_restock_date": "2025-08-12"
+      },
+      "supplier": {
+        "lead_time_days": 7,
+        "lead_time_variability": "medium",
+        "minimum_order_quantity": 150
+      }
+    },
+    {
+      "category": "beauty_personal_care",
+      "forecast": {
+        "forecasted_demand": 540,
+        "forecast_period_days": 30,
+        "avg_daily_demand": 18,
+        "demand_volatility": "low",
+        "event": {
+          "name": null,
+          "days_to_event": null
+        },
+        "forecast_confidence": "high"
+      },
+      "inventory": {
+        "current_stock": 500,
+        "in_transit_stock": 0,
+        "last_restock_date": "2025-08-05"
+      },
+      "supplier": {
+        "lead_time_days": 6,
+        "lead_time_variability": "low",
+        "minimum_order_quantity": 60
+      }
+    },
+    {
+      "category": "sports_fitness",
+      "forecast": {
+        "forecasted_demand": 310,
+        "forecast_period_days": 30,
+        "avg_daily_demand": 10,
+        "demand_volatility": "medium",
+        "event": {
+          "name": "New Year Fitness Rush",
+          "days_to_event": 18
+        },
+        "forecast_confidence": "medium"
+      },
+      "inventory": {
+        "current_stock": 260,
+        "in_transit_stock": 30,
+        "last_restock_date": "2025-07-30"
+      },
+      "supplier": {
+        "lead_time_days": 9,
+        "lead_time_variability": "medium",
+        "minimum_order_quantity": 40
+      }
+    },
+    {
+      "category": "stationery",
+      "forecast": {
+        "forecasted_demand": 800,
+        "forecast_period_days": 30,
+        "avg_daily_demand": 27,
+        "demand_volatility": "low",
+        "event": {
+          "name": "Back to School",
+          "days_to_event": 3
+        },
+        "forecast_confidence": "high"
+      },
+      "inventory": {
+        "current_stock": 600,
+        "in_transit_stock": 100,
+        "last_restock_date": "2025-08-14"
+      },
+      "supplier": {
+        "lead_time_days": 4,
+        "lead_time_variability": "low",
+        "minimum_order_quantity": 200
+      }
+    },
+    {
+      "category": "furniture",
+      "forecast": {
+        "forecasted_demand": 90,
+        "forecast_period_days": 30,
+        "avg_daily_demand": 3,
+        "demand_volatility": "high",
+        "event": {
+          "name": "Festive Sale",
+          "days_to_event": 15
+        },
+        "forecast_confidence": "low"
+      },
+      "inventory": {
+        "current_stock": 110,
+        "in_transit_stock": 0,
+        "last_restock_date": "2025-07-15"
+      },
+      "supplier": {
+        "lead_time_days": 20,
+        "lead_time_variability": "high",
+        "minimum_order_quantity": 5
+      }
+    },
+    {
+      "category": "toys_kids",
+      "forecast": {
+        "forecasted_demand": 360,
+        "forecast_period_days": 30,
+        "avg_daily_demand": 12,
+        "demand_volatility": "medium",
+        "event": {
+          "name": "Holiday Season",
+          "days_to_event": 11
+        },
+        "forecast_confidence": "medium"
+      },
+      "inventory": {
+        "current_stock": 280,
+        "in_transit_stock": 40,
+        "last_restock_date": "2025-08-03"
+      },
+      "supplier": {
+        "lead_time_days": 8,
+        "lead_time_variability": "medium",
+        "minimum_order_quantity": 30
+      }
+    }
+  ]
+  
