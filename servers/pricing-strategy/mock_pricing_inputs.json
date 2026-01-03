@@ -1,0 +1,52 @@
+[
+  {
+    "category": "electronics",
+    "current_price": 9000,
+    "forecasted_demand": 150,
+    "inventory_level": 200,
+    "target_profit_pct": 0
+  },
+  {
+    "category": "tv",
+    "current_price": 28000,
+    "forecasted_demand": 50,
+    "inventory_level": 60,
+    "target_profit_pct": 5.0
+  },
+  {
+    "category": "laptop",
+    "current_price": 48000,
+    "forecasted_demand": 30,
+    "inventory_level": 25,
+    "target_profit_pct": 3.0
+  },
+  {
+    "category": "phone",
+    "current_price": 16000,
+    "forecasted_demand": 80,
+    "inventory_level": 100,
+    "target_profit_pct": 0
+  },
+  {
+    "category": "kitchen_appliances",
+    "current_price": 5500,
+    "forecasted_demand": 45,
+    "inventory_level": 120,
+    "target_profit_pct": 0
+  },
+  {
+    "category": "fashion",
+    "current_price": 1500,
+    "forecasted_demand": 100,
+    "inventory_level": 300,
+    "target_profit_pct": 0
+  },
+  {
+    "category": "groceries",
+    "current_price": 220,
+    "forecasted_demand": 500,
+    "inventory_level": 400,
+    "target_profit_pct": 2.0
+  }
+]
+

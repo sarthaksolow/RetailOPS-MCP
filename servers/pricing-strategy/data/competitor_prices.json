@@ -1,0 +1,38 @@
+{
+  "electronics": {
+    "competitor_avg_price": 8500,
+    "our_price": 9000,
+    "price_difference_pct": 5.9
+  },
+  "tv": {
+    "competitor_avg_price": 25000,
+    "our_price": 28000,
+    "price_difference_pct": 12.0
+  },
+  "laptop": {
+    "competitor_avg_price": 45000,
+    "our_price": 48000,
+    "price_difference_pct": 6.7
+  },
+  "phone": {
+    "competitor_avg_price": 15000,
+    "our_price": 16000,
+    "price_difference_pct": 6.7
+  },
+  "kitchen_appliances": {
+    "competitor_avg_price": 5000,
+    "our_price": 5500,
+    "price_difference_pct": 10.0
+  },
+  "fashion": {
+    "competitor_avg_price": 1200,
+    "our_price": 1500,
+    "price_difference_pct": 25.0
+  },
+  "groceries": {
+    "competitor_avg_price": 200,
+    "our_price": 220,
+    "price_difference_pct": 10.0
+  }
+}
+

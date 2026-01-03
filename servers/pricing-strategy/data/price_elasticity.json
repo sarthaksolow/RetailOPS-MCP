@@ -1,0 +1,45 @@
+{
+  "electronics": {
+    "elasticity": -1.5,
+    "base_margin": 0.25,
+    "min_margin": 0.15,
+    "max_discount": 0.20
+  },
+  "tv": {
+    "elasticity": -1.8,
+    "base_margin": 0.20,
+    "min_margin": 0.12,
+    "max_discount": 0.25
+  },
+  "laptop": {
+    "elasticity": -1.3,
+    "base_margin": 0.18,
+    "min_margin": 0.10,
+    "max_discount": 0.15
+  },
+  "phone": {
+    "elasticity": -1.6,
+    "base_margin": 0.22,
+    "min_margin": 0.14,
+    "max_discount": 0.20
+  },
+  "kitchen_appliances": {
+    "elasticity": -1.4,
+    "base_margin": 0.30,
+    "min_margin": 0.20,
+    "max_discount": 0.25
+  },
+  "fashion": {
+    "elasticity": -2.0,
+    "base_margin": 0.40,
+    "min_margin": 0.25,
+    "max_discount": 0.30
+  },
+  "groceries": {
+    "elasticity": -0.8,
+    "base_margin": 0.15,
+    "min_margin": 0.10,
+    "max_discount": 0.10
+  }
+}
+
