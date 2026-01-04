@@ -1,23 +1,26 @@
 import asyncio
-from mcp.client.stdio import stdio_client
-from mcp.types import ServerConfig
+from mcp.client.stdio import StdioServerParameters, stdio_client
+from mcp.client.session import ClientSession
 
 async def main():
     # Define the MCP server config properly
-    config = ServerConfig(
+    config = StdioServerParameters(
         command="python",
         args=["server.py"]
     )
 
-    async with stdio_client(config) as client:
-        print("Connected to Forecasting MCP Server.")
+    async with stdio_client(config) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            
+            print("Connected to Forecasting MCP Server.")
 
-        response = await client.call_tool(
-            "getForecast",
-            {"category": "tv"}
-        )
+            response = await session.call_tool(
+                "getForecast",
+                {"category": "tv"}
+            )
 
-        print("Forecast Response:")
-        print(response)
+            print("Forecast Response:")
+            print(response)
 
 asyncio.run(main())
