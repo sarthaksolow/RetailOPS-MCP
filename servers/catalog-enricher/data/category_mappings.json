@@ -1,0 +1,13 @@
+{
+  "detergent": "groceries",
+  "soap": "groceries",
+  "shampoo": "beauty_personal_care",
+  "tv": "electronics",
+  "television": "electronics",
+  "laptop": "electronics",
+  "phone": "electronics",
+  "shirt": "fashion",
+  "pants": "fashion",
+  "dress": "fashion"
+}
+

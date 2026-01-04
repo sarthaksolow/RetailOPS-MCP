@@ -1,0 +1,30 @@
+[
+  {
+    "product_name": "Ariel 2kg Pack",
+    "product_data": {}
+  },
+  {
+    "product_name": "Samsung 55 inch Smart TV",
+    "product_data": {
+      "price": 45000
+    }
+  },
+  {
+    "product_name": "iPhone 15 Pro",
+    "product_data": {
+      "category": "electronics"
+    }
+  },
+  {
+    "product_name": "Nike Running Shoes",
+    "product_data": {}
+  },
+  {
+    "product_name": "Surf Excel 2kg",
+    "product_data": {
+      "category": "groceries",
+      "brand": "Surf Excel"
+    }
+  }
+]
+

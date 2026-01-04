@@ -1,0 +1,43 @@
+{
+  "prod_001": {
+    "name": "Ariel 2kg Detergent Pack",
+    "brand": "Ariel",
+    "category": "groceries",
+    "price": 450,
+    "margin_pct": 15,
+    "description": "High-quality laundry detergent, 2kg pack"
+  },
+  "prod_002": {
+    "name": "Surf Excel 2kg",
+    "brand": "Surf Excel",
+    "category": "groceries",
+    "price": 420,
+    "margin_pct": 17,
+    "description": "Premium laundry detergent, 2kg pack"
+  },
+  "prod_003": {
+    "name": "Tide 2kg",
+    "brand": "Tide",
+    "category": "groceries",
+    "price": 440,
+    "margin_pct": 16,
+    "description": "Effective laundry detergent, 2kg pack"
+  },
+  "prod_004": {
+    "name": "Samsung 55 inch Smart TV",
+    "brand": "Samsung",
+    "category": "electronics",
+    "price": 45000,
+    "margin_pct": 12,
+    "description": "55 inch 4K Smart TV with HDR"
+  },
+  "prod_005": {
+    "name": "LG 50 inch LED TV",
+    "brand": "LG",
+    "category": "electronics",
+    "price": 35000,
+    "margin_pct": 14,
+    "description": "50 inch Full HD LED TV"
+  }
+}
+
