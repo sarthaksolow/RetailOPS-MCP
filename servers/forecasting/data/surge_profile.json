@@ -1,17 +1,65 @@
 {
+    "Republic Day Sale": {
+      "tv": 1.8,
+      "laptop": 1.5,
+      "phone": 1.6,
+      "kitchen_appliances": 1.7,
+      "fashion": 1.3,
+      "groceries": 1.1,
+      "electronics": 1.6
+    },
+    "Valentine's Day": {
+      "tv": 1.1,
+      "laptop": 1.2,
+      "phone": 1.4,
+      "kitchen_appliances": 1.3,
+      "fashion": 1.8,
+      "groceries": 1.1,
+      "electronics": 1.2
+    },
+    "Holi Sale": {
+      "tv": 1.5,
+      "laptop": 1.4,
+      "phone": 1.7,
+      "kitchen_appliances": 2.0,
+      "fashion": 1.6,
+      "groceries": 1.2,
+      "electronics": 1.5
+    },
+    "Summer Sale": {
+      "tv": 1.6,
+      "laptop": 1.8,
+      "phone": 1.5,
+      "kitchen_appliances": 1.9,
+      "fashion": 1.7,
+      "groceries": 1.1,
+      "electronics": 1.6
+    },
+    "Independence Day": {
+      "tv": 2.0,
+      "laptop": 1.7,
+      "phone": 2.2,
+      "kitchen_appliances": 1.8,
+      "fashion": 1.5,
+      "groceries": 1.2,
+      "electronics": 1.9
+    },
     "Diwali": {
-      "electronics": 1.8,
       "tv": 2.5,
-      "smartphones": 2.7,
+      "laptop": 1.8,
+      "phone": 2.7,
       "kitchen_appliances": 3.0,
-      "fashion": 1.4
+      "fashion": 1.4,
+      "groceries": 1.2,
+      "electronics": 1.8
     },
     "Christmas": {
-      "electronics": 1.3,
       "tv": 1.6,
-      "smartphones": 1.4,
+      "laptop": 1.4,
+      "phone": 1.4,
       "kitchen_appliances": 1.5,
-      "fashion": 1.5
+      "fashion": 1.5,
+      "groceries": 1.1,
+      "electronics": 1.3
     }
   }
-  

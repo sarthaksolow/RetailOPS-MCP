@@ -1,15 +1,39 @@
 {
     "events": [
       {
+        "name": "Republic Day Sale",
+        "date": "2026-01-26",
+        "multiplier": 1.25
+      },
+      {
+        "name": "Valentine's Day",
+        "date": "2026-02-14",
+        "multiplier": 1.15
+      },
+      {
+        "name": "Holi Sale",
+        "date": "2026-03-14",
+        "multiplier": 1.30
+      },
+      {
+        "name": "Summer Sale",
+        "date": "2026-05-01",
+        "multiplier": 1.20
+      },
+      {
+        "name": "Independence Day",
+        "date": "2026-08-15",
+        "multiplier": 1.35
+      },
+      {
         "name": "Diwali",
-        "date": "2025-10-20",
+        "date": "2026-10-20",
         "multiplier": 1.45
       },
       {
         "name": "Christmas",
-        "date": "2025-12-25",
+        "date": "2026-12-25",
         "multiplier": 1.30
       }
     ]
   }
-  

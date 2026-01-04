@@ -1,0 +1,430 @@
+C:\Users\Sarthak singh\AppData\Local\Programs\Python\Python311\python.exe: can't open file 'D:\\test_client.py': [Errno 2] No such file or directory
+(.venv) PS D:\> cd D:\walmart_mcp
+>>
+>> # Now test the client
+>> python client/test_client.py
+[CLIENT] >>> Initializing RetailOps LangGraph Client
+
+======================================================================
+🧪 QUICK TEST: RetailOps Client
+======================================================================
+
+1️⃣ Initializing client...
+[CLIENT] 🔨 Building LangGraph workflow
+[CLIENT] ✅ Graph compiled successfully
+[CLIENT] 🚀 RetailOps Client initialized
+   ✅ Client initialized
+
+2️⃣ Testing full workflow for 'tv' category...
+[CLIENT]
+============================================================
+[CLIENT] 🎯 Starting Full Workflow for 'tv'
+[CLIENT] ============================================================
+
+[CLIENT] 🔵 NODE 1: Forecasting for tv
+[CLIENT] 📊 Calling Forecasting Server for tv
+[CLIENT] ✅ Forecast received: 12.44
+[CLIENT] ✅ Forecast: 12.44 units
+[CLIENT] 🔵 NODE 2: Replenishment Decision
+[CLIENT] 📦 Calling Replenishment Server
+[CLIENT] ✅ Replenishment: 0 units, defer
+[CLIENT] ✅ Reorder: 0 units, timing: defer
+[CLIENT] 🔵 NODE 3: Pricing Strategy
+[CLIENT] 💰 Calling Pricing Strategy Server
+[CLIENT] ✅ Pricing: ₹25760.0 (-8.0%)
+[CLIENT] ✅ Price: ₹25760.0 (clearance)
+[CLIENT] 
+============================================================
+[CLIENT] ✅ Workflow Completed: completed
+[CLIENT] ============================================================
+
+   ✅ Workflow completed successfully!
+
+   📊 Quick Summary:
+      Forecast: 12.44 units
+      Reorder: 0 units
+      Price: ₹25760.0
+
+======================================================================
+✅ Test completed!
+======================================================================
+
+(.venv) PS D:\walmart_mcp> python client/cli.py analyze electronics
+>>
+>> # Batch processing
+>> python client/cli.py batch tv laptop phone
+>>
+>> # Run all examples
+>> cd client
+>> python examples.py --all
+[CLIENT] >>> Initializing RetailOps LangGraph Client
+
+======================================================================
+🛍️  RetailOps MCP Client - CLI
+======================================================================
+
+🎯 Analyzing category: electronics
+📅 Forecast period: 30 days
+[CLIENT] 🔨 Building LangGraph workflow
+[CLIENT] ✅ Graph compiled successfully
+[CLIENT] 🚀 RetailOps Client initialized
+[CLIENT]
+============================================================
+[CLIENT] 🎯 Starting Full Workflow for 'electronics'
+[CLIENT] ============================================================
+
+[CLIENT] 🔵 NODE 1: Forecasting for electronics
+[CLIENT] 📊 Calling Forecasting Server for electronics
+[CLIENT] ✅ Forecast received: 191.28
+[CLIENT] ✅ Forecast: 191.28 units
+[CLIENT] 🔵 NODE 2: Replenishment Decision
+[CLIENT] 📦 Calling Replenishment Server
+[CLIENT] ✅ Replenishment: 50 units, defer
+[CLIENT] ✅ Reorder: 50 units, timing: defer
+[CLIENT] 🔵 NODE 3: Pricing Strategy
+[CLIENT] 💰 Calling Pricing Strategy Server
+[CLIENT] ✅ Pricing: ₹9000 (0.0%)
+[CLIENT] ✅ Price: ₹9000 (maintain)
+[CLIENT] 
+============================================================
+[CLIENT] ✅ Workflow Completed: completed
+[CLIENT] ============================================================
+
+
+======================================================================
+📊 RESULTS FOR: ELECTRONICS
+======================================================================
+
+Status: ✅ completed
+
+📈 FORECAST:
+   Base Forecast: 147.14 units
+   Final Forecast: 191.28 units
+   Seasonal Multiplier: 1.3x
+   Upcoming Event: Christmas
+
+📦 REPLENISHMENT:
+   Reorder Quantity: 50 units
+   Timing: DEFER
+   Stockout Risk: LOW
+
+💰 PRICING:
+   Current Price: ₹0
+   Recommended: ₹9000 (→ 0.0%)
+   Strategy: MAINTAIN
+
+======================================================================
+
+[CLIENT] >>> Initializing RetailOps LangGraph Client
+
+======================================================================
+🛍️  RetailOps MCP Client - CLI
+======================================================================
+
+🎯 Batch analyzing 3 categories
+📅 Forecast period: 30 days
+[CLIENT] 🔨 Building LangGraph workflow
+[CLIENT] ✅ Graph compiled successfully
+[CLIENT] 🚀 RetailOps Client initialized
+[CLIENT]
+🔄 Running batch workflow for 3 categories
+[CLIENT]
+============================================================
+[CLIENT] 🎯 Starting Full Workflow for 'tv'
+[CLIENT] ============================================================
+
+[CLIENT]
+============================================================
+[CLIENT] 🎯 Starting Full Workflow for 'laptop'
+[CLIENT] ============================================================
+
+[CLIENT]
+============================================================
+[CLIENT] 🎯 Starting Full Workflow for 'phone'
+[CLIENT] ============================================================
+
+[CLIENT] 🔵 NODE 1: Forecasting for tv
+[CLIENT] 📊 Calling Forecasting Server for tv
+[CLIENT] 🔵 NODE 1: Forecasting for laptop
+[CLIENT] 📊 Calling Forecasting Server for laptop
+[CLIENT] 🔵 NODE 1: Forecasting for phone
+[CLIENT] 📊 Calling Forecasting Server for phone
+[CLIENT] ✅ Forecast received: None
+[CLIENT] ✅ Forecast received: None
+[CLIENT] 🔵 NODE 2: Replenishment Decision
+[CLIENT] 🔵 NODE 3: Pricing Strategy
+[CLIENT]
+============================================================
+[CLIENT] ✅ Workflow Completed: failed_forecast
+[CLIENT] ============================================================
+
+[CLIENT] 🔵 NODE 2: Replenishment Decision
+[CLIENT] 🔵 NODE 3: Pricing Strategy
+[CLIENT]
+============================================================
+[CLIENT] ✅ Workflow Completed: failed_forecast
+[CLIENT] ============================================================
+
+[CLIENT] ✅ Forecast received: 12.44
+[CLIENT] ✅ Forecast: 12.44 units
+[CLIENT] 🔵 NODE 2: Replenishment Decision
+[CLIENT] 📦 Calling Replenishment Server
+[CLIENT] ✅ Replenishment: 0 units, defer
+[CLIENT] ✅ Reorder: 0 units, timing: defer
+[CLIENT] 🔵 NODE 3: Pricing Strategy
+[CLIENT] 💰 Calling Pricing Strategy Server
+[CLIENT] ✅ Pricing: ₹25760.0 (-8.0%)
+[CLIENT] ✅ Price: ₹25760.0 (clearance)
+[CLIENT] 
+============================================================
+[CLIENT] ✅ Workflow Completed: completed
+[CLIENT] ============================================================
+
+[CLIENT] ✅ Batch processing complete
+
+======================================================================
+📊 BATCH RESULTS (3 categories)
+======================================================================
+
+1. TV                   | Forecast:    12.44 | Reorder:      0 | Price: ₹25760.0
+
+❌ Error: unsupported format string passed to NoneType.__format__
+Traceback (most recent call last):
+  File "D:\walmart_mcp\client\cli.py", line 243, in main
+    await cmd_batch(categories, days)
+  File "D:\walmart_mcp\client\cli.py", line 104, in cmd_batch
+    print_batch_results(results)
+  File "D:\walmart_mcp\client\cli.py", line 78, in print_batch_results
+    print(f"{i}. {cat.upper():<20} | Forecast: {forecast:>8} | Reorder: {reorder:>6} | Price: ₹{price}")
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: unsupported format string passed to NoneType.__format__
+[CLIENT] >>> Initializing RetailOps LangGraph Client
+
+======================================================================
+📝 EXAMPLE 1: Full Workflow for Single Category
+======================================================================
+[CLIENT] 🔨 Building LangGraph workflow
+[CLIENT] ✅ Graph compiled successfully
+[CLIENT] 🚀 RetailOps Client initialized
+[CLIENT]
+============================================================
+[CLIENT] 🎯 Starting Full Workflow for 'tv'
+[CLIENT] ============================================================
+
+[CLIENT] 🔵 NODE 1: Forecasting for tv
+[CLIENT] 📊 Calling Forecasting Server for tv
+[CLIENT] ✅ Forecast received: 12.44
+[CLIENT] ✅ Forecast: 12.44 units
+[CLIENT] 🔵 NODE 2: Replenishment Decision
+[CLIENT] 📦 Calling Replenishment Server
+[CLIENT] ✅ Replenishment: 0 units, defer
+[CLIENT] ✅ Reorder: 0 units, timing: defer
+[CLIENT] 🔵 NODE 3: Pricing Strategy
+[CLIENT] 💰 Calling Pricing Strategy Server
+[CLIENT] ✅ Pricing: ₹25760.0 (-8.0%)
+[CLIENT] ✅ Price: ₹25760.0 (clearance)
+[CLIENT] 
+============================================================
+[CLIENT] ✅ Workflow Completed: completed
+[CLIENT] ============================================================
+
+
+📊 Results Summary:
+  Category: tv
+  Status: completed
+
+  📈 Forecast: 12.44 units
+     Event: Christmas
+
+  📦 Replenishment: 0 units
+     Timing: defer
+     Risk: low
+
+  💰 Pricing: ₹25760.0
+     Change: -8.0%
+     Type: clearance
+
+======================================================================
+📝 EXAMPLE 2: Batch Processing Multiple Categories
+======================================================================
+[CLIENT] 🔨 Building LangGraph workflow
+[CLIENT] ✅ Graph compiled successfully
+[CLIENT] 🚀 RetailOps Client initialized
+[CLIENT]
+🔄 Running batch workflow for 3 categories
+[CLIENT] 
+============================================================
+[CLIENT] 🎯 Starting Full Workflow for 'electronics'
+[CLIENT] ============================================================
+
+[CLIENT] 
+============================================================
+[CLIENT] 🎯 Starting Full Workflow for 'kitchen_appliances'
+[CLIENT] ============================================================
+
+[CLIENT]
+============================================================
+[CLIENT] 🎯 Starting Full Workflow for 'fashion'
+[CLIENT] ============================================================
+
+[CLIENT] 🔵 NODE 1: Forecasting for electronics
+[CLIENT] 📊 Calling Forecasting Server for electronics
+[CLIENT] 🔵 NODE 1: Forecasting for kitchen_appliances
+[CLIENT] 📊 Calling Forecasting Server for kitchen_appliances
+[CLIENT] 🔵 NODE 1: Forecasting for fashion
+[CLIENT] 📊 Calling Forecasting Server for fashion
+[CLIENT] ✅ Forecast received: None
+[CLIENT] 🔵 NODE 2: Replenishment Decision
+[CLIENT] 🔵 NODE 3: Pricing Strategy
+[CLIENT]
+============================================================
+[CLIENT] ✅ Workflow Completed: failed_forecast
+[CLIENT] ============================================================
+
+[CLIENT] ✅ Forecast received: 191.28
+[CLIENT] ✅ Forecast received: 52.0
+[CLIENT] ✅ Forecast: 191.28 units
+[CLIENT] 🔵 NODE 2: Replenishment Decision
+[CLIENT] 📦 Calling Replenishment Server
+[CLIENT] ✅ Forecast: 52.0 units
+[CLIENT] 🔵 NODE 2: Replenishment Decision
+[CLIENT] 📦 Calling Replenishment Server
+[CLIENT] ✅ Replenishment: 0 units, defer
+[CLIENT] ✅ Replenishment: 50 units, defer
+[CLIENT] ✅ Reorder: 50 units, timing: defer
+[CLIENT] ✅ Reorder: 0 units, timing: defer
+[CLIENT] 🔵 NODE 3: Pricing Strategy
+[CLIENT] 💰 Calling Pricing Strategy Server
+[CLIENT] 🔵 NODE 3: Pricing Strategy
+[CLIENT] 💰 Calling Pricing Strategy Server
+[CLIENT] ✅ Pricing: ₹9000 (0.0%)
+[CLIENT] ✅ Pricing: ₹5060.0 (-8.0%)
+[CLIENT] ✅ Price: ₹9000 (maintain)
+[CLIENT] 
+============================================================
+[CLIENT] ✅ Workflow Completed: completed
+[CLIENT] ============================================================
+
+[CLIENT] ✅ Price: ₹5060.0 (clearance)
+[CLIENT]
+============================================================
+[CLIENT] ✅ Workflow Completed: completed
+[CLIENT] ============================================================
+
+[CLIENT] ✅ Batch processing complete
+
+📊 Batch Results:
+----------------------------------------------------------------------
+
+ELECTRONICS:
+  Forecast: 191.28 units
+  Reorder: 50 units (defer)
+  Price: ₹9000 (0.0%)
+
+KITCHEN_APPLIANCES:
+  Forecast: 52.0 units
+  Reorder: 0 units (defer)
+  Price: ₹5060.0 (-8.0%)
+
+FASHION:
+  Forecast: None units
+  Reorder: None units (None)
+  Price: ₹None (None%)
+
+======================================================================
+📝 EXAMPLE 3: Forecast Only
+======================================================================
+[CLIENT] 🔨 Building LangGraph workflow
+[CLIENT] ✅ Graph compiled successfully
+[CLIENT] 🚀 RetailOps Client initialized
+[CLIENT] 📊 Calling Forecasting Server for smartphones
+[CLIENT] ✅ Forecast received: None
+
+📈 Forecast for Smartphones:
+  Base Forecast: None
+  Final Forecast: None
+  Seasonal Multiplier: None
+  Event: None
+
+  Narrative: None
+
+======================================================================
+📝 EXAMPLE 4: Error Handling
+======================================================================
+[CLIENT] 🔨 Building LangGraph workflow
+[CLIENT] ✅ Graph compiled successfully
+[CLIENT] 🚀 RetailOps Client initialized
+[CLIENT]
+============================================================
+[CLIENT] 🎯 Starting Full Workflow for 'invalid_category'
+[CLIENT] ============================================================
+
+[CLIENT] 🔵 NODE 1: Forecasting for invalid_category
+[CLIENT] 📊 Calling Forecasting Server for invalid_category
+[CLIENT] ✅ Forecast received: None
+[CLIENT] 🔵 NODE 2: Replenishment Decision
+[CLIENT] 🔵 NODE 3: Pricing Strategy
+[CLIENT]
+============================================================
+[CLIENT] ✅ Workflow Completed: failed_forecast
+[CLIENT] ============================================================
+
+
+⚠️ Result Status: failed_forecast
+  Errors: ["Forecasting: No data found for category 'invalid_category'."]
+
+======================================================================
+📝 EXAMPLE 5: Actionable Decision Insights
+======================================================================
+[CLIENT] 🔨 Building LangGraph workflow
+[CLIENT] ✅ Graph compiled successfully
+[CLIENT] 🚀 RetailOps Client initialized
+[CLIENT]
+============================================================
+[CLIENT] 🎯 Starting Full Workflow for 'electronics'
+[CLIENT] ============================================================
+
+[CLIENT] 🔵 NODE 1: Forecasting for electronics
+[CLIENT] 📊 Calling Forecasting Server for electronics
+[CLIENT] ✅ Forecast received: 191.28
+[CLIENT] ✅ Forecast: 191.28 units
+[CLIENT] 🔵 NODE 2: Replenishment Decision
+[CLIENT] 📦 Calling Replenishment Server
+[CLIENT] ✅ Replenishment: 50 units, defer
+[CLIENT] ✅ Reorder: 50 units, timing: defer
+[CLIENT] 🔵 NODE 3: Pricing Strategy
+[CLIENT] 💰 Calling Pricing Strategy Server
+[CLIENT] ✅ Pricing: ₹9000 (0.0%)
+[CLIENT] ✅ Price: ₹9000 (maintain)
+[CLIENT] 
+============================================================
+[CLIENT] ✅ Workflow Completed: completed
+[CLIENT] ============================================================
+
+
+🎯 ACTIONABLE INSIGHTS for ELECTRONICS:
+----------------------------------------------------------------------
+
+📈 DEMAND FORECAST:
+   Expected Sales: 191.28 units (next 30 days)
+   ⚡ Upcoming Event: Christmas (multiplier: 1.3x)
+   AI Analysis: Narrative generation failed: Error code: 401 - {'error': {'message': 'User not found.', 'code': 401}...
+
+📦 INVENTORY ACTION:
+   Action Required: DEFER
+   Order Quantity: 50 units
+   Stockout Risk: LOW
+   AI Analysis: Replenishment decision based on demand risk, festival proximity, and inventory runway....
+
+💰 PRICING STRATEGY:
+   Current Price: ₹0
+   Recommended: ₹9000 (→ MAINTAIN)
+   Strategy: MAINTAIN
+   AI Analysis: Pricing adjusted based on inventory and competition....
+
+✅ RECOMMENDED ACTIONS:
+   3. Prepare for Christmas - expect 1.3x demand
+
+======================================================================
+✅ All examples completed!
+================================

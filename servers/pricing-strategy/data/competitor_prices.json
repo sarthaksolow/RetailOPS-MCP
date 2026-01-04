@@ -1,9 +1,4 @@
 {
-  "electronics": {
-    "competitor_avg_price": 8500,
-    "our_price": 9000,
-    "price_difference_pct": 5.9
-  },
   "tv": {
     "competitor_avg_price": 25000,
     "our_price": 28000,
@@ -33,6 +28,10 @@
     "competitor_avg_price": 200,
     "our_price": 220,
     "price_difference_pct": 10.0
+  },
+  "electronics": {
+    "competitor_avg_price": 8500,
+    "our_price": 9000,
+    "price_difference_pct": 5.9
   }
 }
-

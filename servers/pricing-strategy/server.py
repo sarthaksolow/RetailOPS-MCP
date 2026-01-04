@@ -188,6 +188,7 @@ async def getPricingStrategy(input: Dict[str, Any]) -> Dict[str, Any]:
     result = pricing_graph.invoke({"input": input})
     return {
         "category": result["category"],
+        "current_price": result["current_price"],
         "recommended_price": result["recommended_price"],
         "price_change_pct": result["price_change_pct"],
         "recommendation_type": result["recommendation_type"],

@@ -120,10 +120,29 @@ class MCPServerManager:
             return {"error": str(e)}
     
     async def call_replenishment(self, forecast_data: Dict[str, Any], 
-                                  current_stock: int = 200,
-                                  in_transit: int = 50) -> Dict[str, Any]:
+                                  current_stock: int = None,
+                                  in_transit: int = None) -> Dict[str, Any]:
         """Call replenishment server"""
         log(f"📦 Calling Replenishment Server")
+        
+        # Realistic inventory levels by category
+        inventory_levels = {
+            "tv": {"current": 45, "in_transit": 10},
+            "laptop": {"current": 25, "in_transit": 5},
+            "phone": {"current": 80, "in_transit": 20},
+            "kitchen_appliances": {"current": 120, "in_transit": 30},
+            "fashion": {"current": 350, "in_transit": 50},
+            "groceries": {"current": 800, "in_transit": 200},
+            "electronics": {"current": 450, "in_transit": 100},
+        }
+        
+        category = forecast_data.get("category")
+        inv = inventory_levels.get(category, {"current": 200, "in_transit": 50})
+        
+        if current_stock is None:
+            current_stock = inv["current"]
+        if in_transit is None:
+            in_transit = inv["in_transit"]
         
         try:
             # Build replenishment input
@@ -174,10 +193,24 @@ class MCPServerManager:
     
     async def call_pricing(self, category: str, 
                           forecasted_demand: float,
-                          inventory_level: int,
+                          inventory_level: int = None,
                           current_price: float = None) -> Dict[str, Any]:
         """Call pricing strategy server"""
         log(f"💰 Calling Pricing Strategy Server")
+        
+        # Realistic inventory levels
+        inventory_levels = {
+            "tv": 45,
+            "laptop": 25,
+            "phone": 80,
+            "kitchen_appliances": 120,
+            "fashion": 350,
+            "groceries": 800,
+            "electronics": 450,
+        }
+        
+        if inventory_level is None:
+            inventory_level = inventory_levels.get(category, 200)
         
         try:
             # Default prices by category (could be loaded from config)
@@ -270,8 +303,8 @@ async def replenishment_node(state: RetailOpsState) -> RetailOpsState:
     
     replenish_data = await server_manager.call_replenishment(
         state["forecast_data"],
-        current_stock=200,  # Could be parameterized
-        in_transit=50
+        current_stock=None,  # Will use realistic defaults
+        in_transit=None
     )
     
     if "error" in replenish_data:
@@ -301,7 +334,7 @@ async def pricing_node(state: RetailOpsState) -> RetailOpsState:
     pricing_data = await server_manager.call_pricing(
         state["category"],
         state["final_forecast"],
-        200  # Current inventory level
+        inventory_level=None  # Will use realistic defaults
     )
     
     if "error" in pricing_data:

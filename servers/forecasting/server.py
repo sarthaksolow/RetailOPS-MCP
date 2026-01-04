@@ -77,18 +77,22 @@ def simple_moving_average(category, days=30):
 
 
 def get_season_multiplier():
-    """Get seasonal multiplier based on upcoming events"""
+    """Get seasonal multiplier based on upcoming events (within 6 months)"""
     today = datetime.now()
     for e in events["events"]:
         event_date = datetime.strptime(e["date"], "%Y-%m-%d")
-        if abs((event_date - today).days) <= 15:
+        days_until = (event_date - today).days
+        # Look up to 180 days (6 months) ahead
+        if 0 <= days_until <= 180:
             return e["name"], e["multiplier"]
     return None, 1.0
 
 
-def get_historical_surge(category):
-    """Get historical surge factor for a category"""
-    return surge_profiles.get(category, 1.0)
+def get_historical_surge(category, event_name):
+    """Get historical surge factor for a category during specific event"""
+    if event_name and event_name in surge_profiles:
+        return surge_profiles[event_name].get(category, 1.0)
+    return 1.0
 
 
 async def generate_narrative(category, base, season_mult, hist_mult, final, event):
@@ -138,7 +142,7 @@ async def getForecast(category: str, days_ahead: int = 30) -> dict:
         return {"error": f"No data found for category '{category}'."}
 
     event_name, season_mult = get_season_multiplier()
-    hist_mult = get_historical_surge(category)
+    hist_mult = get_historical_surge(category, event_name)
 
     final_forecast = round(base * season_mult * hist_mult, 2)
 
