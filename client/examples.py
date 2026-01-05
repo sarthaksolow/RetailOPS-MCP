@@ -143,6 +143,26 @@ async def example_5_decision_insights():
         print(f"   {action}")
 
 
+async def example_6_catalog_enrichment():
+    """Example 6: Catalog enrichment and finding alternatives"""
+    print("\n" + "="*70)
+    print("📝 EXAMPLE 6: Catalog Enrichment")
+    print("="*70)
+    
+    client = RetailOpsClient()
+    
+    result = await client.enrich_product("Ariel 2kg Detergent Pack")
+    
+    print("\n📋 Enrichment Results:")
+    print(f"  Product: {result.get('product_name')}")
+    print(f"  Category: {result.get('category')}")
+    print(f"  Brand: {result.get('brand')}")
+    if result.get('alternatives'):
+        print(f"\n  🔄 Alternatives: {len(result.get('alternatives', []))} found")
+        for alt in result.get('alternatives', [])[:3]:
+            print(f"     - {alt.get('name')} ({alt.get('brand')})")
+
+
 async def run_all_examples():
     """Run all examples"""
     await example_1_single_category()
@@ -158,6 +178,9 @@ async def run_all_examples():
     await asyncio.sleep(1)
     
     await example_5_decision_insights()
+    await asyncio.sleep(1)
+    
+    await example_6_catalog_enrichment()
     
     print("\n" + "="*70)
     print("✅ All examples completed!")
@@ -168,7 +191,7 @@ if __name__ == "__main__":
     import argparse
     
     parser = argparse.ArgumentParser(description="RetailOps Client Examples")
-    parser.add_argument("--example", type=int, choices=[1,2,3,4,5], help="Run specific example (1-5)")
+    parser.add_argument("--example", type=int, choices=[1,2,3,4,5,6], help="Run specific example (1-6)")
     parser.add_argument("--all", action="store_true", help="Run all examples")
     
     args = parser.parse_args()
@@ -185,6 +208,8 @@ if __name__ == "__main__":
         asyncio.run(example_4_error_handling())
     elif args.example == 5:
         asyncio.run(example_5_decision_insights())
+    elif args.example == 6:
+        asyncio.run(example_6_catalog_enrichment())
     else:
         # Default: run example 1
         asyncio.run(example_1_single_category())

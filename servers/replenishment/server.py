@@ -5,7 +5,8 @@ from typing import TypedDict, Dict, Any, List
 from mcp.server.fastmcp import FastMCP
 from langgraph.graph import StateGraph
 from openai import OpenAI
-
+from dotenv import load_dotenv
+load_dotenv()
 # -------------------------------------------------
 # STDIO-safe logging (IMPORTANT)
 # -------------------------------------------------

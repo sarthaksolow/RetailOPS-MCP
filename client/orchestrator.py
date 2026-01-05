@@ -75,7 +75,8 @@ class MCPServerManager:
         self.servers = {
             "forecasting": self.base_dir / "servers" / "forecasting" / "server.py",
             "replenishment": self.base_dir / "servers" / "replenishment" / "server.py",
-            "pricing": self.base_dir / "servers" / "pricing-strategy" / "server.py"
+            "pricing": self.base_dir / "servers" / "pricing-strategy" / "server.py",
+            "catalog-enricher": self.base_dir / "servers" / "catalog-enricher" / "server.py"
         }
         
     def get_server_params(self, server_name: str) -> StdioServerParameters:
@@ -258,6 +259,41 @@ class MCPServerManager:
             
         except Exception as e:
             log(f"❌ Pricing error: {e}")
+            return {"error": str(e)}
+    
+    async def call_catalog_enricher(self, product_name: str, product_data: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Call catalog enricher server"""
+        log(f"📋 Calling Catalog Enricher Server for {product_name}")
+        
+        if product_data is None:
+            product_data = {}
+        
+        try:
+            params = self.get_server_params("catalog-enricher")
+            
+            async with stdio_client(params) as (read, write):
+                async with ClientSession(read, write) as session:
+                    await session.initialize()
+                    
+                    response = await session.call_tool(
+                        "enrichProduct",
+                        {
+                            "product_name": product_name,
+                            "product_data": product_data
+                        }
+                    )
+                    
+                    if hasattr(response, 'content') and response.content:
+                        for content in response.content:
+                            if hasattr(content, 'text'):
+                                result = json.loads(content.text)
+                                log(f"✅ Enriched: {result.get('product_name')} -> {result.get('category')}")
+                                return result
+            
+            return {"error": "No catalog enrichment data received"}
+            
+        except Exception as e:
+            log(f"❌ Catalog enricher error: {e}")
             return {"error": str(e)}
 
 
