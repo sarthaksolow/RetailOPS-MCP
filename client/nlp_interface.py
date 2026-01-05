@@ -44,8 +44,8 @@ class RetailOpsNLP:
         
         system_prompt = """You are a retail operations assistant. Your job is to understand user queries and extract:
 1. category: The product category (tv, laptop, phone, electronics, kitchen_appliances, fashion, groceries, smartphones)
-2. intent: What they want to know (pricing, forecast, inventory, full_analysis, catalog_enrichment, find_alternatives)
-3. context: Any specific context like events (diwali, christmas), time periods, product names, etc.
+2. intent: What they want to know (pricing, forecast, inventory, full_analysis)
+3. context: Any specific context like events (diwali, christmas), time periods, etc.
 
 Respond ONLY with a JSON object. No markdown, no explanation, just pure JSON.
 
@@ -61,12 +61,6 @@ Response: {"category": "phone", "intent": "inventory", "context": {}}
 
 User: "Analyze electronics category"
 Response: {"category": "electronics", "intent": "full_analysis", "context": {}}
-
-User: "We're out of 2kg Ariel packs — what should I do?"
-Response: {"category": "groceries", "intent": "find_alternatives", "context": {"product_name": "Ariel 2kg packs", "stockout": true}}
-
-User: "Enrich product data for Samsung TV"
-Response: {"category": "electronics", "intent": "catalog_enrichment", "context": {"product_name": "Samsung TV"}}
 """
         
         try:
@@ -156,10 +150,6 @@ Please answer their question directly and conversationally."""
         
         if intent == 'forecast':
             data = await self.client.run_forecast_only(category)
-        elif intent in ['catalog_enrichment', 'find_alternatives']:
-            product_name = context.get('product_name', understanding.get('category', ''))
-            product_data = context.get('product_data', {})
-            data = await self.client.enrich_product(product_name, product_data)
         elif intent in ['pricing', 'inventory', 'full_analysis']:
             data = await self.client.run_full_workflow(category)
         else:

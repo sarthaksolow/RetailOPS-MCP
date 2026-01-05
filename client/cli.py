@@ -130,34 +130,6 @@ async def cmd_forecast(category: str, days: int = 30):
     print(f"\n{'='*70}\n")
 
 
-async def cmd_enrich(product_name: str):
-    """Enrich a product using catalog enricher"""
-    print_banner()
-    print(f"📋 Enriching product: {product_name}")
-    
-    client = RetailOpsClient()
-    result = await client.enrich_product(product_name)
-    
-    if 'error' in result:
-        print(f"\n❌ Error: {result['error']}\n")
-        return
-    
-    print(f"\n{'='*70}")
-    print(f"📋 ENRICHMENT RESULTS")
-    print(f"{'='*70}")
-    print(f"\nProduct: {result.get('product_name')}")
-    print(f"Category: {result.get('category')}")
-    print(f"Brand: {result.get('brand')}")
-    print(f"Description: {result.get('description')}")
-    if result.get('alternatives'):
-        print(f"\nAlternatives Found:")
-        for alt in result.get('alternatives', [])[:3]:
-            print(f"  - {alt.get('name')} ({alt.get('brand')})")
-    print(f"\nNarrative:")
-    print(f"{result.get('narrative')}")
-    print(f"\n{'='*70}\n")
-
-
 async def cmd_json(category: str, days: int = 30):
     """Output results as JSON"""
     client = RetailOpsClient()
@@ -185,10 +157,6 @@ COMMANDS:
     forecast <category> [--days N]
         Run forecast only (no replenishment or pricing)
         Example: python cli.py forecast electronics --days 30
-
-    enrich <product_name>
-        Enrich product catalog data and find alternatives
-        Example: python cli.py enrich "Ariel 2kg Pack"
 
     json <category> [--days N]
         Output results as JSON (useful for scripts)
@@ -222,9 +190,6 @@ EXAMPLES:
 
     # Output as JSON for automation
     python cli.py json phone --days 30 > phone_analysis.json
-
-    # Enrich product data
-    python cli.py enrich "Ariel 2kg Detergent Pack"
 
 For more information, see: client/README.md
 """)
@@ -292,15 +257,6 @@ async def main():
                     days = int(sys.argv[days_idx + 1])
             
             await cmd_forecast(category, days)
-        
-        elif command == "enrich":
-            if len(sys.argv) < 3:
-                print("❌ Error: Missing product name")
-                print("Usage: python cli.py enrich <product_name>")
-                return
-            
-            product_name = " ".join(sys.argv[2:])
-            await cmd_enrich(product_name)
         
         elif command == "json":
             if len(sys.argv) < 3:
