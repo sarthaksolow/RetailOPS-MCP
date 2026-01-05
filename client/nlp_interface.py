@@ -10,9 +10,18 @@ from pathlib import Path
 from dotenv import load_dotenv
 from openai import OpenAI
 
+# Add parent directory to path to find client modules
 sys.path.insert(0, str(Path(__file__).parent))
 
-from orchestrator import RetailOpsClient
+# Robust import: Try importing from 'client' or 'orchestrator'
+try:
+    from client import RetailOpsClient
+except ImportError:
+    try:
+        from orchestrator import RetailOpsClient
+    except ImportError:
+        print("❌ Error: Could not import RetailOpsClient. Ensure 'client.py' exists.")
+        sys.exit(1)
 
 load_dotenv()
 
@@ -43,24 +52,22 @@ class RetailOpsNLP:
         """Use LLM to understand user intent and extract parameters"""
         
         system_prompt = """You are a retail operations assistant. Your job is to understand user queries and extract:
-1. category: The product category (tv, laptop, phone, electronics, kitchen_appliances, fashion, groceries, smartphones)
-2. intent: What they want to know (pricing, forecast, inventory, full_analysis)
-3. context: Any specific context like events (diwali, christmas), time periods, etc.
+1. product_name: The specific product or category mentioned (e.g., "sony tv", "shoes", "iphone").
+2. intent: What they want to know (pricing, forecast, inventory, full_analysis).
+3. days_ahead: Number of days to look ahead (default 30).
+4. context: Any specific context like events (Diwali, Christmas).
 
-Respond ONLY with a JSON object. No markdown, no explanation, just pure JSON.
+Respond ONLY with a JSON object. No markdown, no explanation.
 
 Examples:
 User: "What discount should I give on TVs for Diwali?"
-Response: {"category": "tv", "intent": "pricing", "context": {"event": "diwali", "action": "discount"}}
+Response: {"product_name": "tv", "intent": "pricing", "days_ahead": 30, "context": {"event": "diwali"}}
 
-User: "How many laptops will I sell next month?"
-Response: {"category": "laptop", "intent": "forecast", "context": {"period": "next_month"}}
+User: "How many laptops will I sell in the next 2 months?"
+Response: {"product_name": "laptop", "intent": "forecast", "days_ahead": 60, "context": {}}
 
-User: "Should I reorder phones?"
-Response: {"category": "phone", "intent": "inventory", "context": {}}
-
-User: "Analyze electronics category"
-Response: {"category": "electronics", "intent": "full_analysis", "context": {}}
+User: "Analyze electronics"
+Response: {"product_name": "electronics", "intent": "full_analysis", "days_ahead": 30, "context": {}}
 """
         
         try:
@@ -96,11 +103,12 @@ Guidelines:
 - Use emojis sparingly but appropriately
 - Focus on actionable insights
 - Mention specific numbers from the data
-- Keep it concise (3-5 sentences for simple queries, more for complex)
 - Use Indian Rupee (₹) for prices
+- If the forecast mentions an event (like Diwali), highlight it.
 """
         
         user_prompt = f"""User asked: "{user_query}"
+User Intent Context: {json.dumps(understanding)}
 
 Here's the retail data I gathered:
 {json.dumps(data, indent=2)}
@@ -123,7 +131,7 @@ Please answer their question directly and conversationally."""
             
         except Exception as e:
             print(f"❌ Error generating answer: {e}")
-            return "Sorry, I couldn't generate a proper answer. But here's the raw data I found."
+            return "Sorry, I couldn't generate a proper answer. Please check the raw data below."
     
     async def ask(self, user_query: str) -> str:
         """Main method: Ask a question in natural language and get an answer"""
@@ -136,24 +144,24 @@ Please answer their question directly and conversationally."""
         print("🤔 Understanding your question...")
         understanding = await self.understand_query(user_query)
         
-        if not understanding or 'category' not in understanding:
-            return "❌ I couldn't understand your question. Could you rephrase it? Please mention a product category like TV, laptop, phone, etc."
+        if not understanding or 'product_name' not in understanding:
+            return "❌ I couldn't understand the product you are asking about. Please mention a product like TV, laptop, etc."
         
-        category = understanding['category']
+        product_name = understanding['product_name']
         intent = understanding.get('intent', 'full_analysis')
-        context = understanding.get('context', {})
+        days_ahead = understanding.get('days_ahead', 30)
         
-        print(f"✅ Got it! Category: {category}, Intent: {intent}")
+        print(f"✅ Got it! Product: '{product_name}', Intent: {intent}, Horizon: {days_ahead} days")
         
         # Step 2: Get data from servers
-        print(f"📊 Analyzing {category} data...\n")
+        # FIX: Always use run_full_workflow to ensure Enrichment happens first.
+        # This maps products (e.g. "TV") to categories ("Electronics") needed for forecasting.
+        print(f"📊 Running analysis for '{product_name}'...\n")
         
-        if intent == 'forecast':
-            data = await self.client.run_forecast_only(category)
-        elif intent in ['pricing', 'inventory', 'full_analysis']:
-            data = await self.client.run_full_workflow(category)
-        else:
-            data = await self.client.run_full_workflow(category)
+        data = await self.client.run_full_workflow(product_name, days_ahead=days_ahead)
+        
+        if data.get('status') == 'error':
+            return f"❌ Workflow failed: {data.get('error')}"
         
         # Step 3: Generate conversational answer
         print("💭 Generating answer...\n")
@@ -168,22 +176,34 @@ Please answer their question directly and conversationally."""
 
 """
         
-        # Add relevant data points
+        # Add relevant data points summary
         if data.get('status') == 'completed':
             full_response += f"""
-📊 Key Metrics:
+📊 Key Metrics for '{data.get('product_name')}':
 """
+            # Enrichment Info
+            if 'enrichment' in data and data['enrichment'].get('category'):
+                full_response += f"   • Category: {data['enrichment']['category'].title()}\n"
+                
+            # Forecast Info
             if 'forecast' in data:
                 full_response += f"   • Forecasted Demand: {data['forecast']['final']:.0f} units\n"
-                full_response += f"   • Event: {data['forecast']['event']}\n"
+                if data['forecast'].get('event') and data['forecast']['event'] != "None":
+                    full_response += f"   • Detected Event: {data['forecast']['event']}\n"
             
+            # Replenishment Info
             if 'replenishment' in data:
-                full_response += f"   • Reorder: {data['replenishment']['reorder_qty']} units ({data['replenishment']['timing']})\n"
-                full_response += f"   • Stock Risk: {data['replenishment']['stockout_risk']}\n"
+                reorder = data['replenishment'].get('reorder_qty', 0)
+                if reorder > 0:
+                    full_response += f"   • 📦 Action: Reorder {reorder} units ({data['replenishment'].get('timing')})\n"
+                else:
+                    full_response += f"   • 📦 Action: No reorder needed yet\n"
             
+            # Pricing Info
             if 'pricing' in data:
-                full_response += f"   • Current Price: ₹{data['pricing']['current_price']:,.0f}\n"
-                full_response += f"   • Recommended: ₹{data['pricing']['recommended_price']:,.0f} ({data['pricing']['change_pct']:+.1f}%)\n"
+                price = data['pricing'].get('recommended_price', 0)
+                change = data['pricing'].get('change_pct', 0)
+                full_response += f"   • 🏷️  Pricing: ₹{price:,.0f} ({change:+.1f}%)\n"
         
         full_response += f"\n{'='*70}"
         
@@ -198,8 +218,7 @@ Please answer their question directly and conversationally."""
         print("Examples:")
         print('  • "What discount should I give on TVs for Diwali?"')
         print('  • "How many phones will I sell next month?"')
-        print('  • "Should I reorder laptops?"')
-        print('  • "Analyze electronics category"')
+        print('  • "We are out of Ariel 2kg, what should I do?"')
         print("\nType 'exit' or 'quit' to leave.\n")
         
         while True:
