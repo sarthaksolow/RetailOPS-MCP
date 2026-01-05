@@ -10,6 +10,7 @@ import asyncio
 from pathlib import Path
 from typing import TypedDict, Annotated, Dict, Any, List
 from datetime import datetime
+import traceback
 
 from dotenv import load_dotenv
 from langgraph.graph import StateGraph, END
@@ -33,11 +34,11 @@ log(">>> Initializing RetailOps LangGraph Client")
 class RetailOpsState(TypedDict):
     """Complete state for retail operations workflow"""
     # Input
-    product_name: str  # New entry input
+    product_name: str
     days_ahead: int
     
-    # Enrichment outputs (New)
-    category: str      # Derived from enrichment
+    # Enrichment outputs
+    category: str
     brand: str
     description: str
     alternatives: List[Dict[str, Any]]
@@ -110,7 +111,6 @@ class MCPServerManager:
                 async with ClientSession(read, write) as session:
                     await session.initialize()
                     
-                    # Matches the structure from your working unit test
                     response = await session.call_tool(
                         "enrichProduct",
                         {
@@ -139,6 +139,9 @@ class MCPServerManager:
         log(f"📊 Calling Forecasting Server for {category}")
         
         try:
+            # Type safety
+            safe_days = int(days_ahead) if days_ahead is not None else 30
+            
             params = self.get_server_params("forecasting")
             
             async with stdio_client(params) as (read, write):
@@ -147,7 +150,7 @@ class MCPServerManager:
                     
                     response = await session.call_tool(
                         "getForecast",
-                        {"category": category, "days_ahead": days_ahead}
+                        {"category": category, "days_ahead": safe_days}
                     )
                     
                     if hasattr(response, 'content') and response.content:
@@ -160,8 +163,13 @@ class MCPServerManager:
             return {"error": "No forecast data received"}
             
         except Exception as e:
-            log(f"❌ Forecasting error: {e}")
-            return {"error": str(e)}
+            # Handle TaskGroup/AnyIO errors gracefully
+            err_msg = str(e)
+            if "TaskGroup" in err_msg or "subprocess" in err_msg:
+                log(f"❌ Forecasting Server Crash: {err_msg}")
+            else:
+                log(f"❌ Forecasting error: {err_msg}")
+            return {"error": err_msg}
     
     async def call_replenishment(self, forecast_data: Dict[str, Any], 
                                   current_stock: int = None,
@@ -169,15 +177,14 @@ class MCPServerManager:
         """Call replenishment server"""
         log(f"📦 Calling Replenishment Server")
         
-        # Realistic inventory levels by category
+        # Realistic inventory levels
         inventory_levels = {
             "tv": {"current": 45, "in_transit": 10},
             "laptop": {"current": 25, "in_transit": 5},
             "phone": {"current": 80, "in_transit": 20},
-            "kitchen_appliances": {"current": 120, "in_transit": 30},
+            "electronics": {"current": 150, "in_transit": 50},
             "fashion": {"current": 350, "in_transit": 50},
             "groceries": {"current": 800, "in_transit": 200},
-            "electronics": {"current": 450, "in_transit": 100},
         }
         
         category = forecast_data.get("category", "general")
@@ -241,7 +248,7 @@ class MCPServerManager:
         """Call pricing strategy server"""
         log(f"💰 Calling Pricing Strategy Server")
         
-        # Default prices by category
+        # Default prices
         default_prices = {
             "electronics": 9000,
             "tv": 28000,
@@ -250,7 +257,6 @@ class MCPServerManager:
             "kitchen_appliances": 5500,
             "fashion": 1500,
             "groceries": 220,
-            "general": 1000
         }
         
         if current_price is None:
@@ -305,50 +311,43 @@ async def enrichment_node(state: RetailOpsState) -> RetailOpsState:
     
     if "error" in enrich_result:
         state["errors"].append(f"Enrichment: {enrich_result['error']}")
-        # Fallback if enrichment fails
         state["category"] = "general"
         return state
 
-    # Update state
     state["category"] = enrich_result.get("category", "general")
     state["brand"] = enrich_result.get("brand", "Unknown")
     state["description"] = enrich_result.get("description", "")
     state["alternatives"] = enrich_result.get("alternatives", [])
     state["enrichment_narrative"] = enrich_result.get("narrative", "")
-    
     return state
 
 async def forecasting_node(state: RetailOpsState) -> RetailOpsState:
-    """Node 2: Get demand forecast using derived category"""
+    """Node 2: Get demand forecast"""
     category = state.get("category", "general")
     log(f"🔵 NODE 2: Forecasting for category '{category}'")
     
-    forecast_data = await server_manager.call_forecasting(
-        category,
-        state.get("days_ahead", 30)
-    )
+    # Cast days_ahead to int just in case
+    days = int(state.get("days_ahead", 30))
+    
+    forecast_data = await server_manager.call_forecasting(category, days)
     
     if "error" in forecast_data:
         state["errors"].append(f"Forecasting: {forecast_data['error']}")
         state["workflow_status"] = "failed_forecast"
         return state
     
-    # Update state
     state["forecast_data"] = forecast_data
     state["base_forecast"] = forecast_data.get("base_forecast", 0)
     state["final_forecast"] = forecast_data.get("final_forecast", 0)
     state["seasonal_multiplier"] = forecast_data.get("seasonal_multiplier", 1.0)
     state["event"] = forecast_data.get("event", "None")
     state["forecast_narrative"] = forecast_data.get("narrative", "")
-    
     return state
-
 
 async def replenishment_node(state: RetailOpsState) -> RetailOpsState:
     """Node 3: Get replenishment decision"""
     log(f"🔵 NODE 3: Replenishment Decision")
     
-    # Skip if forecast failed
     if state.get("workflow_status") == "failed_forecast":
         return state
     
@@ -363,28 +362,23 @@ async def replenishment_node(state: RetailOpsState) -> RetailOpsState:
         state["workflow_status"] = "failed_replenishment"
         return state
     
-    # Update state
     state["replenishment_data"] = replenish_data
     state["reorder_qty"] = replenish_data.get("reorder_qty", 0)
     state["reorder_timing"] = replenish_data.get("reorder_timing", "unknown")
     state["stockout_risk"] = replenish_data.get("stockout_risk", "unknown")
     state["replenishment_narrative"] = replenish_data.get("narrative", "")
-    
     return state
-
 
 async def pricing_node(state: RetailOpsState) -> RetailOpsState:
     """Node 4: Get pricing strategy"""
     log(f"🔵 NODE 4: Pricing Strategy")
     
-    # Skip if previous nodes failed
     if "failed" in state.get("workflow_status", ""):
         return state
     
     pricing_data = await server_manager.call_pricing(
         state["category"],
-        state["final_forecast"],
-        inventory_level=None
+        state["final_forecast"]
     )
     
     if "error" in pricing_data:
@@ -392,7 +386,6 @@ async def pricing_node(state: RetailOpsState) -> RetailOpsState:
         state["workflow_status"] = "failed_pricing"
         return state
     
-    # Update state
     state["pricing_data"] = pricing_data
     state["current_price"] = pricing_data.get("current_price", 0)
     state["recommended_price"] = pricing_data.get("recommended_price", 0)
@@ -405,69 +398,42 @@ async def pricing_node(state: RetailOpsState) -> RetailOpsState:
 
 
 # =====================================================
-# BUILD LANGGRAPH
+# GRAPH & CLIENT
 # =====================================================
 def build_retail_ops_graph():
-    """Build the orchestration graph"""
-    log("🔨 Building LangGraph workflow")
-    
     workflow = StateGraph(RetailOpsState)
-    
-    # Add nodes
     workflow.add_node("enrich", enrichment_node)
     workflow.add_node("forecast", forecasting_node)
     workflow.add_node("replenish", replenishment_node)
     workflow.add_node("price", pricing_node)
-    
-    # Set entry point
     workflow.set_entry_point("enrich")
-    
-    # Add edges (sequential flow)
     workflow.add_edge("enrich", "forecast")
     workflow.add_edge("forecast", "replenish")
     workflow.add_edge("replenish", "price")
     workflow.add_edge("price", END)
-    
-    # Compile
-    graph = workflow.compile()
-    log("✅ Graph compiled successfully")
-    
-    return graph
+    return workflow.compile()
 
-
-# =====================================================
-# CLIENT API
-# =====================================================
 class RetailOpsClient:
-    """Main client interface"""
-    
     def __init__(self):
         self.graph = build_retail_ops_graph()
-        log("🚀 RetailOps Client initialized")
     
     async def run_full_workflow(self, product_name: str, days_ahead: int = 30) -> Dict[str, Any]:
-        """Run complete workflow: Enrich → Forecast → Replenish → Price"""
-        log(f"\n{'='*60}")
-        log(f"🎯 Starting Full Workflow for '{product_name}'")
-        log(f"{'='*60}\n")
+        log(f"\n{'='*60}\n🎯 Starting Full Workflow for '{product_name}'\n{'='*60}\n")
         
-        # Initialize state
         initial_state = RetailOpsState(
             product_name=product_name,
-            days_ahead=days_ahead,
+            days_ahead=int(days_ahead),
             errors=[],
             workflow_status="running",
             timestamp=datetime.now().isoformat()
         )
         
-        # Run workflow
         try:
             final_state = await self.graph.ainvoke(initial_state)
             
-            # Format results
             result = {
                 "product_name": product_name,
-                "category": final_state.get("category", "unknown"),  # Added to root for test compatibility
+                "category": final_state.get("category"), # ROOT LEVEL
                 "timestamp": final_state.get("timestamp"),
                 "status": final_state.get("workflow_status"),
                 
@@ -477,82 +443,40 @@ class RetailOpsClient:
                     "description": final_state.get("description"),
                     "narrative": final_state.get("enrichment_narrative")
                 },
-                
                 "forecast": {
                     "final": final_state.get("final_forecast"),
                     "event": final_state.get("event"),
                     "narrative": final_state.get("forecast_narrative")
                 },
-                
                 "replenishment": {
                     "reorder_qty": final_state.get("reorder_qty"),
                     "timing": final_state.get("reorder_timing"),
                     "narrative": final_state.get("replenishment_narrative")
                 },
-                
                 "pricing": {
                     "recommended_price": final_state.get("recommended_price"),
                     "change_pct": final_state.get("price_change_pct"),
                     "narrative": final_state.get("pricing_narrative")
                 },
-                
                 "errors": final_state.get("errors", [])
             }
             
-            log(f"\n{'='*60}")
-            log(f"✅ Workflow Completed: {result['status']}")
-            log(f"{'='*60}\n")
-            
+            log(f"\n{'='*60}\n✅ Workflow Completed: {result['status']}\n{'='*60}\n")
             return result
-            
         except Exception as e:
             log(f"❌ Workflow failed: {e}")
-            import traceback
-            traceback.print_exc()
-            return {
-                "product_name": product_name,
-                "status": "error",
-                "error": str(e)
-            }
-            
+            return {"product_name": product_name, "status": "error", "error": str(e)}
+
+    # Helper methods restored for tests/NLP
     async def run_forecast_only(self, category: str, days_ahead: int = 30) -> Dict[str, Any]:
-        """Run only forecasting (helper method for tests)"""
-        return await server_manager.call_forecasting(category, days_ahead)
-    
+        """Direct call to forecasting server"""
+        return await server_manager.call_forecasting(category, int(days_ahead))
+
     async def run_batch_workflow(self, product_names: List[str], days_ahead: int = 30) -> List[Dict[str, Any]]:
-        """Run workflow for multiple products in parallel"""
+        """Run workflow in parallel"""
         log(f"\n🔄 Running batch workflow for {len(product_names)} products")
-        
         tasks = [self.run_full_workflow(name, days_ahead) for name in product_names]
-        results = await asyncio.gather(*tasks)
-        
-        log(f"✅ Batch processing complete")
-        return results
-
-
-# =====================================================
-# CLI INTERFACE
-# =====================================================
-async def main():
-    """CLI entry point"""
-    print("\n" + "="*60)
-    print("🛍️  RetailOps MCP Client - LangGraph Orchestrator")
-    print("="*60 + "\n")
-    
-    client = RetailOpsClient()
-    
-    # Example: Run full workflow for a specific product
-    # The enricher should map this to 'tv' or 'electronics' automatically
-    product_input = "Samsung 55 inch Smart TV"
-    
-    result = await client.run_full_workflow(product_input, days_ahead=30)
-    
-    # Pretty print results
-    print("\n📊 RESULTS:")
-    print("="*60)
-    print(json.dumps(result, indent=2))
-    print("="*60 + "\n")
-
+        return await asyncio.gather(*tasks)
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(RetailOpsClient().run_full_workflow("Samsung TV", 30))
