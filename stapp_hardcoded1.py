@@ -301,20 +301,65 @@ if process_query:
     elif st.session_state.script_step == 1 or "diwali" in process_query.lower():
         st.session_state.script_step = 2
         with st.chat_message("assistant", avatar="🤖"):
-            # AI Magic Status
-            with st.status("⚡ Orchestrating Retail Agents...", expanded=True) as status:
-                st.write("🧠 **Azure OpenAI** interpreting intent: 'Event Preparation'...")
-                time.sleep(1)
-                st.write("🔮 **Forecaster Agent:** Calculating demand surge...")
-                time.sleep(0.8)
-                st.write("📦 **Inventory Agent:** Checking supply chain lead times...")
-                time.sleep(0.8)
-                st.write("🏷️ **Pricing Agent:** Simulating elasticity...")
-                time.sleep(0.8)
-                status.update(label="Action Plan Generated", state="complete", expanded=False)
+            with st.status("🧬 Running `RetailOpsState` Workflow...", expanded=True) as status:
             
-            intro = "Based on the orchestration, here is your unified **Diwali Action Plan**. I have coordinated the forecast, inventory, and pricing agents."
+                # Node 1: Enricher
+                st.write("🔵 **Node 1: Catalog Enricher** (`enrichment_node`)")
+                time.sleep(0.5)
+                st.code(
+                    {
+                        "category": "Home Appliances",
+                        "event": "Diwali"
+                    },
+                    language="json"
+                )
+                
+                # Node 2: Forecasting
+                st.write("📊 **Node 2: Forecasting** (`forecasting_node`)")
+                time.sleep(0.5)
+                st.code(
+                    {
+                        "final_forecast": 12500,
+                        "seasonal_multiplier": 1.45
+                    },
+                    language="json"
+                )
+                
+                # Node 3: Replenishment
+                st.write("📦 **Node 3: Replenishment** (`replenishment_node`)")
+                time.sleep(0.5)
+                st.code(
+                    {
+                        "reorder_qty": 4200,
+                        "risk": "Medium"
+                    },
+                    language="json"
+                )
+                
+                # Node 4: Pricing
+                st.write("💰 **Node 4: Pricing Strategy** (`pricing_node`)")
+                time.sleep(0.5)
+                st.code(
+                    {
+                        "rec_price": 17999,
+                        "type": "Festive Discount"
+                    },
+                    language="json"
+                )
+                
+                status.update(
+                    label="Workflow Completed Successfully",
+                    state="complete",
+                    expanded=False
+                )
+
+            intro = (
+                "Based on the completed **RetailOpsState** workflow, here is your unified "
+                "**Diwali Action Plan**, combining enrichment, forecasting, replenishment, "
+                "and pricing intelligence."
+            )
             st.write_stream(stream_text(intro))
+
 
             # The Cards
             st.markdown("### 📋 Diwali Executive Plan")
