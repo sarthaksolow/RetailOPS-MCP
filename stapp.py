@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import asyncio
 import pandas as pd
@@ -172,9 +173,9 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Context
     st.markdown("📍 **Store Context**")
-    st.info("Mumbai Flagship Store")
+    store_name = os.getenv("RETAILOPS_STORE", "Mumbai Flagship Store")
+    st.info(store_name)
     
     col_s1, col_s2 = st.columns(2)
     with col_s1:
@@ -352,7 +353,7 @@ if process_query:
         with st.chat_message("assistant", avatar="🤖"):
             
             # 1. Run Backend (Attempt real logic)
-            target_product = "Samsung TV"
+            target_product = os.getenv("RETAILOPS_DEFAULT_PRODUCT", "Samsung TV")
             result = {} 
             
             # Execute Backend silently first to get data for logs

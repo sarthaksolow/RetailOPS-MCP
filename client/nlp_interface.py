@@ -45,6 +45,7 @@ class RetailOpsNLP:
                 "X-Title": "RetailOps NLP Interface"
             }
         )
+        self.llm_model = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3.1-8b-instruct")
         
         print("🤖 RetailOps NLP Interface initialized")
     
@@ -72,7 +73,7 @@ Response: {"product_name": "electronics", "intent": "full_analysis", "days_ahead
         
         try:
             response = self.llm.chat.completions.create(
-                model="meta-llama/llama-3.1-8b-instruct",
+                model=self.llm_model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_query}
@@ -117,7 +118,7 @@ Please answer their question directly and conversationally."""
         
         try:
             response = self.llm.chat.completions.create(
-                model="meta-llama/llama-3.1-8b-instruct",
+                model=self.llm_model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}

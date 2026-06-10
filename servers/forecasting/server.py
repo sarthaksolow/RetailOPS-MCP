@@ -65,6 +65,8 @@ else:
     log("⚠️ WARNING: OPENROUTER_API_KEY not set")
     client = None
 
+LLM_MODEL = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3.1-8b-instruct")
+
 
 def simple_moving_average(category, days=30):
     """Calculate simple moving average for a category"""
@@ -116,7 +118,7 @@ Keep it short, clear, and store-manager friendly.
 
     try:
         completion = client.chat.completions.create(
-            model="meta-llama/llama-3.1-8b-instruct",
+            model=LLM_MODEL,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=180,
         )

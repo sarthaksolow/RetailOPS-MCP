@@ -479,4 +479,6 @@ class RetailOpsClient:
         return await asyncio.gather(*tasks)
 
 if __name__ == "__main__":
-    asyncio.run(RetailOpsClient().run_full_workflow("Samsung TV", 30))
+    _product = os.getenv("RETAILOPS_DEFAULT_PRODUCT", "Samsung TV")
+    _days    = int(os.getenv("RETAILOPS_DEFAULT_DAYS", "30"))
+    asyncio.run(RetailOpsClient().run_full_workflow(_product, _days))

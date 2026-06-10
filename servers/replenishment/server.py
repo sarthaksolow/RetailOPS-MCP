@@ -27,6 +27,8 @@ client = OpenAI(
     }
 )
 
+LLM_MODEL = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3.1-8b-instruct")
+
 # -------------------------------------------------
 # MCP Init
 # -------------------------------------------------
@@ -151,7 +153,7 @@ Keep it concise (2–3 sentences).
 
     try:
         res = client.chat.completions.create(
-            model="meta-llama/llama-3.1-8b-instruct",
+            model=LLM_MODEL,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=120
         )

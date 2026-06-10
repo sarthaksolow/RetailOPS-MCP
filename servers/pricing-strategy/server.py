@@ -38,6 +38,8 @@ if api_key:
 else:
     log("⚠️ OPENROUTER_API_KEY not found – running fallback mode")
 
+LLM_MODEL = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3.1-8b-instruct")
+
 # =====================================================
 # MCP INIT
 # =====================================================
@@ -155,7 +157,7 @@ Explain this pricing decision clearly in 2 sentences.
 
     try:
         res = client.chat.completions.create(
-            model="meta-llama/llama-3.1-8b-instruct",
+            model=LLM_MODEL,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=120
         )

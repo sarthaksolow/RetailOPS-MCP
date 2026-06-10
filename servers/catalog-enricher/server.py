@@ -22,6 +22,7 @@ log(">>> Loading Catalog Enricher MCP Server")
 # OpenRouter Client
 # =====================================================
 api_key = os.getenv("OPENROUTER_API_KEY")
+LLM_MODEL = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3.1-8b-instruct")
 
 client = None
 if api_key:
@@ -174,7 +175,7 @@ Respond with ONLY the category name, nothing else.
     
     try:
         response = client.chat.completions.create(
-            model="meta-llama/llama-3.1-8b-instruct",
+            model=LLM_MODEL,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=20,
             temperature=0.1
@@ -220,7 +221,7 @@ def extract_attributes_node(state: CatalogEnrichmentState):
 Be concise and professional."""
             try:
                 response = client.chat.completions.create(
-                    model="meta-llama/llama-3.1-8b-instruct",
+                    model=LLM_MODEL,
                     messages=[{"role": "user", "content": prompt}],
                     max_tokens=60
                 )
@@ -325,7 +326,7 @@ Example: [{{"name": "Surf Excel 2kg", "brand": "Surf Excel", "reason": "Similar 
         
         try:
             response = client.chat.completions.create(
-                model="meta-llama/llama-3.1-8b-instruct",
+                model=LLM_MODEL,
                 messages=[{"role": "user", "content": prompt}],
                 max_tokens=200
             )
@@ -375,7 +376,7 @@ Provide a concise summary (2-3 sentences) of the enrichment work done.
     
     try:
         response = client.chat.completions.create(
-            model="meta-llama/llama-3.1-8b-instruct",
+            model=LLM_MODEL,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=150
         )
