@@ -1,0 +1,10 @@
+# Consolidated requirements for RetailOPS-MCP deployment
+streamlit>=1.35.0
+altair>=5.3.0
+pandas>=2.0.0
+numpy>=1.24.0
+fastmcp>=2.13.1
+langgraph>=0.2.0
+openai>=2.8.1
+python-dotenv>=1.2.1
+mcp>=1.0.0
