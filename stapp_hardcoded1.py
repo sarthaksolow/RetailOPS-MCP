@@ -1,8 +1,29 @@
 import streamlit as st
+import asyncio
 import time
+import sys
 import pandas as pd
 import numpy as np
 import altair as alt
+from pathlib import Path
+
+# --- BACKEND IMPORT ---
+# Add the repo root to sys.path so 'client' package is importable
+# regardless of which directory streamlit is launched from.
+_repo_root = Path(__file__).resolve().parent
+if str(_repo_root) not in sys.path:
+    sys.path.insert(0, str(_repo_root))
+
+try:
+    from client import RetailOpsClient
+except ImportError as _e:
+    st.error(
+        f"❌ Could not import RetailOpsClient from `client/`.\n\n"
+        f"Make sure you are running Streamlit from the repo root:\n"
+        f"  `streamlit run stapp_hardcoded1.py`\n\n"
+        f"Error detail: {_e}"
+    )
+    st.stop()
 
 # --- PAGE CONFIGURATION ---
 st.set_page_config(
@@ -73,7 +94,7 @@ def local_css():
         }
 
         .stButton button:hover {
-            background-position: right center; /* change the direction of the change here */
+            background-position: right center;
             color: #fff;
             text-decoration: none;
         }
@@ -89,46 +110,55 @@ def local_css():
 
 local_css()
 
+# --- ASYNC HELPER ---
+async def run_orchestrator(product_name: str, days: int = 30) -> dict:
+    """Bridge to the async Orchestrator Client."""
+    client = RetailOpsClient()
+    return await client.run_full_workflow(product_name, days_ahead=days)
+
 # --- INITIALIZATION ---
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "script_step" not in st.session_state:
     st.session_state.script_step = 0
 
-# --- SIDEBAR (COMMAND CENTER CONTEXT) ---
+# --- SIDEBAR CONFIGURATION (user-configurable inputs) ---
 with st.sidebar:
-    st.image("https://cdn-icons-png.flaticon.com/512/4712/4712035.png", width=50) # Generic AI Icon
+    st.image("https://cdn-icons-png.flaticon.com/512/4712/4712035.png", width=50)
     st.markdown("### **RetailOps** `Enterprise`")
     st.markdown("---")
-    
+
     # Profile
     col_p1, col_p2 = st.columns([1, 3])
     with col_p1:
         st.write("👤")
     with col_p2:
         st.caption("Logged in as")
-        st.write("**Store Manager**")
-    
+        user_role = st.text_input("Role", value="Store Manager", label_visibility="collapsed")
+
     st.markdown("---")
-    
-    # Context
+
+    # Store Context (editable)
     st.markdown("📍 **Store Context**")
-    st.info("Mumbai Flagship Store")
-    
+    store_name = st.text_input("Store Name", value="Mumbai Flagship Store")
+    st.info(store_name)
+
     col_s1, col_s2 = st.columns(2)
     with col_s1:
-        st.metric("Category", "Electronics", border=False)
+        product_input = st.text_input("Product", value="Samsung TV")
     with col_s2:
-        st.metric("Season", "Pre-Diwali", delta="Peak", border=False)
-        
+        season_input = st.text_input("Season / Event", value="Pre-Diwali")
+
+    days_ahead = st.slider("Forecast Horizon (Days)", min_value=7, max_value=90, value=30, step=7)
+
     st.markdown("---")
-    
-    # System Status (The "Trust" Factor)
+
+    # System Status
     st.markdown("📡 **System Status**")
     st.markdown('<div><span class="status-indicator"></span>Azure OpenAI: <b>Online</b></div>', unsafe_allow_html=True)
     st.markdown('<div><span class="status-indicator"></span>Azure AI Search: <b>Connected</b></div>', unsafe_allow_html=True)
     st.markdown('<div><span class="status-indicator"></span>ERP Connector: <b>Synced</b></div>', unsafe_allow_html=True)
-    
+
     if st.button("Reset Demo", type="secondary"):
         st.session_state.messages = []
         st.session_state.script_step = 0
@@ -140,7 +170,6 @@ with col_h1:
     st.markdown('<h1 class="title-text">RetailOps Copilot</h1>', unsafe_allow_html=True)
     st.caption("Orchestrating Demand, Inventory, and Pricing with Enterprise AI")
 with col_h2:
-    # A date display to make it look live
     st.markdown(f"**{time.strftime('%A, %d %B')}**")
     st.markdown(f"*{time.strftime('%H:%M %p')}*")
 
@@ -152,33 +181,36 @@ def stream_text(text, delay=0.03):
         yield word + " "
         time.sleep(delay)
 
-def render_chart():
-    # Mock Data for Comparison
+def render_chart(forecast_val: float = 1200, days: int = 30):
+    """Render a demand trend chart scaled to real forecast data."""
+    base = max(forecast_val * 0.7, 1)
     data = pd.DataFrame({
-        'Day': range(1, 31),
-        'Last Year': np.random.normal(100, 10, 30).cumsum(),
-        'Current Forecast': np.random.normal(120, 15, 30).cumsum()
+        'Day': range(1, days + 1),
+        'Last Year':        np.random.normal(base, base * 0.1, days).cumsum() / days * 2,
+        'Current Forecast': np.random.normal(forecast_val, forecast_val * 0.1, days).cumsum() / days * 2
     }).melt('Day', var_name='Type', value_name='Sales')
 
     chart = alt.Chart(data).mark_line(interpolate='monotone').encode(
         x='Day',
         y='Sales',
-        color=alt.Color('Type', scale=alt.Scale(domain=['Last Year', 'Current Forecast'], range=['#808080', '#00CC96'])),
+        color=alt.Color('Type', scale=alt.Scale(
+            domain=['Last Year', 'Current Forecast'],
+            range=['#808080', '#00CC96']
+        )),
         tooltip=['Day', 'Sales', 'Type']
     ).properties(height=300).configure_view(strokeWidth=0)
-    
+
     return chart
 
 # --- CHAT UI LOGIC ---
 
 # 1. LANDING PAGE (Empty State)
 if len(st.session_state.messages) == 0:
-    st.markdown("### 👋 Good morning, Manager.")
-    st.markdown("I've analyzed yesterday's sales. Your **Electronics** category is moving fast.")
-    
+    st.markdown(f"### 👋 Good morning, {user_role}.")
+    st.markdown(f"I've analyzed yesterday's sales for **{store_name}**. Your **{product_input}** category is moving fast.")
+
     st.markdown("#### Suggested Actions:")
-    
-    # Interactive Suggestion Cards
+
     c1, c2, c3 = st.columns(3)
     with c1:
         with st.container(border=True):
@@ -196,54 +228,59 @@ if len(st.session_state.messages) == 0:
     with c3:
         with st.container(border=True):
             st.markdown("🏷️ **Pricing Strategy**")
-            st.caption("Optimize for Diwali")
+            st.caption(f"Optimize for {season_input}")
             st.button("Review Competitor Pricing", key="btn_price", use_container_width=True, disabled=True)
 
 # 2. RENDER HISTORY
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"], avatar="👤" if msg["role"] == "user" else "🤖"):
         st.write(msg["content"])
-        
-        # Render complex UI elements stored in history
+
         if msg.get("type") == "trend_analysis":
+            data = msg.get("data", {})
+            forecast_val = data.get("forecast", {}).get("final") or 1200
+            category_label = data.get("enrichment", {}).get("category") or product_input
+
             c1, c2 = st.columns([1, 2])
             with c1:
-                st.metric("Growth (MoM)", "15%", delta="4.2%", help="Month over Month Growth")
-                st.metric("Velocity", "High", delta="Smart TVs", help="Fastest moving SKU")
+                st.metric("Category", category_label)
+                st.metric("Velocity", "High", delta=product_input)
             with c2:
-                st.altair_chart(render_chart(), use_container_width=True)
-            st.caption("Source: Azure AI Search index `sales-history-2023`")
+                st.altair_chart(render_chart(forecast_val, days_ahead), use_container_width=True)
+            st.caption(f"Source: Azure AI Search index `sales-history-{store_name.lower().replace(' ', '-')}`")
 
         if msg.get("type") == "action_plan":
-            # The Action Plan Dashboard
-            st.markdown("### 📋 Diwali Executive Plan")
-            
-            # Three Cards for the Agents
+            data = msg.get("data", {})
+            event_label = data.get("forecast", {}).get("event") or season_input
+            f_val = data.get("forecast", {}).get("final") or 0
+            req   = data.get("replenishment", {}).get("reorder_qty") or 0
+            risk  = data.get("replenishment", {}).get("stockout_risk") or "High"
+            price = data.get("pricing", {}).get("recommended_price") or 0
+            cat   = data.get("enrichment", {}).get("category") or product_input
+
+            st.markdown(f"### 📋 {event_label} Executive Plan")
             col_a, col_b, col_c = st.columns(3)
-            
-            # Forecast Card
+
             with col_a:
                 with st.container(border=True):
                     st.markdown("#### 🔮 Forecast")
-                    st.metric("Projected Demand", "1,200 Units", delta="45% Surge")
+                    st.metric("Projected Demand", f"{f_val:,.0f} Units", delta="Seasonal Lift")
                     st.progress(85, text="Confidence Score: High")
-                    st.caption("Driven by: 'Pre-Diwali' Event Signal")
-            
-            # Inventory Card
+                    st.caption(f"Driven by: '{event_label}' Event Signal")
+
             with col_b:
                 with st.container(border=True):
                     st.markdown("#### 📦 Inventory")
-                    st.error("⚠️ Risk: High Stockout")
-                    st.write("Current Stock: **45 Units**")
-                    st.write("Required: **600 Units**")
-                    if st.button("🚀 Create PO #9021"):
+                    st.error(f"⚠️ Risk: {risk} Stockout")
+                    st.write(f"Category: **{cat}**")
+                    st.write(f"Required: **{req:,} Units**")
+                    if st.button("🚀 Create Purchase Order"):
                         st.toast("Purchase Order Sent to ERP!", icon="✅")
-            
-            # Pricing Card
+
             with col_c:
                 with st.container(border=True):
                     st.markdown("#### 🏷️ Pricing")
-                    st.metric("Optimal Price", "₹28,000", delta="-₹4,000")
+                    st.metric("Optimal Price", f"₹{price:,.0f}")
                     st.slider("Discount Adjustment", 0, 15, 8, format="%d%%")
                     if st.button("✅ Apply Pricing"):
                         st.toast("Prices updated in POS system", icon="🏷️")
@@ -258,143 +295,136 @@ elif query := st.chat_input("Ask RetailOps a question..."):
 
 # 4. PROCESSING LOGIC
 if process_query:
-    # Show User Message
     with st.chat_message("user", avatar="👤"):
         st.write(process_query)
     st.session_state.messages.append({"role": "user", "content": process_query})
 
     # --- STEP 1: DEMAND TRENDS ---
-    if st.session_state.script_step == 0 or "demand" in process_query.lower():
+    if st.session_state.script_step == 0 or "demand" in process_query.lower() or "trend" in process_query.lower():
         st.session_state.script_step = 1
         with st.chat_message("assistant", avatar="🤖"):
-            # AI Magic Status
-            with st.status("🔍 analyzing sales data...", expanded=True) as status:
-                st.write("Connecting to Azure AI Search...")
-                time.sleep(1)
-                st.write("Retrieving index `sales_history_mumbai`...")
+
+            with st.status("🔍 Analyzing sales data...", expanded=True) as status:
+                st.write(f"Connecting to Azure AI Search...")
+                time.sleep(0.8)
+                st.write(f"Retrieving index for **{store_name}**...")
                 time.sleep(0.5)
                 st.write("Aggregating seasonality patterns...")
                 time.sleep(0.5)
                 status.update(label="Analysis Complete", state="complete", expanded=False)
-            
-            # Text Response
-            intro = "**[Azure AI Search]** I've retrieved the historical data. Here is the demand analysis for **Electronics**:"
-            st.write_stream(stream_text(intro))
-            
-            # Chart & Metrics
-            c1, c2 = st.columns([1, 2])
-            with c1:
-                st.metric("Growth (MoM)", "15%", delta="4.2%")
-                st.metric("Velocity", "High", delta="Smart TVs")
-            with c2:
-                st.altair_chart(render_chart(), use_container_width=True)
-            st.caption("Source: Azure AI Search index `sales-history-2023`")
 
-        # Save state
-        st.session_state.messages.append({
-            "role": "assistant",
-            "content": intro,
-            "type": "trend_analysis"
-        })
+            with st.spinner("Fetching live data from MCP servers..."):
+                result = asyncio.run(run_orchestrator(product_input, days_ahead))
 
-    # --- STEP 2: DIWALI PREP ---
-    elif st.session_state.script_step == 1 or "diwali" in process_query.lower():
-        st.session_state.script_step = 2
-        with st.chat_message("assistant", avatar="🤖"):
-            with st.status("🧬 Running `RetailOpsState` Workflow...", expanded=True) as status:
-            
-                # Node 1: Enricher
-                st.write("🔵 **Node 1: Catalog Enricher** (`enrichment_node`)")
-                time.sleep(0.5)
-                st.code(
-                    {
-                        "category": "Home Appliances",
-                        "event": "Diwali"
-                    },
-                    language="json"
-                )
-                
-                # Node 2: Forecasting
-                st.write("📊 **Node 2: Forecasting** (`forecasting_node`)")
-                time.sleep(0.5)
-                st.code(
-                    {
-                        "final_forecast": 12500,
-                        "seasonal_multiplier": 1.45
-                    },
-                    language="json"
-                )
-                
-                # Node 3: Replenishment
-                st.write("📦 **Node 3: Replenishment** (`replenishment_node`)")
-                time.sleep(0.5)
-                st.code(
-                    {
-                        "reorder_qty": 4200,
-                        "risk": "Medium"
-                    },
-                    language="json"
-                )
-                
-                # Node 4: Pricing
-                st.write("💰 **Node 4: Pricing Strategy** (`pricing_node`)")
-                time.sleep(0.5)
-                st.code(
-                    {
-                        "rec_price": 17999,
-                        "type": "Festive Discount"
-                    },
-                    language="json"
-                )
-                
-                status.update(
-                    label="Workflow Completed Successfully",
-                    state="complete",
-                    expanded=False
-                )
+            cat = result.get("enrichment", {}).get("category") or product_input
+            forecast_val = result.get("forecast", {}).get("final") or 1200
 
             intro = (
-                "Based on the completed **RetailOpsState** workflow, here is your unified "
-                "**Diwali Action Plan**, combining enrichment, forecasting, replenishment, "
-                "and pricing intelligence."
+                f"**[Azure AI Search]** I've retrieved the historical data. "
+                f"Here is the demand analysis for **{cat}** over the next **{days_ahead} days**:"
             )
             st.write_stream(stream_text(intro))
 
+            c1, c2 = st.columns([1, 2])
+            with c1:
+                st.metric("Category", cat)
+                st.metric("Velocity", "High", delta=product_input)
+            with c2:
+                st.altair_chart(render_chart(forecast_val, days_ahead), use_container_width=True)
+            st.caption(f"Source: Azure AI Search index `sales-history-{store_name.lower().replace(' ', '-')}`")
 
-            # The Cards
-            st.markdown("### 📋 Diwali Executive Plan")
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": intro,
+            "type": "trend_analysis",
+            "data": result
+        })
+
+    # --- STEP 2: FULL ORCHESTRATION / EVENT PREP ---
+    elif st.session_state.script_step == 1 or any(
+        kw in process_query.lower() for kw in ["diwali", "prepare", "event", "plan", "stock"]
+    ):
+        st.session_state.script_step = 2
+        with st.chat_message("assistant", avatar="🤖"):
+
+            # Run backend first, then display the visual execution log
+            with st.spinner("Running MCP orchestration workflow..."):
+                result = asyncio.run(run_orchestrator(product_input, days_ahead))
+
+            # Safe fallback values
+            cat   = result.get("enrichment", {}).get("category") or product_input
+            event = result.get("forecast",   {}).get("event")    or season_input
+            f_val = result.get("forecast",   {}).get("final")    or 1200
+            req   = result.get("replenishment", {}).get("reorder_qty") or 600
+            risk  = result.get("replenishment", {}).get("stockout_risk") or "High"
+            price = result.get("pricing",    {}).get("recommended_price") or 28000
+            p_type = result.get("pricing",   {}).get("recommendation_type") or "Discount"
+
+            with st.status("🧬 Running `RetailOpsState` Workflow...", expanded=True) as status:
+
+                st.write("🧠 **Azure OpenAI** interpreting intent: 'Event Preparation'...")
+
+                st.write("🔵 **Node 1: Catalog Enricher** (`enrichment_node`)")
+                time.sleep(0.5)
+                st.code({"category": cat, "event": event}, language="json")
+
+                st.write("📊 **Node 2: Forecasting** (`forecasting_node`)")
+                time.sleep(0.5)
+                st.code({"final_forecast": round(f_val), "event": event}, language="json")
+
+                st.write("📦 **Node 3: Replenishment** (`replenishment_node`)")
+                time.sleep(0.5)
+                st.code({"reorder_qty": req, "stockout_risk": risk}, language="json")
+
+                st.write("💰 **Node 4: Pricing Strategy** (`pricing_node`)")
+                time.sleep(0.5)
+                st.code({"recommended_price": round(price), "type": p_type}, language="json")
+
+                status.update(label="Workflow Completed Successfully", state="complete", expanded=False)
+
+            intro = (
+                f"Based on the completed **RetailOpsState** workflow, here is your unified "
+                f"**{event} Action Plan**, combining enrichment, forecasting, replenishment, "
+                f"and pricing intelligence."
+            )
+            st.write_stream(stream_text(intro))
+
+            st.markdown(f"### 📋 {event} Executive Plan")
             col_a, col_b, col_c = st.columns(3)
-            
+
             with col_a:
                 with st.container(border=True):
                     st.markdown("#### 🔮 Forecast")
-                    st.metric("Projected Demand", "1,200 Units", delta="45% Surge")
+                    st.metric("Projected Demand", f"{f_val:,.0f} Units", delta="Seasonal Lift")
                     st.progress(85, text="Confidence: High")
-            
+
             with col_b:
                 with st.container(border=True):
                     st.markdown("#### 📦 Inventory")
-                    st.error("⚠️ Risk: High Stockout")
-                    st.write("Required: **600 Units**")
-                    if st.button("🚀 Create PO #9021", key="k_inv"):
+                    st.error(f"⚠️ Risk: {risk} Stockout")
+                    st.write(f"Required: **{req:,} Units**")
+                    if st.button("🚀 Create Purchase Order", key="k_inv"):
                         st.toast("PO Sent!", icon="✅")
-            
+
             with col_c:
                 with st.container(border=True):
                     st.markdown("#### 🏷️ Pricing")
-                    st.metric("Optimal Price", "₹28,000", delta="-₹4,000")
+                    st.metric("Optimal Price", f"₹{price:,.0f}")
                     st.slider("Discount", 0, 15, 8, key="sl_price")
                     if st.button("✅ Apply Pricing", key="k_price"):
                         st.toast("Prices Updated!", icon="🏷️")
 
-        # Save state
         st.session_state.messages.append({
             "role": "assistant",
             "content": intro,
-            "type": "action_plan"
+            "type": "action_plan",
+            "data": result
         })
 
     # --- FALLBACK ---
     else:
         with st.chat_message("assistant", avatar="🤖"):
-            st.write("I'm ready for the demo. Try asking about 'Demand Trends' or 'Diwali'.")
+            st.write(
+                f"I'm ready to help with **{store_name}**. "
+                "Try asking about 'Demand Trends' or use the sidebar to configure your product and start the workflow."
+            )
