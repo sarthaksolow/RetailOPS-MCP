@@ -15,7 +15,8 @@
     "start:enricher": "node dist/servers/catalog-enricher/server.js",
     "start:dashboard": "tsx src/client/server.ts",
     "cli": "tsx src/client/cli.ts",
-    "test:integration": "tsx tests/integration.test.ts"
+    "test:integration": "tsx tests/integration.test.ts",
+    "test:stress": "tsx tests/stress_test.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.1",

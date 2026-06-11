@@ -85,12 +85,22 @@ export class MCPServerManager {
           },
         });
 
+        const resp = response as any;
+        if (resp.isError) {
+          const errMsg = resp.content?.[0]?.type === "text" ? resp.content[0].text : "Unknown MCP error";
+          return { error: errMsg };
+        }
+
         if (response && response.content) {
           for (const content of (response.content as any[])) {
             if (content.type === "text" && content.text) {
-              const result = JSON.parse(content.text);
-              console.error(`[CLIENT] Enriched: Mapped to category '${result.category}'`);
-              return result;
+              try {
+                const result = JSON.parse(content.text);
+                console.error(`[CLIENT] Enriched: Mapped to category '${result.category}'`);
+                return result;
+              } catch (parseErr) {
+                return { error: `Failed to parse MCP response: ${content.text}` };
+              }
             }
           }
         }
@@ -114,12 +124,22 @@ export class MCPServerManager {
           },
         });
 
+        const resp = response as any;
+        if (resp.isError) {
+          const errMsg = resp.content?.[0]?.type === "text" ? resp.content[0].text : "Unknown MCP error";
+          return { error: errMsg };
+        }
+
         if (response && response.content) {
           for (const content of (response.content as any[])) {
             if (content.type === "text" && content.text) {
-              const result = JSON.parse(content.text);
-              console.error(`[CLIENT] Forecast received: ${result.final_forecast}`);
-              return result;
+              try {
+                const result = JSON.parse(content.text);
+                console.error(`[CLIENT] Forecast received: ${result.final_forecast}`);
+                return result;
+              } catch (parseErr) {
+                return { error: `Failed to parse MCP response: ${content.text}` };
+              }
             }
           }
         }
@@ -153,15 +173,41 @@ export class MCPServerManager {
       const actualCurrent = currentStock !== undefined ? currentStock : inv.current;
       const actualInTransit = inTransit !== undefined ? inTransit : inv.inTransit;
 
+      // Robustly parse the input structure which may come from the workflow or the stress test.
+      const forecasted_demand = forecastData.forecasted_demand !== undefined 
+        ? forecastData.forecasted_demand 
+        : (forecastData.final_forecast !== undefined ? forecastData.final_forecast : 0);
+
+      const avg_daily_demand = forecastData.avg_daily_demand !== undefined 
+        ? forecastData.avg_daily_demand 
+        : (forecasted_demand / 30);
+
+      const demand_volatility = forecastData.demand_volatility !== undefined
+        ? forecastData.demand_volatility
+        : "medium";
+
+      let eventName: string | null = null;
+      let eventDays: number | null = null;
+
+      if (forecastData.event) {
+        if (typeof forecastData.event === "object") {
+          eventName = forecastData.event.name || null;
+          eventDays = forecastData.event.days_to_event !== undefined ? forecastData.event.days_to_event : null;
+        } else if (typeof forecastData.event === "string") {
+          eventName = forecastData.event;
+          eventDays = 10;
+        }
+      }
+
       const replenishInput = {
         category,
         forecast: {
-          forecasted_demand: forecastData.final_forecast,
-          avg_daily_demand: (forecastData.final_forecast || 0) / 30,
-          demand_volatility: "medium",
+          forecasted_demand,
+          avg_daily_demand,
+          demand_volatility,
           event: {
-            name: forecastData.event || null,
-            days_to_event: forecastData.event ? 10 : null,
+            name: eventName,
+            days_to_event: eventDays,
           },
         },
         inventory: {
@@ -182,12 +228,22 @@ export class MCPServerManager {
           },
         });
 
+        const resp = response as any;
+        if (resp.isError) {
+          const errMsg = resp.content?.[0]?.type === "text" ? resp.content[0].text : "Unknown MCP error";
+          return { error: errMsg };
+        }
+
         if (response && response.content) {
           for (const content of (response.content as any[])) {
             if (content.type === "text" && content.text) {
-              const result = JSON.parse(content.text);
-              console.error(`[CLIENT] Replenishment: ${result.reorder_qty} units`);
-              return result;
+              try {
+                const result = JSON.parse(content.text);
+                console.error(`[CLIENT] Replenishment: ${result.reorder_qty} units`);
+                return result;
+              } catch (parseErr) {
+                return { error: `Failed to parse MCP response: ${content.text}` };
+              }
             }
           }
         }
@@ -236,12 +292,22 @@ export class MCPServerManager {
           },
         });
 
+        const resp = response as any;
+        if (resp.isError) {
+          const errMsg = resp.content?.[0]?.type === "text" ? resp.content[0].text : "Unknown MCP error";
+          return { error: errMsg };
+        }
+
         if (response && response.content) {
           for (const content of (response.content as any[])) {
             if (content.type === "text" && content.text) {
-              const result = JSON.parse(content.text);
-              console.error(`[CLIENT] Pricing: recommended ${result.recommended_price}`);
-              return result;
+              try {
+                const result = JSON.parse(content.text);
+                console.error(`[CLIENT] Pricing: recommended ${result.recommended_price}`);
+                return result;
+              } catch (parseErr) {
+                return { error: `Failed to parse MCP response: ${content.text}` };
+              }
             }
           }
         }
