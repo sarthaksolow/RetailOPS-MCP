@@ -3,6 +3,7 @@
 This guide defines the commands, conventions, architecture, and coding standards for the RetailOps TypeScript MCP project.
 
 ---
+agy --conversation=608fcf84-04d7-48e8-ba2d-9540976550c2
 
 ## 🛠️ Build and Run Commands
 
