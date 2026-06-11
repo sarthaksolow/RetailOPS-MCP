@@ -1,0 +1,139 @@
+{
+  "suppliers": [
+    {
+      "id": "SUP-001",
+      "name": "TechDistributors India",
+      "category": "electronics",
+      "leadTimeDays": 7,
+      "costPerUnit": 8500,
+      "minOrderQty": 10,
+      "reliability": 0.92
+    },
+    {
+      "id": "SUP-002",
+      "name": "Redington India Ltd",
+      "category": "electronics",
+      "leadTimeDays": 5,
+      "costPerUnit": 9200,
+      "minOrderQty": 5,
+      "reliability": 0.95
+    },
+    {
+      "id": "SUP-003",
+      "name": "Rashi Peripherals (Backup)",
+      "category": "electronics",
+      "leadTimeDays": 12,
+      "costPerUnit": 9800,
+      "minOrderQty": 3,
+      "reliability": 0.98
+    },
+    {
+      "id": "SUP-004",
+      "name": "Arvind Fashions Wholesale",
+      "category": "fashion",
+      "leadTimeDays": 10,
+      "costPerUnit": 750,
+      "minOrderQty": 50,
+      "reliability": 0.88
+    },
+    {
+      "id": "SUP-005",
+      "name": "Manyavar Vendor Direct",
+      "category": "fashion",
+      "leadTimeDays": 8,
+      "costPerUnit": 820,
+      "minOrderQty": 30,
+      "reliability": 0.90
+    },
+    {
+      "id": "SUP-006",
+      "name": "Fabrics Bazaar India (Backup)",
+      "category": "fashion",
+      "leadTimeDays": 15,
+      "costPerUnit": 950,
+      "minOrderQty": 20,
+      "reliability": 0.97
+    },
+    {
+      "id": "SUP-007",
+      "name": "Amul Dairy Federation",
+      "category": "grocery",
+      "leadTimeDays": 2,
+      "costPerUnit": 42,
+      "minOrderQty": 200,
+      "reliability": 0.94
+    },
+    {
+      "id": "SUP-008",
+      "name": "ITC Food Products Distributor",
+      "category": "grocery",
+      "leadTimeDays": 3,
+      "costPerUnit": 48,
+      "minOrderQty": 150,
+      "reliability": 0.91
+    },
+    {
+      "id": "SUP-009",
+      "name": "Reliance Agro Supply (Backup)",
+      "category": "grocery",
+      "leadTimeDays": 5,
+      "costPerUnit": 55,
+      "minOrderQty": 100,
+      "reliability": 0.99
+    },
+    {
+      "id": "SUP-010",
+      "name": "Prestige Kitchen Wholesale",
+      "category": "home",
+      "leadTimeDays": 9,
+      "costPerUnit": 1100,
+      "minOrderQty": 15,
+      "reliability": 0.87
+    },
+    {
+      "id": "SUP-011",
+      "name": "Milton Housewares Direct",
+      "category": "home",
+      "leadTimeDays": 7,
+      "costPerUnit": 420,
+      "minOrderQty": 25,
+      "reliability": 0.93
+    },
+    {
+      "id": "SUP-012",
+      "name": "HomeMart Distributors (Backup)",
+      "category": "home",
+      "leadTimeDays": 14,
+      "costPerUnit": 1350,
+      "minOrderQty": 10,
+      "reliability": 0.97
+    },
+    {
+      "id": "SUP-013",
+      "name": "Nivia Sports India",
+      "category": "sports",
+      "leadTimeDays": 8,
+      "costPerUnit": 380,
+      "minOrderQty": 20,
+      "reliability": 0.89
+    },
+    {
+      "id": "SUP-014",
+      "name": "Adidas India Authorized Vendor",
+      "category": "sports",
+      "leadTimeDays": 6,
+      "costPerUnit": 2100,
+      "minOrderQty": 12,
+      "reliability": 0.93
+    },
+    {
+      "id": "SUP-015",
+      "name": "SportZone Wholesale (Backup)",
+      "category": "sports",
+      "leadTimeDays": 13,
+      "costPerUnit": 2400,
+      "minOrderQty": 8,
+      "reliability": 0.98
+    }
+  ]
+}

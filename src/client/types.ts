@@ -114,3 +114,103 @@ export interface WorkflowResult {
   };
   errors: string[];
 }
+
+// Agent system types - autonomous loop v2
+
+export type ActionTier = 'auto' | 'review' | 'quarantine';
+
+export type LogisticsEventType = 'delayed' | 'partial' | 'rejected';
+
+export interface LogisticsEvent {
+  type: LogisticsEventType;
+  qty?: number;
+  estimatedResolution?: string;
+}
+
+export interface CompositeScore {
+  marginScore: number;
+  volumeScore: number;
+  stockoutPenalty: number;
+  finalScore: number;
+  actionTier: ActionTier;
+}
+
+export interface AuditResult {
+  cleaned: number;
+  flagged: number;
+  quarantined: number;
+  anomaliesFixed: number;
+  confidenceMap: Record<string, number>;
+  rows: SalesRow[];
+}
+
+export interface SalesRow {
+  date: string;
+  product_id: string;
+  product_name: string;
+  category: string;
+  quantity: number;
+  unit_price: number;
+}
+
+export interface Supplier {
+  id: string;
+  name: string;
+  category: string;
+  leadTimeDays: number;
+  costPerUnit: number;
+  minOrderQty: number;
+  reliability: number;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  productId: string;
+  productName: string;
+  supplierId: string;
+  supplierName: string;
+  category: string;
+  qty: number;
+  totalValue: number;
+  status: 'auto_approved' | 'pending_approval' | 'approved' | 'rejected' | 'delayed' | 'partial';
+  logisticsEvent?: LogisticsEvent;
+  createdAt: string;
+}
+
+export interface PriceAction {
+  productId: string;
+  productName: string;
+  category: string;
+  oldPrice: number;
+  newPrice: number;
+  delta: number;
+  justification: string;
+  status: 'applied' | 'pending_approval' | 'approved' | 'rejected' | 'undone';
+  createdAt: string;
+}
+
+export interface ActionLedgerEntry {
+  id: string;
+  agentId: string;
+  actionType: 'price_update' | 'purchase_order' | 'supplier_blacklist' | 'data_clean' | 'recovery';
+  payload: Record<string, unknown>;
+  undoPayload: Record<string, unknown>;
+  outcome: 'success' | 'pending' | 'failed' | 'undone';
+  ts: string;
+}
+
+export interface ReviewQueueItem {
+  id: string;
+  type: 'price' | 'po';
+  payload: PriceAction | PurchaseOrder;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+}
+
+export interface AgentCycleEvent {
+  agentId: 'auditor' | 'scorer' | 'procurement' | 'pricing' | 'recovery' | 'ledger' | 'daemon';
+  level: 'info' | 'warn' | 'action' | 'error';
+  message: string;
+  data?: Record<string, unknown>;
+  ts: string;
+}
