@@ -75,6 +75,19 @@ app.delete("/api/runs", async (req: express.Request, res: express.Response): Pro
   }
 });
 
-app.listen(port, () => {
-  console.error(`[SERVER] RetailOps dashboard server listening on port ${port}`);
-});
+const startServer = (portToTry: number) => {
+  const server = app.listen(portToTry, () => {
+    console.error(`[SERVER] RetailOps dashboard server listening on port ${portToTry}`);
+  });
+
+  server.on("error", (error: any) => {
+    if (error.code === "EADDRINUSE") {
+      console.error(`[SERVER] Port ${portToTry} is in use. Trying port ${portToTry + 1}...`);
+      startServer(portToTry + 1);
+    } else {
+      console.error(`[SERVER] Server error: ${error.message}`);
+    }
+  });
+};
+
+startServer(Number(port));
