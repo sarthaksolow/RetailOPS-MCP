@@ -92,7 +92,7 @@ def get_llm_client(api_key: str) -> OpenAI:
         default_headers={"HTTP-Referer": "http://localhost", "X-Title": "RetailOps Copilot"}
     )
 
-LLM_MODEL = os.getenv("OPENROUTER_MODEL", "openrouter/auto")
+LLM_MODEL = os.getenv("OPENROUTER_MODEL", "openrouter/owl-alpha")
 
 # ─── FEW-SHOT SIMULATION PROMPT ──────────────────────────────────────────────
 SYSTEM_PROMPT = """You are a RetailOps MCP orchestration engine. Given a product, store context, season/event, and forecast horizon, you simulate the output of 4 MCP server nodes:
@@ -487,6 +487,20 @@ if process_query:
             if narrative_f:
                 st.info(f"📝 **Forecasting Node:** {narrative_f}")
             st.caption(f"Source: RetailOps MCP Mesh · catalog-enricher → forecasting-node")
+
+            # ── Follow-up action buttons (persist after landing page disappears) ──
+            st.markdown("**What would you like to do next?**")
+            fa1, fa2 = st.columns(2)
+            with fa1:
+                if st.button("📦 Scan Low Stock Items", key="fa_inv", use_container_width=True):
+                    st.session_state.initial_input = "Scan inventory and check stockout risks"
+                    st.session_state.script_step = 1
+                    st.rerun()
+            with fa2:
+                if st.button("🏷️ Review Competitor Pricing", key="fa_price", use_container_width=True):
+                    st.session_state.initial_input = "Review competitor pricing and suggest optimal price"
+                    st.session_state.script_step = 1
+                    st.rerun()
 
         st.session_state.messages.append({
             "role": "assistant",
