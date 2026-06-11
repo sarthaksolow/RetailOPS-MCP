@@ -33,11 +33,11 @@
               hover: '#33ff85',
             },
             slate: {
-              950: '#070a13',
-              900: '#0f1423',
-              850: '#181e33',
-              800: '#1f293d',
-              700: '#374151',
+              950: '#080b11', /* main canvas background */
+              900: '#0e121e', /* card background */
+              850: '#141a29', /* card hover / secondary */
+              800: '#1a2134', /* inputs / borders */
+              700: '#212b40',
             }
           },
           fontFamily: {
@@ -52,24 +52,24 @@
 
   <style>
     body {
-      background-color: #070a13;
-      color: #cbd5e1;
+      background-color: #080b11;
+      color: #94a3b8;
     }
     /* Custom scrollbars */
-    ::-webkit-scrollbar { width: 5px; height: 5px; }
-    ::-webkit-scrollbar-track { background: #0f1423; }
-    ::-webkit-scrollbar-thumb { background: #1f293d; border-radius: 3px; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: #080b11; }
+    ::-webkit-scrollbar-thumb { background: #1a2134; border-radius: 2px; }
     ::-webkit-scrollbar-thumb:hover { background: #00ff66; }
   </style>
 </head>
-<body class="font-sans antialiased text-slate-200">
+<body class="font-sans antialiased text-slate-400">
 
   <div id="root"></div>
 
   <script type="text/babel">
     const { useState, useEffect, useRef, useCallback } = React;
 
-    /* Inline SVGs to avoid loading extra assets */
+    /* Inline SVGs for Sequence aesthetics */
     const Icon = ({ name, className = "w-4 h-4" }) => {
       const icons = {
         sync: (
@@ -123,6 +123,31 @@
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
+        ),
+        grid: (
+          <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+          </svg>
+        ),
+        activity: (
+          <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+        ),
+        user: (
+          <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        ),
+        chevronRight: (
+          <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        ),
+        bell: (
+          <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
         )
       };
       return icons[name] || null;
@@ -135,9 +160,9 @@
       const [ledger, setLedger] = useState([]);
       const [undoWindow, setUndoWindow] = useState(15);
       const [wsConnected, setWsConnected] = useState(false);
+      const [activeTab, setActiveTab] = useState('Overview');
       
       // Analysis pipeline simulation / trigger states
-      const [runs, setRuns] = useState([]);
       const [productInput, setProductInput] = useState('');
       const [daysAhead, setDaysAhead] = useState(30);
       const [loading, setLoading] = useState(false);
@@ -149,17 +174,17 @@
       const reconnectTimerRef = useRef(null);
 
       // WebSocket URL builder
-      const wsUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + (window.location.host || 'localhost:3000');
+      const wsUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + (window.location.host || 'localhost:3001');
 
       // Colors mapping for different agent logs
       const agentColors = {
-        daemon: 'text-slate-400 border-slate-700 bg-slate-900/50',
-        auditor: 'text-blue-400 border-blue-900/50 bg-blue-950/20',
-        scorer: 'text-purple-400 border-purple-900/50 bg-purple-950/20',
-        procurement: 'text-yellow-400 border-yellow-900/50 bg-yellow-950/20',
-        pricing: 'text-emerald-400 border-emerald-900/50 bg-emerald-950/20',
-        recovery: 'text-red-400 border-red-900/50 bg-red-950/20',
-        ledger: 'text-cyan-400 border-cyan-900/50 bg-cyan-950/20'
+        daemon: 'text-slate-400 border-slate-800 bg-slate-900/40',
+        auditor: 'text-cyan-400 border-cyan-950/50 bg-cyan-950/10',
+        scorer: 'text-purple-400 border-purple-950/50 bg-purple-950/10',
+        procurement: 'text-yellow-400 border-yellow-950/50 bg-yellow-950/10',
+        pricing: 'text-emerald-400 border-emerald-950/50 bg-emerald-950/10',
+        recovery: 'text-red-400 border-red-950/50 bg-red-950/10',
+        ledger: 'text-blue-400 border-blue-950/50 bg-blue-950/10'
       };
 
       // Formatter for action payload strings
@@ -356,7 +381,6 @@
           if (data.errors && data.errors.length > 0 && data.status !== 'completed') {
             setErrorMsg(`Workflow issue: ${data.errors.join('; ')}`);
           } else {
-            setSuccessMsg(`Workflow analysis for "${query}" successful.`);
             loadLedger();
             loadReviewQueue();
           }
@@ -379,6 +403,16 @@
         }
       };
 
+      // Calculate total PO value for metrics card
+      const totalPoValue = ledger
+        .filter(l => l.actionType === 'purchase_order' && l.outcome !== 'undone')
+        .reduce((sum, item) => {
+          try {
+            const p = typeof item.payload === 'string' ? JSON.parse(item.payload) : item.payload;
+            return sum + (p.qty * (p.costPerUnit || 1200));
+          } catch(e) { return sum; }
+        }, 0);
+
       // Lifecycle hooks
       useEffect(() => {
         connectWS();
@@ -393,352 +427,722 @@
       }, [connectWS]);
 
       return (
-        <div className="min-h-screen bg-slate-950 flex flex-col font-sans select-none selection:bg-phosphor selection:text-slate-950">
+        <div className="min-h-screen bg-slate-950 flex font-sans select-none text-slate-400">
           
-          {/* Header */}
-          <header className="border-b border-slate-900 bg-slate-900/60 backdrop-blur-md px-6 py-4 sticky top-0 z-30 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="relative flex h-3 w-3">
-                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${wsConnected ? 'bg-emerald-400' : 'bg-amber-500'}`}></span>
-                <span className={`relative inline-flex rounded-full h-3 w-3 ${wsConnected ? 'bg-emerald-500' : 'bg-amber-600'}`}></span>
+          {/* LEFT SIDEBAR NAVIGATION */}
+          <aside className="w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between shrink-0">
+            <div className="flex flex-col">
+              {/* Brand Logo */}
+              <div className="px-6 py-6 border-b border-slate-800 flex items-center space-x-3">
+                <div className="relative w-8 h-8 rounded-lg bg-gradient-to-tr from-phosphor to-cyan-400 p-0.5 flex items-center justify-center">
+                  <div className="w-full h-full bg-slate-950 rounded-[7px] flex items-center justify-center font-bold text-white text-sm">
+                    S
+                  </div>
+                </div>
+                <div>
+                  <h1 className="font-display font-bold text-sm tracking-tight text-white leading-none">Sequence</h1>
+                  <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">RetailOps Client</span>
+                </div>
               </div>
-              <span className="font-display font-bold text-lg tracking-tight text-white">Retail<span className="text-phosphor">Ops</span></span>
-              <span className="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">Action Console v2.0</span>
+
+              {/* Main Navigation Stack */}
+              <nav className="p-4 space-y-1">
+                {[
+                  { name: 'Overview', icon: 'grid' },
+                  { name: 'Review Queue', icon: 'info', count: reviewQueue.length },
+                  { name: 'Activity Feed', icon: 'activity' },
+                  { name: 'Action Ledger', icon: 'terminal', count: ledger.length },
+                  { name: 'Settings', icon: 'settings' }
+                ].map((tab) => {
+                  const isActive = activeTab === tab.name;
+                  return (
+                    <button
+                      key={tab.name}
+                      onClick={() => setActiveTab(tab.name)}
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs font-medium transition duration-200 group relative ${
+                        isActive
+                          ? 'text-white bg-slate-900/60 font-semibold border-l-2 border-phosphor pl-[14px]'
+                          : 'text-slate-500 hover:text-slate-200 hover:bg-slate-900/30'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Icon name={tab.icon} className={`w-4 h-4 ${isActive ? 'text-phosphor' : 'text-slate-500 group-hover:text-slate-300'}`} />
+                        <span>{tab.name}</span>
+                      </div>
+                      {tab.count !== undefined && tab.count > 0 && (
+                        <span className={`px-2 py-0.5 text-[9px] font-mono rounded ${isActive ? 'bg-phosphor/20 text-phosphor' : 'bg-slate-900 text-slate-400'}`}>
+                          {tab.count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
             </div>
 
-            {/* WS Status Banner */}
-            <div className="flex items-center space-x-4">
-              <span className="hidden md:inline-flex items-center text-xs font-mono text-slate-400">
-                WebSocket Status: &nbsp;
-                <span className={wsConnected ? 'text-emerald-400 font-semibold' : 'text-amber-500 font-semibold'}>
-                  {wsConnected ? 'CONNECTED' : 'RECONNECTING...'}
-                </span>
-              </span>
-
-              <button onClick={() => { loadLedger(); loadReviewQueue(); }} className="p-2 text-slate-400 hover:text-white bg-slate-900 border border-slate-800 rounded-md hover:border-slate-700 transition">
-                <Icon name="sync" />
-              </button>
-
-              <button onClick={clearLogCache} className="p-2 text-red-400 hover:text-red-300 bg-red-950/20 border border-red-900/30 rounded-md hover:border-red-900/60 transition" title="Clear analysis cache">
-                <Icon name="trash" />
-              </button>
+            {/* User Info Foot */}
+            <div className="p-4 border-t border-slate-800">
+              <div className="flex items-center space-x-3 p-2 bg-slate-900/30 rounded-lg">
+                <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
+                  <Icon name="user" className="w-4 h-4 text-slate-400" />
+                </div>
+                <div className="overflow-hidden">
+                  <p className="text-xs font-semibold text-white truncate leading-tight">Retail Operator</p>
+                  <span className="text-[10px] text-slate-500 font-mono">System Active</span>
+                </div>
+              </div>
             </div>
-          </header>
+          </aside>
 
-          {/* Main Layout Grid */}
-          <div className="flex-1 grid grid-cols-1 xl:grid-cols-4 gap-6 p-6">
+          {/* MAIN CANVAS BODY */}
+          <main className="flex-1 flex flex-col min-w-0 bg-slate-950 overflow-y-auto">
             
-            {/* Left Column: Sidebar Controls & Settings */}
-            <div className="xl:col-span-1 flex flex-col space-y-6">
-              
-              {/* Settings Panel */}
-              <div className="bg-slate-900/60 border border-slate-900 rounded-xl p-5 backdrop-blur-sm space-y-4">
-                <div className="flex items-center space-x-2 text-slate-300 border-b border-slate-800 pb-2 mb-1">
-                  <Icon name="settings" className="w-5 h-5 text-phosphor" />
-                  <span className="font-display font-semibold text-sm tracking-wide text-white">SETTINGS PANEL</span>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-mono text-slate-400">UNDO WINDOW</label>
-                    <span className="text-xs font-mono text-phosphor font-bold">{undoWindow} minutes</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="1"
-                    max="30"
-                    value={undoWindow}
-                    onChange={(e) => saveConfig(Number(e.target.value))}
-                    className="w-full accent-phosphor h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer"
-                  />
-                  <div className="flex justify-between text-[10px] font-mono text-slate-500">
-                    <span>1m</span>
-                    <span>15m</span>
-                    <span>30m</span>
-                  </div>
-                </div>
+            {/* TOP BAR HEADER */}
+            <header className="h-16 border-b border-slate-800 px-8 flex items-center justify-between shrink-0 bg-slate-950/60 backdrop-blur-md sticky top-0 z-30">
+              <div className="flex items-center space-x-4">
+                <h2 className="font-display font-semibold text-base text-white">{activeTab}</h2>
+                <div className="h-4 w-px bg-slate-800 hidden sm:block"></div>
+                <p className="text-xs text-slate-500 font-mono hidden sm:block">
+                  Current Loop Status: &nbsp;
+                  <span className="text-slate-300 font-medium">Auto Cycle running</span>
+                </p>
               </div>
 
-              {/* Workflow Orchestration */}
-              <div className="bg-slate-900/60 border border-slate-900 rounded-xl p-5 backdrop-blur-sm space-y-4">
-                <div className="flex items-center space-x-2 text-slate-300 border-b border-slate-800 pb-2 mb-1">
-                  <Icon name="terminal" className="w-5 h-5 text-phosphor" />
-                  <span className="font-display font-semibold text-sm tracking-wide text-white">ORCHESTRATOR PATH</span>
+              {/* Status beacon and triggers */}
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2 bg-slate-900/60 border border-slate-800 px-3 py-1.5 rounded-full">
+                  <span className="relative flex h-2 w-2">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${wsConnected ? 'bg-phosphor' : 'bg-amber-500'}`}></span>
+                    <span className={`relative inline-flex rounded-full h-2 w-2 ${wsConnected ? 'bg-phosphor' : 'bg-amber-600'}`}></span>
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-300 font-medium uppercase tracking-wider">
+                    {wsConnected ? 'Connected' : 'Offline'}
+                  </span>
                 </div>
 
-                {/* Quick Presets */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-mono text-slate-400 block uppercase tracking-wider">Presets</label>
-                  <div className="flex flex-wrap gap-1.5">
-                    {['Smart TV', 'Pro Laptop', 'Groceries', 'Winter Coat', 'Headphones'].map((name) => (
-                      <button
-                        key={name}
-                        onClick={() => {
-                          const query = name === 'Smart TV' ? 'Sony 65-inch Bravia OLED 4K Smart TV'
-                                      : name === 'Pro Laptop' ? 'Apple MacBook Pro 16 M3 Max Slate'
-                                      : name === 'Groceries' ? 'Fresh Organic Pink Lady Apples'
-                                      : name === 'Winter Coat' ? 'Designer Waterproof Wool Trench Coat'
-                                      : 'Bose QuietComfort Wireless Headphones';
-                          setProductInput(query);
-                          triggerWorkflow(query);
-                        }}
-                        disabled={loading}
-                        className="text-[11px] font-mono px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60 hover:text-white transition disabled:opacity-50"
-                      >
-                        {name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Custom input */}
-                <div className="space-y-2">
-                  <label className="text-[10px] font-mono text-slate-400 block uppercase tracking-wider">Product Name</label>
-                  <input
-                    type="text"
-                    value={productInput}
-                    onChange={(e) => setProductInput(e.target.value)}
-                    placeholder="Enter query to analyze..."
-                    className="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-sm text-slate-100 placeholder-slate-600 focus:outline-none focus:border-phosphor/50 transition font-mono"
-                  />
-                </div>
-
-                {/* Forecast Horizon */}
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <label className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">Horizon</label>
-                    <span className="text-xs font-mono text-slate-300">{daysAhead} days</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="10"
-                    max="90"
-                    step="5"
-                    value={daysAhead}
-                    onChange={(e) => setDaysAhead(Number(e.target.value))}
-                    className="w-full accent-phosphor h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer"
-                  />
-                </div>
-
-                <button
-                  onClick={() => triggerWorkflow()}
-                  disabled={loading || !productInput.trim()}
-                  className="w-full bg-phosphor hover:bg-phosphor-hover text-slate-950 font-semibold text-xs py-2.5 rounded-md flex items-center justify-center space-x-2 transition active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {loading ? <Icon name="spinner" /> : <Icon name="play" className="w-3.5 h-3.5" />}
-                  <span>RUN PIPELINE</span>
+                <button onClick={() => { loadLedger(); loadReviewQueue(); }} className="p-2 text-slate-500 hover:text-white bg-slate-900/50 border border-slate-800 hover:border-slate-700 rounded-lg transition" title="Sync Status">
+                  <Icon name="sync" className="w-3.5 h-3.5" />
                 </button>
 
-                {/* Pipeline Steps Tracker */}
-                {(loading || statusStep > 0) && (
-                  <div className="border border-slate-800 bg-slate-950/60 rounded-lg p-3 space-y-2 text-xs font-mono">
-                    <div className="text-[10px] text-slate-500 uppercase pb-1 border-b border-slate-800">PIPELINE MONITOR</div>
-                    {[
-                      { step: 1, label: 'Enricher' },
-                      { step: 2, label: 'Forecasting' },
-                      { step: 3, label: 'Replenishment' },
-                      { step: 4, label: 'Pricing' }
-                    ].map(s => {
-                      const active = statusStep === s.step;
-                      const done = statusStep > s.step;
-                      return (
-                        <div key={s.step} className="flex items-center justify-between">
-                          <span className={active ? 'text-phosphor' : done ? 'text-slate-400' : 'text-slate-600'}>
-                            {s.step}. {s.label}
-                          </span>
-                          <span>
-                            {done ? <span className="text-emerald-500">✔</span> : active ? <span className="text-phosphor animate-pulse">●</span> : <span className="text-slate-700">○</span>}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                <button onClick={clearLogCache} className="p-2 text-red-400 hover:text-red-300 bg-red-950/10 border border-red-900/20 hover:border-red-900/40 rounded-lg transition" title="Flush Activity DB">
+                  <Icon name="trash" className="w-3.5 h-3.5" />
+                </button>
               </div>
-            </div>
+            </header>
 
-            {/* Right Columns: The 3 Panels */}
-            <div className="xl:col-span-3 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* WRAPPER FOR CHOSEN TAB VIEW */}
+            <div className="flex-1 p-8 space-y-6">
               
-              {/* PANEL A: Agent Activity Feed */}
-              <div className="bg-slate-900/40 border border-slate-900 rounded-xl p-5 flex flex-col h-[650px] lg:h-auto">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
-                  <div className="flex items-center space-x-2">
-                    <span className="w-2 h-2 rounded-full bg-phosphor shadow-[0_0_8px_#00ff66]"></span>
-                    <span className="font-display font-semibold text-sm text-white uppercase tracking-wider">Panel A: Activity Feed</span>
+              {/* TOP LEVEL FINANCIAL & SYSTEM KPI METRICS GRID */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                
+                {/* Metric Card 1: Balance (Total PO Value) */}
+                <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-5 relative overflow-hidden flex flex-col justify-between h-32 group hover:border-slate-800 transition duration-300">
+                  <div className="flex justify-between items-start">
+                    <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold">LOGGED PROCUREMENT</span>
+                    <span className="text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 text-[9px] px-1.5 py-0.5 rounded font-mono font-medium">+12.4%</span>
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">WS Connected</span>
+                  <div>
+                    <h3 className="font-display font-bold text-2xl text-white tracking-tight">
+                      ₹{(totalPoValue).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+                    </h3>
+                    <p className="text-[10px] text-slate-500 font-mono mt-0.5">Total un-cancelled PO purchases</p>
+                  </div>
+                  {/* Glowing absolute corner ornament */}
+                  <div className="absolute right-0 bottom-0 w-24 h-24 bg-gradient-to-br from-transparent to-phosphor/5 opacity-40 group-hover:to-phosphor/10 transition rounded-tl-full"></div>
                 </div>
 
-                {/* Event stream */}
-                <div className="flex-1 overflow-y-auto space-y-2 pr-1 font-mono text-xs">
-                  {feed.length === 0 ? (
-                    <div className="text-slate-600 h-full flex items-center justify-center text-center p-6">
-                      No logs recorded. Events appear here in real time as the agent process runs.
-                    </div>
-                  ) : (
-                    feed.map((ev, index) => {
-                      const colorClass = agentColors[ev.agentId] || 'text-slate-300 border-slate-800 bg-slate-950/20';
-                      return (
-                        <div key={ev.id || index} className={`p-2.5 rounded border ${colorClass} transition hover:bg-slate-800/10`}>
-                          <div className="flex justify-between items-center text-[10px] opacity-75 mb-1.5">
-                            <span className="font-bold uppercase tracking-wider">{ev.agentId}</span>
-                            <span>{new Date(ev.ts || Date.now()).toLocaleTimeString()}</span>
-                          </div>
-                          <div className="text-slate-200 break-words leading-relaxed font-sans">{ev.message}</div>
-                        </div>
-                      );
-                    })
-                  )}
+                {/* Metric Card 2: System Health Index */}
+                <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-5 relative overflow-hidden flex flex-col justify-between h-32 group hover:border-slate-800 transition duration-300">
+                  <div className="flex justify-between items-start">
+                    <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold">AVERAGE EFFICIENCY</span>
+                    <span className="text-phosphor bg-phosphor/10 border border-phosphor/20 text-[9px] px-1.5 py-0.5 rounded font-mono font-medium">94.8%</span>
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-2xl text-white tracking-tight">0.82 Score</h3>
+                    <p className="text-[10px] text-slate-500 font-mono mt-0.5">Scorer rating across active items</p>
+                  </div>
+                  <div className="absolute right-0 bottom-0 w-24 h-24 bg-gradient-to-br from-transparent to-cyan-500/5 opacity-40 group-hover:to-cyan-500/10 transition rounded-tl-full"></div>
+                </div>
+
+                {/* Metric Card 3: Pending Approvals */}
+                <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-5 relative overflow-hidden flex flex-col justify-between h-32 group hover:border-slate-800 transition duration-300">
+                  <div className="flex justify-between items-start">
+                    <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold">BACKLOG QUEUE</span>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-medium ${reviewQueue.length > 0 ? 'bg-amber-500/20 text-amber-500 border border-amber-500/20 animate-pulse' : 'bg-slate-800 text-slate-500'}`}>
+                      {reviewQueue.length} items
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="font-display font-bold text-2xl text-white tracking-tight">{reviewQueue.length} Pending</h3>
+                    <p className="text-[10px] text-slate-500 font-mono mt-0.5">High risk approvals waiting</p>
+                  </div>
+                  <div className="absolute right-0 bottom-0 w-24 h-24 bg-gradient-to-br from-transparent to-amber-500/5 opacity-40 group-hover:to-amber-500/10 transition rounded-tl-full"></div>
+                </div>
+
+                {/* Metric Card 4: Daemon Cycle Health */}
+                <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-5 flex flex-col justify-between h-32 group hover:border-slate-800 transition duration-300">
+                  <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold">AGENT AGGREGATOR</span>
+                  <div className="flex flex-wrap gap-2">
+                    {['AUD', 'SCR', 'PRC', 'PRG', 'RCV'].map(agent => (
+                      <span key={agent} className="flex items-center space-x-1 px-1.5 py-0.5 bg-slate-950 border border-slate-800 text-[9px] font-mono rounded text-slate-300">
+                        <span className="w-1.5 h-1.5 rounded-full bg-phosphor animate-pulse"></span>
+                        <span>{agent}</span>
+                      </span>
+                    ))}
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-mono text-slate-500 uppercase block leading-none">Status</span>
+                    <span className="text-xs text-white font-semibold">Autonomous Aggregator: Running</span>
+                  </div>
                 </div>
               </div>
 
-              {/* PANEL B: Review Queue */}
-              <div className="bg-slate-900/40 border border-slate-900 rounded-xl p-5 flex flex-col h-[650px] lg:h-auto">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
-                  <div className="flex items-center space-x-2">
-                    <span className="w-2 h-2 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.7)]"></span>
-                    <span className="font-display font-semibold text-sm text-white uppercase tracking-wider">Panel B: Review Queue</span>
-                  </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-yellow-950/20 border border-yellow-900/30 text-yellow-400">{reviewQueue.length} pending</span>
-                </div>
+              {/* TAB OR GRID VIEW ACCORDING TO NAVIGATION */}
+              {activeTab === 'Overview' && (
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                  
+                  {/* Left + Mid Columns: Interactive Graph & Review Panel */}
+                  <div className="xl:col-span-2 space-y-6">
+                    
+                    {/* Dynamic SVG Sparkline Graph Card */}
+                    <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-6">
+                      <div className="flex justify-between items-start mb-6">
+                        <div>
+                          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block">Live Operational Performance</span>
+                          <h4 className="font-display font-semibold text-lg text-white">System Cycle Efficiency Log</h4>
+                        </div>
+                        <div className="flex space-x-3 text-[10px] font-mono bg-slate-950 p-1 border border-slate-800 rounded-lg">
+                          <span className="px-2 py-1 bg-slate-900 text-white rounded font-medium">Live Stream</span>
+                          <span className="px-2 py-1 text-slate-500">20s Ticks</span>
+                        </div>
+                      </div>
 
-                {/* Review Queue Items */}
-                <div className="flex-1 overflow-y-auto space-y-3 pr-1">
-                  {reviewQueue.length === 0 ? (
-                    <div className="text-slate-600 h-full flex items-center justify-center text-center p-6 font-mono text-xs">
-                      All caught up: no pending review approvals.
+                      {/* SVG Line Graph */}
+                      <div className="w-full h-44 flex items-end">
+                        <svg className="w-full h-full overflow-visible" viewBox="0 0 500 100" preserveAspectRatio="none">
+                          <defs>
+                            <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#00ff66" stopOpacity="0.25" />
+                              <stop offset="100%" stopColor="#00ff66" stopOpacity="0.0" />
+                            </linearGradient>
+                          </defs>
+                          {/* Grid lines */}
+                          <line x1="0" y1="20" x2="500" y2="20" stroke="#171e2c" strokeDasharray="3 3" />
+                          <line x1="0" y1="50" x2="500" y2="50" stroke="#171e2c" strokeDasharray="3 3" />
+                          <line x1="0" y1="80" x2="500" y2="80" stroke="#171e2c" strokeDasharray="3 3" />
+                          {/* Chart Path */}
+                          <path
+                            d="M 0,80 Q 50,60 100,50 T 200,30 T 300,70 T 400,20 T 500,10 L 500,100 L 0,100 Z"
+                            fill="url(#chartGradient)"
+                          />
+                          <path
+                            d="M 0,80 Q 50,60 100,50 T 200,30 T 300,70 T 400,20 T 500,10"
+                            fill="none"
+                            stroke="#00ff66"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                          />
+                          {/* Glow dots */}
+                          <circle cx="500" cy="10" r="3.5" fill="#00ff66" className="animate-ping" />
+                          <circle cx="500" cy="10" r="2" fill="#00ff66" />
+                        </svg>
+                      </div>
+                      <div className="flex justify-between items-center text-[10px] font-mono text-slate-500 pt-3 border-t border-slate-800/40">
+                        <span>Ticks 1hr ago</span>
+                        <span>Active Stream</span>
+                        <span>Latest Cycle Tick</span>
+                      </div>
                     </div>
-                  ) : (
-                    reviewQueue.map((item) => {
-                      const pl = typeof item.payload === 'string' ? JSON.parse(item.payload) : item.payload;
-                      const isPrice = item.type === 'price_update';
-                      return (
-                        <div key={item.id} className="bg-slate-950 border border-slate-800/80 rounded-lg p-4 space-y-3 transition hover:border-slate-800">
-                          <div className="flex justify-between items-start">
-                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded border uppercase font-semibold ${isPrice ? 'bg-emerald-950/20 border-emerald-900/50 text-emerald-400' : 'bg-blue-950/20 border-blue-900/50 text-blue-400'}`}>
-                              {item.type}
-                            </span>
-                            <span className="text-[9px] font-mono text-slate-500">
-                              {new Date(item.createdAt).toLocaleTimeString()}
-                            </span>
-                          </div>
 
-                          <div className="space-y-1 text-xs">
-                            <div className="font-semibold text-slate-200 text-sm">
-                              {pl.productName || pl.category || 'Unknown Product'}
-                            </div>
-                            <div className="text-[11px] font-mono text-slate-400 flex flex-wrap gap-x-2 gap-y-0.5">
-                              <span>Cat: <span className="text-slate-300">{pl.category || 'N/A'}</span></span>
-                              {isPrice ? (
-                                <>
-                                  <span>Old: <span className="text-slate-300">Rs.{pl.oldPrice}</span></span>
-                                  <span>New: <span className="text-emerald-400 font-semibold">Rs.{Number(pl.newPrice).toFixed(0)}</span></span>
-                                  <span>Delta: <span className={pl.delta > 0 ? 'text-emerald-500' : 'text-red-500'}>{(pl.delta * 100).toFixed(1)}%</span></span>
-                                </>
-                              ) : (
-                                <>
-                                  <span>Qty: <span className="text-yellow-400 font-semibold">{pl.qty} units</span></span>
-                                  <span>Supplier: <span className="text-slate-300">{pl.supplierName || 'Unknown'}</span></span>
-                                </>
+                    {/* Pending Review Queue (Panel B) */}
+                    <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-6">
+                      <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+                        <h4 className="font-display font-semibold text-sm text-white uppercase tracking-wider">Approval Required Queue</h4>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-500">{reviewQueue.length} pending</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {reviewQueue.length === 0 ? (
+                          <div className="col-span-2 text-slate-500 h-28 flex flex-col items-center justify-center border border-dashed border-slate-800 rounded-lg text-center p-6 text-xs font-mono">
+                            <span className="text-phosphor text-base mb-1">✔</span>
+                            <span>AGGREGATOR CONSOLE: No approvals pending review.</span>
+                          </div>
+                        ) : (
+                          reviewQueue.map((item) => {
+                            const pl = typeof item.payload === 'string' ? JSON.parse(item.payload) : item.payload;
+                            const isPrice = item.type === 'price_update';
+                            return (
+                              <div key={item.id} className="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col justify-between space-y-4 hover:border-slate-700 transition">
+                                <div className="space-y-3">
+                                  <div className="flex justify-between items-start">
+                                    <span className={`text-[9px] font-mono px-2 py-0.5 rounded font-bold uppercase ${isPrice ? 'bg-emerald-950/30 text-emerald-400 border border-emerald-900/30' : 'bg-cyan-950/30 text-cyan-400 border border-cyan-900/30'}`}>
+                                      {item.type}
+                                    </span>
+                                    <span className="text-[9px] font-mono text-slate-500">
+                                      {new Date(item.createdAt).toLocaleTimeString()}
+                                    </span>
+                                  </div>
+
+                                  <div>
+                                    <h5 className="font-semibold text-white text-sm truncate leading-none">
+                                      {pl.productName || pl.category || 'Product details'}
+                                    </h5>
+                                    <span className="text-[10px] font-mono text-slate-500">Category: {pl.category || 'N/A'}</span>
+                                  </div>
+
+                                  <div className="grid grid-cols-3 gap-2 py-1.5 border-y border-slate-900 text-[10px] font-mono">
+                                    {isPrice ? (
+                                      <>
+                                        <div>
+                                          <span className="text-slate-500 block">Current</span>
+                                          <span className="text-slate-300">₹{pl.oldPrice}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-slate-500 block">Proposed</span>
+                                          <span className="text-white font-medium">₹{Number(pl.newPrice).toFixed(0)}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-slate-500 block">Variance</span>
+                                          <span className={pl.delta > 0 ? 'text-emerald-400' : 'text-red-400'}>{(pl.delta * 100).toFixed(1)}%</span>
+                                        </div>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <div>
+                                          <span className="text-slate-500 block">Quantity</span>
+                                          <span className="text-white font-medium">{pl.qty} units</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-slate-500 block">Partner</span>
+                                          <span className="text-slate-300 truncate block">{pl.supplierName || 'Unknown'}</span>
+                                        </div>
+                                        <div>
+                                          <span className="text-slate-500 block">Estimate</span>
+                                          <span className="text-slate-300">₹{(pl.qty * (pl.costPerUnit || 1200)).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <div className="flex space-x-2 pt-2">
+                                  <button
+                                    onClick={() => handleReviewAction(item.id, 'approve')}
+                                    className="flex-1 bg-emerald-500 text-slate-950 py-2 text-xs rounded-lg transition hover:bg-phosphor flex items-center justify-center space-x-1 font-semibold"
+                                  >
+                                    <Icon name="check" className="w-3.5 h-3.5" />
+                                    <span>Approve</span>
+                                  </button>
+                                  <button
+                                    onClick={() => handleReviewAction(item.id, 'reject')}
+                                    className="px-3 bg-slate-900 hover:bg-red-950/20 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-900/40 py-2 text-xs rounded-lg transition flex items-center justify-center"
+                                  >
+                                    <Icon name="ban" className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Transaction History (Panel C) & Action Control */}
+                  <div className="space-y-6">
+                    
+                    {/* Action controls (Settings Window + Trigger Dashboard) */}
+                    <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-5 space-y-5">
+                      <div className="flex items-center space-x-2 text-slate-300 border-b border-slate-800 pb-2.5">
+                        <Icon name="terminal" className="w-4 h-4 text-phosphor" />
+                        <span className="font-display font-semibold text-xs uppercase tracking-wider text-white">Console Deck</span>
+                      </div>
+
+                      {/* Presets and Horizon */}
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-mono text-slate-500 block uppercase tracking-wider">PRESET OPERATIONS</label>
+                          <div className="flex flex-wrap gap-1.5">
+                            {['Smart TV', 'Pro Laptop', 'Groceries', 'Winter Coat'].map((name) => (
+                              <button
+                                key={name}
+                                onClick={() => {
+                                  const query = name === 'Smart TV' ? 'Sony 65-inch Bravia OLED 4K Smart TV'
+                                              : name === 'Pro Laptop' ? 'Apple MacBook Pro 16 M3 Max Slate'
+                                              : name === 'Groceries' ? 'Fresh Organic Pink Lady Apples'
+                                              : 'Designer Waterproof Wool Trench Coat';
+                                  setProductInput(query);
+                                  triggerWorkflow(query);
+                                }}
+                                disabled={loading}
+                                className="text-[10px] font-mono px-2 py-1 rounded bg-slate-950 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-800 hover:border-slate-700 transition disabled:opacity-50"
+                              >
+                                {name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            value={productInput}
+                            onChange={(e) => setProductInput(e.target.value)}
+                            placeholder="Identify product query..."
+                            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-phosphor/50 transition font-mono"
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center text-[10px] font-mono">
+                            <span className="text-slate-500">FORECAST HORIZON</span>
+                            <span className="text-white font-medium">{daysAhead} days</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="10"
+                            max="90"
+                            step="5"
+                            value={daysAhead}
+                            onChange={(e) => setDaysAhead(Number(e.target.value))}
+                            className="w-full accent-phosphor h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer"
+                          />
+                        </div>
+
+                        <button
+                          onClick={() => triggerWorkflow()}
+                          disabled={loading || !productInput.trim()}
+                          className="w-full bg-phosphor hover:bg-phosphor-hover text-slate-950 font-bold text-xs py-2.5 rounded-lg flex items-center justify-center space-x-2 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {loading ? <Icon name="spinner" /> : <Icon name="play" className="w-3.5 h-3.5" />}
+                          <span>EXECUTE CYCLE</span>
+                        </button>
+
+                        {/* Steps monitor */}
+                        {(loading || statusStep > 0) && (
+                          <div className="border border-slate-800 bg-slate-950 rounded-lg p-3 space-y-2 text-[10px] font-mono">
+                            {[
+                              { step: 1, label: 'Enricher' },
+                              { step: 2, label: 'Forecasting' },
+                              { step: 3, label: 'Replenishment' },
+                              { step: 4, label: 'Pricing' }
+                            ].map(s => (
+                              <div key={s.step} className="flex items-center justify-between">
+                                <span className={statusStep === s.step ? 'text-phosphor' : statusStep > s.step ? 'text-slate-400' : 'text-slate-600'}>
+                                  {s.step}. {s.label}
+                                </span>
+                                <span>
+                                  {statusStep > s.step ? '✔' : statusStep === s.step ? '●' : '○'}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Action Ledger Log Panel (Panel C) - formatted as Account Transactions */}
+                    <div className="bg-slate-900 border border-slate-800/80 rounded-xl p-5 flex flex-col h-[380px]">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
+                        <h4 className="font-display font-semibold text-xs text-white uppercase tracking-wider">Operation Ledger</h4>
+                        <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-slate-950 border border-slate-850 text-slate-400">{ledger.length} entries</span>
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto space-y-2.5 pr-1">
+                        {ledger.length === 0 ? (
+                          <div className="text-slate-600 h-full flex items-center justify-center text-center p-6 font-mono text-xs">
+                            No ledger actions processed.
+                          </div>
+                        ) : (
+                          ledger.slice(0, 15).map((item) => {
+                            const isUndone = item.outcome === 'undone';
+                            return (
+                              <div key={item.id} className={`bg-slate-950 border border-slate-800/50 rounded-lg p-3 flex flex-col justify-between space-y-2 transition hover:border-slate-800 ${isUndone ? 'opacity-40' : ''}`}>
+                                <div className="flex justify-between items-center">
+                                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded uppercase bg-slate-900 border border-slate-800 text-slate-300">
+                                    {item.agentId}
+                                  </span>
+                                  <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold uppercase ${isUndone ? 'bg-slate-900 text-slate-500' : 'bg-emerald-950/20 text-emerald-400'}`}>
+                                    {item.outcome}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-slate-300 font-sans leading-relaxed">{formatLog(item)}</p>
+                                <div className="flex justify-between items-center text-[10px] font-mono text-slate-500 pt-1 border-t border-slate-900/40">
+                                  <span>{new Date(item.createdAt).toLocaleTimeString()}</span>
+                                  {!isUndone && (item.actionType === 'price_update' || item.actionType === 'purchase_order') && (
+                                    <button
+                                      onClick={() => handleUndoLedger(item.id)}
+                                      className="text-red-400 hover:text-red-300 border border-red-950/20 hover:border-red-900/40 bg-red-950/10 px-2 py-0.5 rounded transition flex items-center space-x-1"
+                                    >
+                                      <Icon name="undo" className="w-3.5 h-3.5" />
+                                      <span>Undo</span>
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              )}
+
+              {/* REVIEW QUEUE TAB DETAIL */}
+              {activeTab === 'Review Queue' && (
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                  <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-6">
+                    <h4 className="font-display font-semibold text-sm text-white uppercase tracking-wider">Pending Action Gatekeeper</h4>
+                    <span className="text-xs font-mono px-3 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-500">{reviewQueue.length} operations pending</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {reviewQueue.length === 0 ? (
+                      <div className="col-span-3 text-slate-500 h-64 flex flex-col items-center justify-center border border-dashed border-slate-800 rounded-xl text-center p-6 text-xs font-mono">
+                        <span className="text-phosphor text-lg mb-2">✔</span>
+                        <span>No transactions require manual operator authorization.</span>
+                      </div>
+                    ) : (
+                      reviewQueue.map((item) => {
+                        const pl = typeof item.payload === 'string' ? JSON.parse(item.payload) : item.payload;
+                        const isPrice = item.type === 'price_update';
+                        return (
+                          <div key={item.id} className="bg-slate-950 border border-slate-800/80 rounded-xl p-5 flex flex-col justify-between space-y-4 hover:border-slate-700 transition">
+                            <div className="space-y-4">
+                              <div className="flex justify-between items-center">
+                                <span className={`text-[10px] font-mono px-2 py-0.5 rounded border uppercase font-semibold ${isPrice ? 'bg-emerald-950/20 border-emerald-900/40 text-emerald-400' : 'bg-cyan-950/20 border-cyan-900/40 text-cyan-400'}`}>
+                                  {item.type}
+                                </span>
+                                <span className="text-[10px] font-mono text-slate-500">
+                                  {new Date(item.createdAt).toLocaleTimeString()}
+                                </span>
+                              </div>
+
+                              <div>
+                                <h5 className="font-semibold text-white text-base truncate">{pl.productName || pl.category || 'Product name'}</h5>
+                                <p className="text-xs text-slate-500 mt-0.5">Category: {pl.category || 'N/A'}</p>
+                              </div>
+
+                              <div className="bg-slate-900/50 rounded-lg p-3 border border-slate-800 space-y-2 text-xs font-mono">
+                                {isPrice ? (
+                                  <>
+                                    <div className="flex justify-between">
+                                      <span className="text-slate-500">Original Price</span>
+                                      <span className="text-slate-300">₹{pl.oldPrice}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-slate-500">Proposed Price</span>
+                                      <span className="text-white font-medium">₹{Number(pl.newPrice).toFixed(0)}</span>
+                                    </div>
+                                    <div className="flex justify-between pt-1 border-t border-slate-800">
+                                      <span className="text-slate-500">Variance Shift</span>
+                                      <span className={pl.delta > 0 ? 'text-emerald-400' : 'text-red-400'}>{(pl.delta * 100).toFixed(1)}%</span>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <div className="flex justify-between">
+                                      <span className="text-slate-500">Order Quantity</span>
+                                      <span className="text-white font-medium">{pl.qty} units</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span className="text-slate-500">Partner Supplier</span>
+                                      <span className="text-slate-300 truncate w-32 text-right block">{pl.supplierName || 'Unknown'}</span>
+                                    </div>
+                                    <div className="flex justify-between pt-1 border-t border-slate-800">
+                                      <span className="text-slate-500">Total Purchase</span>
+                                      <span className="text-white font-semibold">₹{(pl.qty * (pl.costPerUnit || 1200)).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</span>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+
+                              {pl.justification && (
+                                <div className="text-[11px] text-slate-400 bg-slate-900/30 rounded p-2.5 border border-slate-900 leading-normal">
+                                  <span className="text-slate-500 font-medium block mb-0.5">JUSTIFICATION</span>
+                                  {pl.justification}
+                                </div>
                               )}
                             </div>
-                          </div>
 
-                          <div className="flex space-x-2 pt-1.5">
-                            <button
-                              onClick={() => handleReviewAction(item.id, 'approve')}
-                              className="flex-1 bg-emerald-600/20 hover:bg-emerald-600 hover:text-slate-950 border border-emerald-500/30 text-emerald-400 py-1.5 text-xs rounded transition flex items-center justify-center space-x-1 font-mono font-medium"
-                            >
-                              <Icon name="check" className="w-3.5 h-3.5" />
-                              <span>APPROVE</span>
-                            </button>
-                            <button
-                              onClick={() => handleReviewAction(item.id, 'reject')}
-                              className="flex-1 bg-red-600/10 hover:bg-red-600 hover:text-white border border-red-500/20 text-red-400 py-1.5 text-xs rounded transition flex items-center justify-center space-x-1 font-mono font-medium"
-                            >
-                              <Icon name="ban" className="w-3.5 h-3.5" />
-                              <span>REJECT</span>
-                            </button>
+                            <div className="flex space-x-2 pt-2">
+                              <button
+                                onClick={() => handleReviewAction(item.id, 'approve')}
+                                className="flex-1 bg-emerald-500 hover:bg-phosphor text-slate-950 font-bold py-2 text-xs rounded-lg transition flex items-center justify-center space-x-1.5"
+                              >
+                                <Icon name="check" className="w-3.5 h-3.5" />
+                                <span>APPROVE ACTION</span>
+                              </button>
+                              <button
+                                onClick={() => handleReviewAction(item.id, 'reject')}
+                                className="px-4 bg-slate-900 hover:bg-red-950/20 text-slate-400 hover:text-red-400 border border-slate-800 hover:border-red-900/40 py-2 text-xs rounded-lg transition flex items-center justify-center"
+                              >
+                                <Icon name="ban" className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-
-              {/* PANEL C: Action Ledger */}
-              <div className="bg-slate-900/40 border border-slate-900 rounded-xl p-5 flex flex-col h-[650px] lg:h-auto">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
-                  <div className="flex items-center space-x-2">
-                    <span className="w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.7)]"></span>
-                    <span className="font-display font-semibold text-sm text-white uppercase tracking-wider">Panel C: Action Ledger</span>
+                        );
+                      })
+                    )}
                   </div>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/20 border border-cyan-900/30 text-cyan-400">{ledger.length} entries</span>
                 </div>
+              )}
 
-                {/* Ledger items */}
-                <div className="flex-1 overflow-y-auto space-y-3 pr-1">
-                  {ledger.length === 0 ? (
-                    <div className="text-slate-600 h-full flex items-center justify-center text-center p-6 font-mono text-xs">
-                      No actions recorded in ledger yet.
-                    </div>
-                  ) : (
-                    ledger.map((item) => {
-                      const pl = typeof item.payload === 'string' ? JSON.parse(item.payload) : item.payload;
-                      const isUndone = item.outcome === 'undone';
-                      return (
-                        <div key={item.id} className={`bg-slate-950 border border-slate-800/80 rounded-lg p-3.5 space-y-2 transition hover:border-slate-800 ${isUndone ? 'opacity-50' : ''}`}>
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center space-x-2">
-                              <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded uppercase font-semibold text-slate-300 border border-slate-800 bg-slate-900`}>
+              {/* ACTION LEDGER TIMELINE (Panel C View) */}
+              {activeTab === 'Action Ledger' && (
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                  <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-6">
+                    <h4 className="font-display font-semibold text-sm text-white uppercase tracking-wider">Operation Ledger Timeline</h4>
+                    <span className="text-xs font-mono px-3 py-1 rounded bg-slate-950 border border-slate-850 text-slate-400">{ledger.length} total events recorded</span>
+                  </div>
+
+                  <div className="space-y-4">
+                    {ledger.length === 0 ? (
+                      <div className="text-slate-500 h-64 flex flex-col items-center justify-center border border-dashed border-slate-800 rounded-xl text-center p-6 text-xs font-mono">
+                        No transactions recorded. Run a pipeline cycle to initialize the ledger.
+                      </div>
+                    ) : (
+                      ledger.map((item) => {
+                        const isUndone = item.outcome === 'undone';
+                        return (
+                          <div key={item.id} className={`bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-slate-700 transition ${isUndone ? 'opacity-40' : ''}`}>
+                            <div className="flex items-center space-x-4">
+                              <span className="text-[10px] font-mono px-2 py-1 rounded font-bold uppercase bg-slate-900 border border-slate-800 text-slate-300">
                                 {item.agentId}
                               </span>
-                              <span className="text-[10px] font-mono text-slate-400 font-medium">{item.actionType}</span>
+                              <div>
+                                <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block font-semibold">{item.actionType}</span>
+                                <p className="text-sm text-slate-200 mt-0.5">{formatLog(item)}</p>
+                              </div>
                             </div>
-                            <span className={`text-[9px] font-mono px-1.5 rounded uppercase font-bold ${isUndone ? 'bg-slate-800 text-slate-500 border border-slate-700' : 'bg-emerald-950/20 text-emerald-400 border border-emerald-900/40'}`}>
-                              {item.outcome}
-                            </span>
-                          </div>
 
-                          <div className="text-xs text-slate-300">
-                            {formatLog(item)}
-                          </div>
+                            <div className="flex items-center justify-between md:justify-end gap-6 text-xs font-mono">
+                              <div className="text-right">
+                                <span className="text-[10px] text-slate-500 block leading-none">Timestamp</span>
+                                <span className="text-slate-300">{new Date(item.createdAt).toLocaleString()}</span>
+                              </div>
 
-                          <div className="flex items-center justify-between pt-1 border-t border-slate-900 text-[10px] font-mono text-slate-500">
-                            <span>{new Date(item.createdAt).toLocaleTimeString()}</span>
-                            {!isUndone && (item.actionType === 'price_update' || item.actionType === 'purchase_order') && (
-                              <button
-                                onClick={() => handleUndoLedger(item.id)}
-                                className="text-red-400 hover:text-red-300 border border-red-900/30 hover:border-red-800 bg-red-950/10 px-2.5 py-1 rounded transition flex items-center space-x-1"
-                              >
-                                <Icon name="undo" className="w-3 h-3" />
-                                <span>UNDO</span>
-                              </button>
-                            )}
+                              <div className="flex items-center space-x-3">
+                                <span className={`px-2.5 py-0.5 text-[9px] font-bold rounded uppercase ${isUndone ? 'bg-slate-800 text-slate-500' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
+                                  {item.outcome}
+                                </span>
+                                {!isUndone && (item.actionType === 'price_update' || item.actionType === 'purchase_order') && (
+                                  <button
+                                    onClick={() => handleUndoLedger(item.id)}
+                                    className="text-red-400 hover:text-red-300 border border-red-950/20 hover:border-red-900/40 bg-red-950/10 px-3 py-1.5 rounded-lg transition flex items-center space-x-1.5"
+                                  >
+                                    <Icon name="undo" className="w-3.5 h-3.5" />
+                                    <span>UNDO ACTION</span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })
-                  )}
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* ACTIVITY FEED TAB VIEW (Panel A View) */}
+              {activeTab === 'Activity Feed' && (
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+                  <div className="flex justify-between items-center border-b border-slate-800 pb-3 mb-6">
+                    <h4 className="font-display font-semibold text-sm text-white uppercase tracking-wider">Agent Activity Stream (WebSocket logs)</h4>
+                    <span className="text-xs font-mono px-3 py-1 rounded bg-slate-950 border border-slate-850 text-slate-400">{feed.length} messages buffered</span>
+                  </div>
+
+                  <div className="space-y-2 font-mono text-xs max-h-[600px] overflow-y-auto pr-2">
+                    {feed.length === 0 ? (
+                      <div className="text-slate-600 h-64 flex items-center justify-center border border-dashed border-slate-800 rounded-xl text-center p-6">
+                        No WS activity received. Trigger run to initialize streams.
+                      </div>
+                    ) : (
+                      feed.map((ev, index) => {
+                        const colorClass = agentColors[ev.agentId] || 'text-slate-300 border-slate-800 bg-slate-950/20';
+                        return (
+                          <div key={ev.id || index} className={`p-3 rounded-lg border ${colorClass} transition hover:bg-slate-850/20`}>
+                            <div className="flex justify-between items-center text-[10px] opacity-75 mb-2 border-b border-slate-900/30 pb-1.5">
+                              <span className="font-bold uppercase tracking-wider">{ev.agentId}</span>
+                              <span>{new Date(ev.ts || Date.now()).toLocaleString()}</span>
+                            </div>
+                            <div className="text-slate-200 font-sans leading-relaxed">{ev.message}</div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* SETTINGS PANEL */}
+              {activeTab === 'Settings' && (
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-xl">
+                  <div className="flex items-center space-x-2 text-slate-300 border-b border-slate-800 pb-3 mb-6">
+                    <Icon name="settings" className="w-5 h-5 text-phosphor" />
+                    <h4 className="font-display font-semibold text-sm text-white uppercase tracking-wider">Dashboard Settings</h4>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <label className="text-xs font-semibold text-white uppercase">Undo Grace Period</label>
+                        <span className="text-xs font-mono text-phosphor font-bold">{undoWindow} minutes</span>
+                      </div>
+                      <p className="text-xs text-slate-500">Configure how long prices and purchase orders can be reversed from the Action Ledger before database lock.</p>
+                      
+                      <div className="pt-2">
+                        <input
+                          type="range"
+                          min="1"
+                          max="30"
+                          value={undoWindow}
+                          onChange={(e) => saveConfig(Number(e.target.value))}
+                          className="w-full accent-phosphor h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer"
+                        />
+                        <div className="flex justify-between text-[10px] font-mono text-slate-500 mt-1">
+                          <span>1m</span>
+                          <span>15m</span>
+                          <span>30m</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-6 border-t border-slate-800 space-y-4">
+                      <h5 className="text-xs font-semibold text-white uppercase">Network configurations</h5>
+                      <div className="space-y-2 text-xs font-mono">
+                        <div className="flex justify-between py-1 border-b border-slate-950">
+                          <span className="text-slate-500">API Endpoint</span>
+                          <span className="text-slate-300">http://localhost:3001</span>
+                        </div>
+                        <div className="flex justify-between py-1">
+                          <span className="text-slate-500">WebSocket Endpoint</span>
+                          <span className="text-slate-300">{wsUrl}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
             </div>
-          </div>
+          </main>
 
           {/* User notification status bar */}
           {(errorMsg || successMsg) && (
             <div className="fixed bottom-6 right-6 z-50 animate-bounce">
               {errorMsg && (
-                <div className="bg-red-950 border border-red-800 text-red-200 px-4 py-3 rounded-lg flex items-center space-x-2 shadow-2xl text-sm font-mono">
+                <div className="bg-red-950 border border-red-800 text-red-200 px-4 py-3 rounded-lg flex items-center space-x-2 shadow-2xl text-xs font-mono">
                   <Icon name="ban" className="text-red-400" />
                   <span>{errorMsg}</span>
                 </div>
               )}
               {successMsg && (
-                <div className="bg-emerald-950 border border-emerald-800 text-emerald-200 px-4 py-3 rounded-lg flex items-center space-x-2 shadow-2xl text-sm font-mono">
+                <div className="bg-emerald-950 border border-emerald-800 text-emerald-200 px-4 py-3 rounded-lg flex items-center space-x-2 shadow-2xl text-xs font-mono">
                   <Icon name="check" className="text-emerald-400" />
                   <span>{successMsg}</span>
                 </div>
