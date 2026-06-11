@@ -46,7 +46,7 @@ async function runStressTest() {
       console.error(`   - Top Alternative: "${enrichResult.alternatives[0].name}" by ${enrichResult.alternatives[0].brand}`);
     }
 
-    if (enrichResult.category === "electronics" && enrichResult.brand === "Samsung" && enrichResult.alternatives?.length > 0) {
+    if ((enrichResult.category === "electronics" || enrichResult.category === "tv") && enrichResult.brand === "Samsung" && enrichResult.alternatives?.length > 0) {
       console.error("   ✅ PASSED: Category mapping and alternatives lookup is correct.");
       passed++;
     } else {

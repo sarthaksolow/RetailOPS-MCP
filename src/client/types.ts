@@ -93,18 +93,23 @@ export interface WorkflowResult {
     narrative?: string;
   };
   forecast: {
+    base?: number;
     final?: number;
+    multiplier?: number;
     event?: string;
     narrative?: string;
   };
   replenishment: {
     reorder_qty?: number;
     timing?: string;
+    risk?: string;
     narrative?: string;
   };
   pricing: {
     recommended_price?: number;
+    current_price?: number;
     change_pct?: number;
+    strategy?: string;
     narrative?: string;
   };
   errors: string[];

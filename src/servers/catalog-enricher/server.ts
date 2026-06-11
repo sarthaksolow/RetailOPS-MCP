@@ -24,6 +24,10 @@ async function callOpenRouter(prompt: string, maxTokens: number = 150, temperatu
     return null;
   }
   const model = process.env.OPENROUTER_MODEL || "meta-llama/llama-3.1-8b-instruct";
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
+  
   try {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -38,8 +42,10 @@ async function callOpenRouter(prompt: string, maxTokens: number = 150, temperatu
         messages: [{ role: "user", content: prompt }],
         max_tokens: maxTokens,
         temperature
-      })
+      }),
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
     if (!response.ok) {
       console.error(`OpenRouter error response status: ${response.status}`);
       return null;
@@ -47,8 +53,9 @@ async function callOpenRouter(prompt: string, maxTokens: number = 150, temperatu
     const data = await response.json() as any;
     const content = data?.choices?.[0]?.message?.content;
     return content ? content.trim() : null;
-  } catch (error) {
-    console.error("OpenRouter API call failed:", error);
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    console.error("OpenRouter API call failed or timed out:", error.message || error);
     return null;
   }
 }
@@ -77,10 +84,13 @@ server.tool(
     }
     reasoning.push(`cleaned product name: '${productName}' -> '${cleanedName}'`);
 
-    // Step 2: Categorize
+    // Step 2: Categorize and Step 3: Extract Attributes/Description
     let category = productData?.category || null;
-    if (category) {
-      reasoning.push(`using existing category: ${category}`);
+    let description = productData?.description || null;
+    let brand = productData?.brand || null;
+
+    if (category && description) {
+      reasoning.push(`using existing category: ${category} and description`);
     } else {
       // 1. Check exact database match
       const exactMatch = await prisma.catalogProduct.findFirst({
@@ -90,58 +100,81 @@ server.tool(
           }
         }
       });
+
       if (exactMatch) {
-        category = exactMatch.category;
+        category = category || exactMatch.category;
+        description = description || exactMatch.description;
+        brand = brand || exactMatch.brand;
         reasoning.push(`exact database match found: category is ${category}`);
       } else {
-        // 2. Check keyword mappings in database
-        const mappings = await prisma.categoryMapping.findMany();
-        const match = mappings.find(m => cleanedName.toLowerCase().includes(m.keyword.toLowerCase()));
-        if (match) {
-          category = match.category;
-          reasoning.push(`keyword database match found: category is ${category}`);
+        // Prepare LLM prompts
+        const categoryPrompt = `You are a retail inventory classification expert.
+Categorize this product into exactly one of these 7 valid retail categories:
+- electronics (general electronic accessories, headphones, audio devices, chargers, cables)
+- tv (televisions, smart displays, screens, monitors)
+- laptop (laptops, notebooks, MacBooks, PCs)
+- phone (smartphones, mobile phones, cellular devices)
+- kitchen_appliances (juicers, blenders, ovens, microwaves)
+- fashion (clothing, trench coats, shirts, pants, dresses, jackets, wool wear, designer apparel)
+- groceries (soap, detergent, fresh fruits, apples, shampoo, organic items)
+
+Product name: "${cleanedName}"
+
+Respond with ONLY the category name from the list above, in lowercase, with no extra text or punctuation.`;
+
+        const descPrompt = `Generate a brief product description (1-2 sentences) for: ${cleanedName}\nBe concise and professional.`;
+
+        reasoning.push(`firing parallel LLM requests for category and description`);
+        
+        const [llmCategory, llmDesc] = await Promise.all([
+          category ? Promise.resolve(category) : callOpenRouter(categoryPrompt, 20, 0.1),
+          description ? Promise.resolve(description) : callOpenRouter(descPrompt, 60, 0.7)
+        ]);
+
+        // Resolve Category
+        const validCategories = ["electronics", "tv", "laptop", "phone", "kitchen_appliances", "fashion", "groceries"];
+        if (llmCategory && validCategories.includes(llmCategory.toLowerCase().trim())) {
+          category = llmCategory.toLowerCase().trim();
+          reasoning.push(`LLM categorized as: ${category}`);
         } else {
-          // 3. Fallback to OpenRouter zero-shot classification
-          const categoryPrompt = `Categorize this product into one of these retail categories:
-- electronics
-- groceries
-- fashion
-- kitchen_appliances
-- home_appliances
-- beauty_personal_care
-- sports_fitness
-- general
-
-Product name: ${cleanedName}
-
-Respond with ONLY the category name, nothing else.`;
-          
-          const llmCategory = await callOpenRouter(categoryPrompt, 20, 0.1);
-          const validCategories = ["electronics", "groceries", "fashion", "kitchen_appliances", "home_appliances", "beauty_personal_care", "sports_fitness", "general"];
-          if (llmCategory && validCategories.includes(llmCategory.toLowerCase())) {
-            category = llmCategory.toLowerCase();
-            reasoning.push(`LLM categorized as: ${category}`);
+          // Fallback to database keyword mappings
+          const mappings = await prisma.categoryMapping.findMany();
+          const match = mappings.find(m => cleanedName.toLowerCase().includes(m.keyword.toLowerCase()));
+          if (match) {
+            category = match.category;
+            reasoning.push(`keyword database fallback match found: category is ${category}`);
           } else {
-            // 4. Fallback to local rule-based category heuristics
+            // Fallback to local rule-based category heuristics
             const nameLower = cleanedName.toLowerCase();
-            if (["tv", "television", "screen", "laptop", "computer", "notebook", "phone", "smartphone", "mobile"].some(word => nameLower.includes(word))) {
-              category = "electronics";
-            } else if (["detergent", "soap", "shampoo", "pack"].some(word => nameLower.includes(word))) {
-              category = "groceries";
-            } else if (["shirt", "pants", "dress", "fashion"].some(word => nameLower.includes(word))) {
+            if (["tv", "television", "screen", "display", "monitor"].some(word => nameLower.includes(word))) {
+              category = "tv";
+            } else if (["laptop", "computer", "notebook", "pc", "macbook"].some(word => nameLower.includes(word))) {
+              category = "laptop";
+            } else if (["phone", "smartphone", "mobile", "iphone", "android"].some(word => nameLower.includes(word))) {
+              category = "phone";
+            } else if (["kitchen", "appliance", "blend", "oven", "cooker", "juicer", "microwave"].some(word => nameLower.includes(word))) {
+              category = "kitchen_appliances";
+            } else if (["shirt", "pants", "dress", "fashion", "coat", "jacket", "shoe", "boot", "wool", "wear", "suit"].some(word => nameLower.includes(word))) {
               category = "fashion";
+            } else if (["detergent", "soap", "shampoo", "pack", "apple", "fresh", "organic", "food", "grocery", "groceries", "milk", "bread"].some(word => nameLower.includes(word))) {
+              category = "groceries";
             } else {
-              category = "general";
+              category = "electronics"; // default to electronics instead of general
             }
-            reasoning.push(`fallback categorization: ${category}`);
+            reasoning.push(`local heuristic fallback categorization: ${category}`);
           }
+        }
+
+        // Resolve Description
+        if (llmDesc) {
+          description = llmDesc;
+        } else {
+          description = `Product: ${cleanedName}`;
         }
       }
     }
 
-    // Step 3: Extract Attributes
-    // Extract Brand
-    let brand = productData?.brand || null;
+    // Resolve Brand
     if (!brand) {
       const words = cleanedName.split(" ");
       if (words.length > 0 && words[0]) {
@@ -151,19 +184,7 @@ Respond with ONLY the category name, nothing else.`;
       }
     }
 
-    // Extract Description
-    let description = productData?.description || null;
-    if (!description) {
-      const descPrompt = `Generate a brief product description (1-2 sentences) for: ${cleanedName}\nBe concise and professional.`;
-      const llmDesc = await callOpenRouter(descPrompt, 60, 0.7);
-      if (llmDesc) {
-        description = llmDesc;
-      } else {
-        description = `Product: ${cleanedName}`;
-      }
-    }
-
-    // Extract size and weight
+    // Extract size and weight attributes
     const attributes: Record<string, any> = { ...(productData?.attributes || {}) };
     const weightRegex = /(\d+(?:\.\d+)?)\s*(kg|g|lb|oz)/i;
     const weightMatch = cleanedName.match(weightRegex);
@@ -189,11 +210,11 @@ Respond with ONLY the category name, nothing else.`;
       reasoning.push("all required fields present");
     }
 
-    // Step 5: Find Alternatives
+    // Step 5: Find Alternatives in DB first
     let alternatives: any[] = [];
     const dbAlts = await prisma.catalogProduct.findMany({
       where: {
-        category: category,
+        category: category || "general",
         name: {
           not: cleanedName
         },
@@ -211,44 +232,17 @@ Respond with ONLY the category name, nothing else.`;
       margin: alt.marginPct
     }));
 
+    // Step 6: Trigger parallel calls for alternatives (if needed) and narrative summary
+    let altPromise = Promise.resolve<string | null>(null);
     if (alternatives.length === 0) {
       const altPrompt = `Given this product is out of stock, suggest 2-3 alternative products in the same category.
 Product: ${cleanedName} (Category: ${category}, Brand: ${brand})
 
 Respond with a JSON array of alternatives, each with: name, brand, reason.
 Example: [{"name": "Surf Excel 2kg", "brand": "Surf Excel", "reason": "Similar detergent, same size"}]`;
-      const llmAltsStr = await callOpenRouter(altPrompt, 200, 0.7);
-      if (llmAltsStr) {
-        try {
-          let cleanJsonStr = llmAltsStr.trim();
-          if (cleanJsonStr.startsWith("```")) {
-            const lines = cleanJsonStr.split("\n");
-            if (lines[0].startsWith("```json") || lines[0].startsWith("```")) {
-              lines.shift();
-            }
-            if (lines[lines.length - 1].startsWith("```")) {
-              lines.pop();
-            }
-            cleanJsonStr = lines.join("\n").trim();
-          }
-          const parsedAlts = JSON.parse(cleanJsonStr);
-          if (Array.isArray(parsedAlts)) {
-            alternatives = parsedAlts.slice(0, 3);
-          }
-        } catch (err) {
-          console.error("Failed to parse LLM alternatives JSON:", err);
-        }
-      }
+      altPromise = callOpenRouter(altPrompt, 200, 0.7);
     }
 
-    if (alternatives.length > 0) {
-      reasoning.push(`found ${alternatives.length} alternative products`);
-    } else {
-      reasoning.push("no alternatives found");
-    }
-
-    // Step 6: Narrative Summary
-    let narrative = "";
     const narrativePrompt = `You are a retail catalog expert. Summarize the product enrichment:
 
 Product: ${cleanedName}
@@ -259,7 +253,43 @@ Missing fields filled: ${missingFields.join(", ")}
 Alternatives found: ${alternatives.length}
 
 Provide a concise summary (2-3 sentences) of the enrichment work done.`;
-    const llmNarrative = await callOpenRouter(narrativePrompt, 150, 0.7);
+
+    const narrativePromise = callOpenRouter(narrativePrompt, 150, 0.7);
+
+    reasoning.push(`firing parallel LLM requests for alternatives (if needed) and narrative`);
+    
+    const [llmAltsStr, llmNarrative] = await Promise.all([
+      altPromise,
+      narrativePromise
+    ]);
+
+    // Parse LLM alternatives if we used them
+    if (alternatives.length === 0 && llmAltsStr) {
+      try {
+        let cleanJsonStr = llmAltsStr.trim();
+        if (cleanJsonStr.startsWith("```")) {
+          const lines = cleanJsonStr.split("\n");
+          if (lines[0].startsWith("```json") || lines[0].startsWith("```")) {
+            lines.shift();
+          }
+          if (lines[lines.length - 1].startsWith("```")) {
+            lines.pop();
+          }
+          cleanJsonStr = lines.join("\n").trim();
+        }
+        const parsedAlts = JSON.parse(cleanJsonStr);
+        if (Array.isArray(parsedAlts)) {
+          alternatives = parsedAlts.slice(0, 3);
+          reasoning.push(`found LLM alternative products`);
+        }
+      } catch (err) {
+        console.error("Failed to parse LLM alternatives JSON:", err);
+      }
+    } else if (alternatives.length > 0) {
+      reasoning.push(`found ${alternatives.length} database alternative products`);
+    }
+
+    let narrative = "";
     if (llmNarrative) {
       narrative = llmNarrative;
     } else {

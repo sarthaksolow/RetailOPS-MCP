@@ -76,6 +76,10 @@ async function callOpenRouter(prompt: string, maxTokens: number = 180, temperatu
     return null;
   }
   const model = process.env.OPENROUTER_MODEL || "meta-llama/llama-3.1-8b-instruct";
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 seconds timeout
+  
   try {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -90,8 +94,10 @@ async function callOpenRouter(prompt: string, maxTokens: number = 180, temperatu
         messages: [{ role: "user", content: prompt }],
         max_tokens: maxTokens,
         temperature
-      })
+      }),
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
     if (!response.ok) {
       log(`[FORECAST] OpenRouter error response status: ${response.status}`);
       return null;
@@ -99,8 +105,9 @@ async function callOpenRouter(prompt: string, maxTokens: number = 180, temperatu
     const data = await response.json() as any;
     const content = data?.choices?.[0]?.message?.content;
     return content ? content.trim() : null;
-  } catch (error) {
-    log(`[FORECAST] OpenRouter API call failed: ${error}`);
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    log(`[FORECAST] OpenRouter API call failed or timed out: ${error.message || error}`);
     return null;
   }
 }

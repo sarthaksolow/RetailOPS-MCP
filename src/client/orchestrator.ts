@@ -14,6 +14,34 @@ const prisma = new PrismaClient();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+export function getProductInventory(productName: string, category: string): { current: number; inTransit: number } {
+  const baseInventory: Record<string, { current: number; inTransit: number }> = {
+    tv: { current: 45, inTransit: 10 },
+    laptop: { current: 25, inTransit: 5 },
+    phone: { current: 80, inTransit: 20 },
+    electronics: { current: 150, inTransit: 50 },
+    fashion: { current: 350, inTransit: 50 },
+    groceries: { current: 800, inTransit: 200 },
+  };
+  
+  const base = baseInventory[category] || { current: 200, inTransit: 50 };
+  
+  // Calculate a simple hash from productName
+  let hash = 0;
+  for (let i = 0; i < productName.length; i++) {
+    hash = productName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  // Fluctuate the current stock between 50% and 150% of the base
+  const percentage = 50 + (Math.abs(hash) % 101); // 50% to 150%
+  const current = Math.max(5, Math.round((base.current * percentage) / 100));
+  
+  // In transit scales similarly
+  const inTransit = Math.max(0, Math.round((base.inTransit * percentage) / 100));
+  
+  return { current, inTransit };
+}
+
 export class MCPServerManager {
   private baseDir: string;
   private serverScripts: Record<string, string>;
@@ -83,7 +111,7 @@ export class MCPServerManager {
               product_data: {},
             },
           },
-        });
+        }, undefined, { timeout: 30000 });
 
         const resp = response as any;
         if (resp.isError) {
@@ -122,7 +150,7 @@ export class MCPServerManager {
             category,
             days_ahead: daysAhead,
           },
-        });
+        }, undefined, { timeout: 30000 });
 
         const resp = response as any;
         if (resp.isError) {
@@ -226,7 +254,7 @@ export class MCPServerManager {
           arguments: {
             input: replenishInput,
           },
-        });
+        }, undefined, { timeout: 30000 });
 
         const resp = response as any;
         if (resp.isError) {
@@ -290,7 +318,7 @@ export class MCPServerManager {
           arguments: {
             input: pricingInput,
           },
-        });
+        }, undefined, { timeout: 30000 });
 
         const resp = response as any;
         if (resp.isError) {
@@ -342,6 +370,37 @@ export class RetailOpsClient {
     state.description = enrichResult.description || "";
     state.alternatives = enrichResult.alternatives || [];
     state.enrichment_narrative = enrichResult.narrative || "";
+
+    // Query catalog price in SQLite DB
+    try {
+      const product = await prisma.catalogProduct.findFirst({
+        where: {
+          name: {
+            equals: enrichResult.product_name || state.product_name,
+          },
+        },
+      });
+      if (product) {
+        state.current_price = product.price;
+        console.error(`[CLIENT] Found product price in catalog: ${product.price}`);
+      } else {
+        const defaultPrices: Record<string, number> = {
+          electronics: 9000,
+          tv: 28000,
+          laptop: 48000,
+          phone: 16000,
+          kitchen_appliances: 5500,
+          fashion: 1500,
+          groceries: 220,
+        };
+        state.current_price = defaultPrices[state.category || "general"] || 5000;
+        console.error(`[CLIENT] Product not found in catalog, using default price: ${state.current_price}`);
+      }
+    } catch (dbErr: any) {
+      console.error(`[CLIENT] Error fetching product price: ${dbErr.message}`);
+      state.current_price = 5000;
+    }
+
     return state;
   }
 
@@ -379,7 +438,8 @@ export class RetailOpsClient {
       return state;
     }
 
-    const replenishResult = await this.serverManager.callReplenishment(state.forecast_data);
+    const inv = getProductInventory(state.product_name, state.category || "general");
+    const replenishResult = await this.serverManager.callReplenishment(state.forecast_data, inv.current, inv.inTransit);
 
     if (replenishResult.error) {
       state.errors.push(`Replenishment: ${replenishResult.error}`);
@@ -407,9 +467,15 @@ export class RetailOpsClient {
       return state;
     }
 
+    const category = state.category || "general";
+    const curPrice = state.current_price !== undefined ? state.current_price : undefined;
+    const inv = getProductInventory(state.product_name, category);
+
     const pricingResult = await this.serverManager.callPricing(
-      state.category || "general",
-      state.final_forecast
+      category,
+      state.final_forecast,
+      inv.current,
+      curPrice
     );
 
     if (pricingResult.error) {
@@ -433,6 +499,7 @@ export class RetailOpsClient {
     try {
       await prisma.analysisRun.create({
         data: {
+          productName: state.product_name,
           category: state.category || "general",
           status: state.workflow_status,
           errors: state.errors.length > 0 ? state.errors.join("; ") : null,
@@ -502,18 +569,23 @@ export class RetailOpsClient {
           narrative: state.enrichment_narrative,
         },
         forecast: {
+          base: state.base_forecast,
           final: state.final_forecast,
+          multiplier: state.seasonal_multiplier,
           event: state.event,
           narrative: state.forecast_narrative,
         },
         replenishment: {
           reorder_qty: state.reorder_qty,
           timing: state.reorder_timing,
+          risk: state.stockout_risk,
           narrative: state.replenishment_narrative,
         },
         pricing: {
           recommended_price: state.recommended_price,
+          current_price: state.current_price,
           change_pct: state.price_change_pct,
+          strategy: state.recommendation_type,
           narrative: state.pricing_narrative,
         },
         errors: state.errors,

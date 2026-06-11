@@ -10,6 +10,7 @@ generator client {
 model AnalysisRun {
   id                      String                   @id @default(uuid())
   timestamp               DateTime                 @default(now())
+  productName             String?                  // Stores the product search query
   category                String
   status                  String
   errors                  String?                  // Stores joined error messages if any

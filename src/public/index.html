@@ -161,99 +161,127 @@
             const chartRef = useRef(null);
 
             useEffect(() => {
-                if (!canvasRef.current || !selectedRun || !selectedRun.forecast) return;
-
-                if (chartRef.current) {
-                    chartRef.current.destroy();
+                if (!canvasRef.current || !selectedRun || !selectedRun.forecast) {
+                    if (chartRef.current) {
+                        chartRef.current.destroy();
+                        chartRef.current = null;
+                    }
+                    return;
                 }
 
-                const ctx = canvasRef.current.getContext('2d');
-                const forecast = selectedRun.forecast;
-                const replenishment = selectedRun.replenishment || {};
-                
-                chartRef.current = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Base Demand', 'Adjusted Forecast', 'Safety Reorder'],
-                        datasets: [{
-                            label: 'Volume (Units)',
-                            data: [
-                                forecast.baseForecast || 0,
-                                forecast.finalForecast || 0,
-                                replenishment.reorderQty || 0
-                            ],
-                            backgroundColor: [
-                                'rgba(99, 102, 241, 0.4)',  // Indigo
-                                'rgba(139, 92, 246, 0.7)',  // Violet
-                                'rgba(236, 72, 153, 0.6)'   // Pink
-                            ],
-                            borderColor: [
-                                'rgb(99, 102, 241)',
-                                'rgb(139, 92, 246)',
-                                'rgb(236, 72, 153)'
-                            ],
-                            borderWidth: 1.5,
-                            borderRadius: 6
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                                titleColor: '#fff',
-                                bodyColor: '#ccc',
-                                borderColor: 'rgba(255, 255, 255, 0.1)',
-                                borderWidth: 1
-                            }
+                let checkInterval = null;
+
+                if (typeof Chart === 'undefined') {
+                    console.warn('[DASHBOARD] Chart.js is not loaded yet, polling...');
+                    checkInterval = setInterval(() => {
+                        if (typeof Chart !== 'undefined') {
+                            clearInterval(checkInterval);
+                            buildChart();
+                        }
+                    }, 150);
+                } else {
+                    buildChart();
+                }
+
+                function buildChart() {
+                    if (!canvasRef.current) return;
+                    if (chartRef.current) {
+                        chartRef.current.destroy();
+                    }
+
+                    const ctx = canvasRef.current.getContext('2d');
+                    const forecast = selectedRun.forecast;
+                    const replenishment = selectedRun.replenishment || {};
+                    
+                    chartRef.current = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Base Demand', 'Adjusted Forecast', 'Safety Reorder'],
+                            datasets: [{
+                                label: 'Volume (Units)',
+                                data: [
+                                    forecast.baseForecast || 0,
+                                    forecast.finalForecast || 0,
+                                    replenishment.reorderQty || 0
+                                ],
+                                backgroundColor: [
+                                    'rgba(99, 102, 241, 0.4)',  // Indigo
+                                    'rgba(139, 92, 246, 0.7)',  // Violet
+                                    'rgba(236, 72, 153, 0.6)'   // Pink
+                                ],
+                                borderColor: [
+                                    'rgb(99, 102, 241)',
+                                    'rgb(139, 92, 246)',
+                                    'rgb(236, 72, 153)'
+                                ],
+                                borderWidth: 1.5,
+                                borderRadius: 6
+                            }]
                         },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: {
-                                    color: 'rgba(255, 255, 255, 0.05)'
-                                },
-                                ticks: {
-                                    color: 'rgba(255, 255, 255, 0.6)',
-                                    font: { size: 11 }
-                                }
-                            },
-                            x: {
-                                grid: {
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
                                     display: false
                                 },
-                                ticks: {
-                                    color: 'rgba(255, 255, 255, 0.6)',
-                                    font: { size: 11 }
+                                tooltip: {
+                                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                    titleColor: '#fff',
+                                    bodyColor: '#ccc',
+                                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                                    borderWidth: 1
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        color: 'rgba(255, 255, 255, 0.05)'
+                                    },
+                                    ticks: {
+                                        color: 'rgba(255, 255, 255, 0.6)',
+                                        font: { size: 11 }
+                                    }
+                                },
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        color: 'rgba(255, 255, 255, 0.6)',
+                                        font: { size: 11 }
+                                    }
                                 }
                             }
                         }
-                    }
-                });
+                    });
+                }
 
                 return () => {
+                    if (checkInterval) {
+                        clearInterval(checkInterval);
+                    }
                     if (chartRef.current) {
                         chartRef.current.destroy();
+                        chartRef.current = null;
                     }
                 };
             }, [selectedRun]);
 
-            if (!selectedRun || !selectedRun.forecast) {
-                return (
-                    <div className="flex flex-col items-center justify-center h-48 border border-dashed border-slate-800 rounded-xl bg-slate-900/20 text-slate-500">
-                        <i className="fa-solid fa-chart-simple text-3xl mb-2"></i>
-                        <span className="text-sm">Run analysis to generate visual projections</span>
-                    </div>
-                );
-            }
+            const hasData = selectedRun && selectedRun.forecast;
 
             return (
-                <div className="h-64 w-full">
-                    <canvas ref={canvasRef} />
+                <div className="h-64 w-full relative">
+                    {!hasData ? (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center border border-dashed border-slate-800 rounded-xl bg-slate-900/20 text-slate-500">
+                            <i className="fa-solid fa-chart-simple text-3xl mb-2"></i>
+                            <span className="text-sm">Run analysis to generate visual projections</span>
+                        </div>
+                    ) : null}
+                    <div className="h-full w-full" style={{ display: hasData ? 'block' : 'none' }}>
+                        <canvas ref={canvasRef} />
+                    </div>
                 </div>
             );
         };
@@ -827,8 +855,11 @@
                                                         {formatDate(run.timestamp)}
                                                     </td>
                                                     <td className="py-3.5 px-4">
-                                                        <span className="px-2 py-0.5 rounded text-[10px] bg-slate-900 border border-slate-800 text-slate-300 font-bold uppercase tracking-wider">
-                                                            {run.category}
+                                                        <div className="font-semibold text-slate-200 truncate max-w-[180px]" title={norm.productName}>
+                                                            {norm.productName}
+                                                        </div>
+                                                        <span className="mt-1 inline-block px-1.5 py-0.5 rounded text-[8px] bg-slate-900 border border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
+                                                            {norm.category}
                                                         </span>
                                                     </td>
                                                     <td className="py-3.5 px-4">

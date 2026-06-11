@@ -1,13 +1,20 @@
 {
   "detergent": "groceries",
   "soap": "groceries",
-  "shampoo": "beauty_personal_care",
-  "tv": "electronics",
-  "television": "electronics",
-  "laptop": "electronics",
-  "phone": "electronics",
+  "shampoo": "groceries",
+  "tv": "tv",
+  "television": "tv",
+  "laptop": "laptop",
+  "computer": "laptop",
+  "phone": "phone",
+  "smartphone": "phone",
   "shirt": "fashion",
   "pants": "fashion",
-  "dress": "fashion"
+  "dress": "fashion",
+  "coat": "fashion",
+  "jacket": "fashion",
+  "wool": "fashion",
+  "trench": "fashion",
+  "headphone": "electronics",
+  "headphones": "electronics"
 }
-
