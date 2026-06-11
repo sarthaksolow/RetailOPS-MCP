@@ -1,25 +1,63 @@
-# 🛍️ RetailOps TypeScript MCP System
+# 🛍️ RetailOps Autonomous Agent System
 
-**AI-Powered Retail Operations Suite with MCP Servers, SQLite Cache, and React Dashboard**
+**AI-Powered Retail Operations Copilot with MCP Servers, SQLite Ledger, React Dashboard, and Autonomous Agent Loop**
 
-A complete Model Context Protocol (MCP) system implemented in TypeScript that orchestrates forecasting, replenishment, and pricing strategy servers into intelligent retail workflows.
+A complete Model Context Protocol (MCP) system implemented in TypeScript that orchestrates forecasting, replenishment, pricing strategy, and recovery servers into an autonomous agentic loop.
 
 ---
 
-## 🎯 What This Does
+## 🎯 System Architecture
 
-Transform retail operations with AI-powered decision making:
+Unlike standard static dashboards, RetailOps operates as a continuous, stateful, and self-correcting agent loop:
 
 ```
-[Catalog Enricher] -> [Forecasting] -> [Replenishment] -> [Pricing Strategy] -> [Express Server / SQLite] -> [React Dashboard]
+                  [Messy Data Sources]
+                           |
+                           v
+         +----------------------------------+
+         |     CYCLE TICK (every 20s)       |
+         +----------------------------------+
+                           |
+                           v
+                  [1. AUDITOR AGENT]
+                  - Zero-shot LLM cleaning
+                  - Category identification
+                           |
+                           v
+                 [2. COMPOSITE SCORER]
+                 - Calculates efficiency score
+                 - Auto vs review tiering
+                           |
+               +-----------+-----------+
+               |                       |
+               v                       v
+      [3. PROCUREMENT AGENT]   [4. PRICING AGENT]
+      - Budget check (₹50k)    - Elasticity matches
+      - Supplier routing       - Variance checks (15%)
+      - Logistics delay sim
+               |                       |
+               +-----------+-----------+
+                           |
+                           v
+                 [5. RECOVERY PLANNER]
+                 - Resolves delayed orders
+                 - Alt-supplier failover
+                           |
+                           v
+                    [ACTION LEDGER]
+                    - Reversible snapshots
+                    - Undo capability
+                           |
+                           v
+               [SEQUENCE FINANCIAL CONSOLE]
 ```
 
-* **Catalog Enrichment**: Maps category keywords, extracts brands, and searches alternative recommendations in SQLite.
-* **Forecasting**: Predicts demand using sales history CSV and seasonal events.
-* **Replenishment**: Recommends optimal reorder quantities and timing using safety stock formulas and festival urgency.
-* **Pricing**: Recommends price adjustments (clearance discounts, premium markups, competitive price matches) based on stock levels, competitor pricing, and elasticity parameters.
-* **Database Logs & Cache**: Persists analysis runs in SQLite with Prisma ORM.
-* **React Web UI**: Premium glassmorphism dark-themed dashboard displaying forecasts, replenishment timing, stock risk, and pricing history.
+### The Autonomous Agents
+* **Auditor Agent**: Dedupes records, filters anomalies, and uses zero-shot classification to map product descriptions to categories with confidence thresholds.
+* **Scorer Agent**: Calculates composite business scores combining margins, demand volumes, and stockout risk penalties. Determines if the action is low-risk (auto-apply) or high-risk (queue for human review).
+* **Procurement Agent**: Scores suppliers based on cost, lead time, and reliability to route orders. Purchase orders over ₹50,000 are queued for review; smaller orders execute automatically.
+* **Pricing Agent**: Recommends discounts or premium markups. Changes exceeding 15% variance require manual operator sign-off.
+* **Recovery Planner**: Automatically resolves simulated logistics disruptions (delays, partial deliveries, rejections) by re-routing orders to alternative suppliers.
 
 ---
 
@@ -62,11 +100,17 @@ npm run build
 
 ### 🌐 Start the Web Dashboard
 ```bash
-# Launches the Express server and React SPA dashboard
+# Launches the Express server and React dashboard
 npm run start:dashboard
 ```
-* The server automatically checks if port `3000` is in use (e.g. by Grafana) and falls back to `3001` or another port dynamically.
-* Open [http://localhost:3001](http://localhost:3001) in your browser.
+* The server listens on [http://localhost:3001](http://localhost:3001) in your browser.
+* Dashboard uses bidirection WebSockets (`ws://localhost:3001`) to push live events and pull approvals.
+
+### 🤖 Start the Autonomous Agent Daemon
+```bash
+# Start the background operations loop (ticks every 20 seconds)
+npm run start:agent
+```
 
 ### 🔌 Start Individual MCP Servers
 If you want to run the servers independently via STDIO:
@@ -82,22 +126,6 @@ npm run start:replenishment
 
 # Pricing Server
 npm run start:pricing
-```
-
-### ⌨️ CLI Interface
-Run analysis directly from the command line:
-```bash
-# Analyze a single product category
-npm run cli analyze tv
-
-# Run batch analysis
-npm run cli batch electronics fashion groceries
-
-# Forecast only
-npm run cli forecast laptop
-
-# Output JSON analysis
-npm run cli json phone
 ```
 
 ---
@@ -120,18 +148,16 @@ npm run test:stress
 
 ---
 
-## 🏗️ Architecture & Conventions
+## 🏗️ Technical Specifications & Conventions
+
+### Sequence Financial Design System
+The frontend has been redesigned to match the visual language of the Sequence Financial Dashboard (Dipa Inhouse):
+* **Colors**: Background slate `#080b11`, Card base `#0e121e`, and Neon Phosphor Green `#00ff66` active indicators.
+* **Layout**: Left vertical navigation rail, top header with WS status glow beacon, and structured summary metrics (logged procurement value, loop efficiency rating, pending approvals backlog).
+* **Components**: SVG activity sparkline graph, tabbed consoles, and double-entry action logs.
 
 ### Stdio Safety
 All MCP servers must print debug logs, warnings, or info to `console.error` (stderr). Writing to `stdout` is reserved exclusively for the MCP JSON-RPC protocol to prevent communication corruption.
-
-### State Management
-The orchestrator accumulates results sequentially from each server node in a single state object:
-1. **Catalog Enricher**: Identifies the category and alternative suggestions.
-2. **Forecasting**: Calculates demand forecasts.
-3. **Replenishment**: Determines runway and safety stock levels.
-4. **Pricing**: Recommends discounts or markup strategies.
-5. **Persistence**: Saves the consolidated results to `data/retailops.db`.
 
 ### Git Commit Conventions
 Commit messages must follow the pattern:
@@ -146,4 +172,5 @@ Supported tags:
 * `[test]`: Adding or refactoring test suites.
 
 ### Strict Coding Constraints
-NEVER use em dashes (-) anywhere in documentation, commits, comments, or strings. Use regular hyphens (-) or colons (:) instead.
+NEVER use em dashes anywhere in documentation, commits, comments, or strings. Use regular hyphens (-) or colons (:) instead.
+agy --conversation=608fcf84-04d7-48e8-ba2d-9540976550c2
