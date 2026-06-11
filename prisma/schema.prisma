@@ -68,3 +68,47 @@ model CategoryMapping {
   category                String
 }
 
+model ActionLog {
+  id          String   @id @default(uuid())
+  agentId     String
+  actionType  String
+  payload     String
+  undoPayload String
+  outcome     String
+  createdAt   DateTime @default(now())
+}
+
+model FlaggedItem {
+  id              String   @id @default(uuid())
+  productId       String
+  guessedCategory String
+  confidence      Float
+  reason          String
+  resolved        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+}
+
+model PurchaseOrderLog {
+  id             String   @id @default(uuid())
+  poId           String   @unique
+  supplierId     String
+  category       String
+  qty            Int
+  totalValue     Float
+  status         String
+  logisticsEvent String?
+  createdAt      DateTime @default(now())
+}
+
+model ReviewQueue {
+  id        String   @id @default(uuid())
+  type      String
+  payload   String
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+}
+
+model AgentConfig {
+  key       String @id
+  value     String
+}

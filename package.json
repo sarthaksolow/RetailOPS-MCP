@@ -16,14 +16,17 @@
     "start:dashboard": "tsx src/client/server.ts",
     "cli": "tsx src/client/cli.ts",
     "test:integration": "tsx tests/integration.test.ts",
-    "test:stress": "tsx tests/stress_test.ts"
+    "test:stress": "tsx tests/stress_test.ts",
+    "start:agent": "tsx src/client/daemon.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.1",
     "@prisma/client": "^5.12.1",
+    "@types/ws": "^8.18.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
