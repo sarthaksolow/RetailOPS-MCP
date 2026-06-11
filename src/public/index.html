@@ -1,908 +1,1800 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RetailOps Intelligent Demand & Price Orchestrator</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            50: '#f5f7ff',
-                            100: '#ebf0ff',
-                            200: '#dbe2ff',
-                            300: '#bfcbff',
-                            400: '#99aaff',
-                            500: '#667cff',
-                            600: '#4d5cff',
-                            700: '#3943eb',
-                            800: '#2f36c4',
-                            900: '#2a309e',
-                            950: '#1b1c5c',
-                        },
-                        slate: {
-                            950: '#020617'
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <!-- React & ReactDOM -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <!-- Babel for in-browser JSX parsing -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Solid icons library alternative for script usage -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Glassmorphism custom classes */
-        .glass-panel {
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .glass-card {
-            background: rgba(30, 41, 59, 0.4);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .glass-card:hover {
-            background: rgba(30, 41, 59, 0.55);
-            border-color: rgba(99, 102, 241, 0.2);
-            transform: translateY(-2px);
-        }
-        body {
-            background: radial-gradient(circle at 50% -20%, #1e1b4b 0%, #020617 70%);
-            min-height: 100vh;
-            color: #f8fafc;
-        }
-        /* Hide scrollbars for slick looks but preserve scrolling */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.3);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(99, 102, 241, 0.3);
-            border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(99, 102, 241, 0.5);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RetailOps - Autonomous Retail Intelligence</title>
+  <meta name="description" content="Autonomous demand forecasting, inventory replenishment, and dynamic pricing orchestration for modern retail operations.">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Babel for in-browser JSX parsing -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Design Tokens -->
+  <link rel="stylesheet" href="/tokens.css">
+
+  <style>
+    /* ─── Hallmark · macrostructure: Workbench · tone: utilitarian-technical · anchor hue: phosphor-green ─── */
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      overflow-x: clip;
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      color: var(--color-ink);
+      background-color: var(--color-paper);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── App Shell: Workbench Layout ─── */
+    .workbench {
+      display: grid;
+      grid-template-rows: 48px 1fr;
+      grid-template-columns: 280px 1fr;
+      grid-template-areas:
+        "topbar topbar"
+        "rail   main";
+      min-height: 100vh;
+    }
+
+    /* ─── Top Command Bar ─── */
+    .topbar {
+      grid-area: topbar;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 var(--space-6);
+      background: var(--color-paper-2);
+      border-bottom: 1px solid var(--color-rule);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .topbar-wordmark {
+      font-family: var(--font-display);
+      font-size: var(--text-base);
+      font-weight: 700;
+      color: var(--color-ink);
+      letter-spacing: -0.01em;
+    }
+
+    .topbar-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: var(--radius-full);
+      background: var(--color-accent);
+      box-shadow: 0 0 8px var(--color-accent);
+      flex-shrink: 0;
+    }
+
+    .topbar-status {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      color: var(--color-ink-3);
+    }
+
+    .status-live {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      color: var(--color-accent);
+    }
+
+    .status-live::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: var(--radius-full);
+      background: var(--color-accent);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    /* ─── Left Control Rail ─── */
+    .rail {
+      grid-area: rail;
+      background: var(--color-paper-2);
+      border-right: 1px solid var(--color-rule);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      position: sticky;
+      top: 48px;
+      height: calc(100vh - 48px);
+    }
+
+    .rail-section {
+      padding: var(--space-5) var(--space-5) var(--space-4);
+      border-bottom: 1px solid var(--color-rule);
+    }
+
+    .rail-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-ink-4);
+      margin-bottom: var(--space-3);
+    }
+
+    /* ─── Main Workspace ─── */
+    .main {
+      grid-area: main;
+      overflow-y: auto;
+      padding: var(--space-6);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-6);
+    }
+
+    /* ─── Tokens ─── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-family: var(--font-display);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background var(--dur-mid) var(--ease-out),
+                  border-color var(--dur-mid) var(--ease-out),
+                  color var(--dur-mid) var(--ease-out),
+                  transform var(--dur-fast) var(--ease-out);
+      border: 1px solid transparent;
+      padding: var(--space-2) var(--space-4);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: 2px;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: var(--color-accent);
+      color: var(--color-paper);
+      border-color: var(--color-accent);
+    }
+
+    .btn-primary:hover {
+      background: oklch(80% 0.20 145);
+      border-color: oklch(80% 0.20 145);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--color-ink-3);
+      border-color: var(--color-rule);
+    }
+
+    .btn-ghost:hover {
+      background: var(--color-paper-3);
+      color: var(--color-ink-2);
+      border-color: oklch(100% 0 0 / 0.12);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--color-signal-hi);
+      border-color: oklch(65% 0.19 25 / 0.25);
+    }
+
+    .btn-danger:hover {
+      background: var(--color-signal-hi-bg);
+    }
+
+    .btn-full {
+      width: 100%;
+      justify-content: center;
+      padding: var(--space-3) var(--space-4);
+    }
+
+    /* ─── Input ─── */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+
+    .field-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-ink-3);
+    }
+
+    .input {
+      width: 100%;
+      background: var(--color-paper);
+      border: 1px solid var(--color-rule);
+      border-radius: var(--radius-md);
+      padding: var(--space-2) var(--space-3);
+      color: var(--color-ink);
+      font-family: var(--font-body);
+      font-size: var(--text-sm);
+      transition: border-color var(--dur-mid) var(--ease-out);
+    }
+
+    .input::placeholder {
+      color: var(--color-ink-4);
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: var(--color-accent);
+    }
+
+    .input:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: 1px;
+    }
+
+    .input:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* ─── Range slider ─── */
+    .range {
+      width: 100%;
+      accent-color: var(--color-accent);
+      cursor: pointer;
+      height: 2px;
+      border-radius: var(--radius-full);
+    }
+
+    .range-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-2);
+    }
+
+    .range-value {
+      font-family: var(--font-mono);
+      font-size: var(--text-xs);
+      font-weight: 500;
+      color: var(--color-accent);
+    }
+
+    /* ─── Presets chip strip ─── */
+    .preset-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
+
+    .preset-chip {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      font-weight: 500;
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-full);
+      background: var(--color-paper-3);
+      border: 1px solid var(--color-rule);
+      color: var(--color-ink-3);
+      cursor: pointer;
+      transition: background var(--dur-mid) var(--ease-out),
+                  color var(--dur-mid) var(--ease-out),
+                  border-color var(--dur-mid) var(--ease-out);
+      white-space: nowrap;
+    }
+
+    .preset-chip:hover {
+      background: var(--color-accent-dim);
+      border-color: var(--color-rule-accent);
+      color: var(--color-accent);
+    }
+
+    .preset-chip:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .preset-chip:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: 2px;
+    }
+
+    /* ─── Pipeline Steps ─── */
+    .pipeline {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      padding: var(--space-4) var(--space-5);
+      background: var(--color-paper);
+      border: 1px solid var(--color-rule);
+      border-radius: var(--radius-lg);
+    }
+
+    .pipeline-title {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-ink-4);
+      margin-bottom: var(--space-1);
+    }
+
+    .pipeline-step {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+    }
+
+    .step-indicator {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      font-weight: 600;
+      border: 1px solid var(--color-rule);
+      background: var(--color-paper-3);
+      color: var(--color-ink-4);
+      transition: all var(--dur-mid) var(--ease-out);
+      margin-top: 1px;
+    }
+
+    .step-indicator.active {
+      background: var(--color-accent-dim);
+      border-color: var(--color-rule-accent);
+      color: var(--color-accent);
+      animation: pulse-ring 1.5s ease-in-out infinite;
+    }
+
+    .step-indicator.done {
+      background: var(--color-accent-dim);
+      border-color: var(--color-rule-accent);
+      color: var(--color-accent);
+    }
+
+    @keyframes pulse-ring {
+      0%, 100% { box-shadow: 0 0 0 0 var(--color-accent-dim); }
+      50% { box-shadow: 0 0 0 4px var(--color-accent-glow); }
+    }
+
+    .step-content {}
+
+    .step-name {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--color-ink-3);
+      transition: color var(--dur-mid) var(--ease-out);
+    }
+
+    .step-name.active { color: var(--color-ink); }
+    .step-name.done { color: var(--color-ink-2); }
+
+    .step-desc {
+      font-size: var(--text-2xs);
+      color: var(--color-ink-4);
+      line-height: 1.4;
+      margin-top: 2px;
+      transition: color var(--dur-mid) var(--ease-out);
+    }
+
+    .step-desc.active { color: var(--color-ink-3); }
+
+    /* ─── Metric Cards ─── */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-4);
+    }
+
+    .metric-card {
+      background: var(--color-paper-2);
+      border: 1px solid var(--color-rule);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+      transition: border-color var(--dur-mid) var(--ease-out),
+                  background var(--dur-mid) var(--ease-out);
+      cursor: default;
+    }
+
+    .metric-card:hover {
+      border-color: oklch(100% 0 0 / 0.12);
+      background: var(--color-paper-3);
+    }
+
+    .metric-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .metric-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-ink-3);
+    }
+
+    .metric-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--text-sm);
+    }
+
+    .metric-icon.forecast {
+      background: var(--color-blue-dim);
+      color: var(--color-blue);
+    }
+
+    .metric-icon.reorder {
+      background: var(--color-violet-dim);
+      color: var(--color-violet);
+    }
+
+    .metric-icon.pricing {
+      background: var(--color-accent-dim);
+      color: var(--color-accent);
+    }
+
+    .metric-value {
+      font-family: var(--font-display);
+      font-size: var(--text-3xl);
+      font-weight: 700;
+      color: var(--color-ink);
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .metric-value-unit {
+      font-size: var(--text-sm);
+      font-weight: 400;
+      color: var(--color-ink-3);
+      margin-left: var(--space-1);
+    }
+
+    .metric-meta {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--color-rule);
+    }
+
+    .metric-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .metric-meta-key {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      color: var(--color-ink-4);
+    }
+
+    .metric-meta-val {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      font-weight: 500;
+      color: var(--color-ink-2);
+    }
+
+    .metric-meta-val.positive { color: var(--color-accent); }
+    .metric-meta-val.negative { color: var(--color-signal-hi); }
+    .metric-meta-val.warning  { color: var(--color-signal-md); }
+
+    /* ─── Badge ─── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      font-weight: 600;
+      padding: 2px var(--space-2);
+      border-radius: var(--radius-sm);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-hi {
+      background: var(--color-signal-hi-bg);
+      color: var(--color-signal-hi);
+      border: 1px solid oklch(65% 0.19 25 / 0.2);
+    }
+
+    .badge-md {
+      background: var(--color-signal-md-bg);
+      color: var(--color-signal-md);
+      border: 1px solid oklch(78% 0.16 70 / 0.2);
+    }
+
+    .badge-lo {
+      background: var(--color-signal-lo-bg);
+      color: var(--color-signal-lo);
+      border: 1px solid oklch(74% 0.20 145 / 0.2);
+    }
+
+    .badge-neutral {
+      background: var(--color-paper-3);
+      color: var(--color-ink-3);
+      border: 1px solid var(--color-rule);
+    }
+
+    .badge-ok {
+      background: var(--color-accent-dim);
+      color: var(--color-accent);
+      border: 1px solid var(--color-rule-accent);
+    }
+
+    .badge-fail {
+      background: var(--color-signal-hi-bg);
+      color: var(--color-signal-hi);
+      border: 1px solid oklch(65% 0.19 25 / 0.2);
+    }
+
+    /* ─── Analysis result panels ─── */
+    .analysis-panels {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+
+    .panel {
+      background: var(--color-paper-2);
+      border: 1px solid var(--color-rule);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+
+    .panel-title {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-ink-4);
+    }
+
+    .narrative-block {
+      background: var(--color-paper);
+      border: 1px solid var(--color-rule);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+      font-size: var(--text-xs);
+      color: var(--color-ink-3);
+      line-height: 1.6;
+    }
+
+    .narrative-section-label {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-ink-4);
+      margin-bottom: var(--space-1);
+    }
+
+    /* ─── Chart ─── */
+    .chart-wrap {
+      height: 200px;
+      width: 100%;
+      position: relative;
+    }
+
+    .chart-empty {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 1px dashed var(--color-rule);
+      border-radius: var(--radius-lg);
+      color: var(--color-ink-4);
+      gap: var(--space-2);
+      font-size: var(--text-xs);
+    }
+
+    .chart-empty-icon {
+      font-size: var(--text-2xl);
+      color: var(--color-ink-4);
+      opacity: 0.4;
+    }
+
+    /* ─── Product ID card ─── */
+    .product-card {
+      background: var(--color-paper-2);
+      border: 1px solid var(--color-rule);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: var(--space-4);
+    }
+
+    .product-card-name {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-ink);
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .product-card-cat {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--color-accent);
+      background: var(--color-accent-dim);
+      border: 1px solid var(--color-rule-accent);
+      padding: 2px var(--space-2);
+      border-radius: var(--radius-sm);
+      display: inline-block;
+      margin-bottom: var(--space-2);
+    }
+
+    .product-card-meta {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .product-card-date {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      color: var(--color-ink-4);
+    }
+
+    .product-card-ref {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      color: var(--color-ink-3);
+    }
+
+    /* ─── Run Ledger Table ─── */
+    .ledger-wrap {
+      background: var(--color-paper-2);
+      border: 1px solid var(--color-rule);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+    }
+
+    .ledger-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-5);
+      border-bottom: 1px solid var(--color-rule);
+    }
+
+    .ledger-title {
+      font-family: var(--font-display);
+      font-size: var(--text-base);
+      font-weight: 600;
+      color: var(--color-ink);
+    }
+
+    .ledger-count {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      font-weight: 500;
+      color: var(--color-accent);
+      background: var(--color-accent-dim);
+      border: 1px solid var(--color-rule-accent);
+      padding: 2px var(--space-3);
+      border-radius: var(--radius-full);
+    }
+
+    .ledger-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .ledger-table th {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-ink-4);
+      padding: var(--space-3) var(--space-4);
+      text-align: left;
+      border-bottom: 1px solid var(--color-rule);
+      white-space: nowrap;
+    }
+
+    .ledger-table th.right { text-align: right; }
+    .ledger-table th.center { text-align: center; }
+
+    .ledger-table td {
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--color-rule);
+      font-size: var(--text-xs);
+      color: var(--color-ink-2);
+      vertical-align: middle;
+    }
+
+    .ledger-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .ledger-table tr {
+      cursor: pointer;
+      transition: background var(--dur-fast) var(--ease-out);
+    }
+
+    .ledger-table tr:hover td {
+      background: var(--color-paper-3);
+    }
+
+    .ledger-table tr.selected td {
+      background: var(--color-accent-glow);
+    }
+
+    .ledger-table td.right {
+      text-align: right;
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+    }
+
+    .ledger-table td.center { text-align: center; }
+
+    .ledger-product-name {
+      font-weight: 600;
+      color: var(--color-ink);
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ledger-category {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--color-ink-4);
+      margin-top: 2px;
+    }
+
+    .ledger-mono {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      color: var(--color-ink-2);
+    }
+
+    .ledger-date {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      color: var(--color-ink-4);
+      white-space: nowrap;
+    }
+
+    /* ─── Load view button in ledger ─── */
+    .btn-ledger {
+      font-family: var(--font-mono);
+      font-size: var(--text-2xs);
+      font-weight: 600;
+      padding: 3px var(--space-3);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all var(--dur-mid) var(--ease-out);
+      border: 1px solid var(--color-rule);
+      background: var(--color-paper-3);
+      color: var(--color-ink-3);
+      letter-spacing: 0.04em;
+    }
+
+    .btn-ledger:hover {
+      border-color: var(--color-rule-accent);
+      background: var(--color-accent-dim);
+      color: var(--color-accent);
+    }
+
+    .btn-ledger.active {
+      border-color: var(--color-rule-accent);
+      background: var(--color-accent-dim);
+      color: var(--color-accent);
+    }
+
+    .btn-ledger:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: 2px;
+    }
+
+    /* ─── Empty / Placeholder states ─── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-4);
+      padding: var(--space-16) var(--space-8);
+      text-align: center;
+      color: var(--color-ink-4);
+    }
+
+    .empty-glyph {
+      width: 56px;
+      height: 56px;
+      border: 1px dashed var(--color-rule);
+      border-radius: var(--radius-xl);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--text-2xl);
+      color: var(--color-ink-4);
+      opacity: 0.5;
+    }
+
+    .empty-heading {
+      font-family: var(--font-display);
+      font-size: var(--text-base);
+      font-weight: 600;
+      color: var(--color-ink-3);
+    }
+
+    .empty-sub {
+      font-size: var(--text-xs);
+      color: var(--color-ink-4);
+      max-width: 240px;
+      line-height: 1.5;
+    }
+
+    /* ─── Alert banners ─── */
+    .alert {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius-lg);
+      font-size: var(--text-xs);
+      animation: slide-in var(--dur-slow) var(--ease-out);
+    }
+
+    @keyframes slide-in {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .alert-error {
+      background: var(--color-signal-hi-bg);
+      border: 1px solid oklch(65% 0.19 25 / 0.25);
+      color: oklch(82% 0.10 25);
+    }
+
+    .alert-success {
+      background: var(--color-signal-lo-bg);
+      border: 1px solid oklch(74% 0.20 145 / 0.25);
+      color: oklch(85% 0.10 145);
+    }
+
+    .alert-icon {
+      font-size: var(--text-base);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ─── Divider ─── */
+    .divider {
+      height: 1px;
+      background: var(--color-rule);
+    }
+
+    /* ─── Section heading in main ─── */
+    .section-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--space-4);
+    }
+
+    .section-heading {
+      font-family: var(--font-display);
+      font-size: var(--text-base);
+      font-weight: 700;
+      color: var(--color-ink);
+      letter-spacing: -0.01em;
+    }
+
+    .section-sub {
+      font-size: var(--text-xs);
+      color: var(--color-ink-4);
+    }
+
+    /* ─── Scrollbar ─── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--color-paper-2); }
+    ::-webkit-scrollbar-thumb {
+      background: var(--color-paper-5);
+      border-radius: var(--radius-full);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--color-accent-dim);
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 768px) {
+      .workbench {
+        grid-template-columns: 1fr;
+        grid-template-rows: 48px auto 1fr;
+        grid-template-areas:
+          "topbar"
+          "rail"
+          "main";
+      }
+
+      .rail {
+        position: static;
+        height: auto;
+      }
+
+      .metrics-row {
+        grid-template-columns: 1fr;
+      }
+
+      .analysis-panels {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 414px) {
+      .topbar-status { display: none; }
+      .main { padding: var(--space-4); gap: var(--space-4); }
+      .section-sub { display: none; }
+    }
+
+    /* ─── Fade-in animation for workspace results ─── */
+    .fade-in {
+      animation: fade-in var(--dur-slow) var(--ease-out);
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── Number counter animation ─── */
+    .counter { transition: opacity var(--dur-mid) var(--ease-out); }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 150ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 150ms !important;
+      }
+    }
+  </style>
 </head>
-<body class="font-sans antialiased text-slate-200">
-    <div id="root"></div>
+<body>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+<div id="root"></div>
 
-        // Normalize helper to unify raw API results and DB schema structures
-        const normalizeRun = (run) => {
-            if (!run) return null;
-            
-            // Raw client response
-            if (run.forecast && run.forecast.final !== undefined) {
-                return {
-                    id: run.id || 'live-run',
-                    timestamp: run.timestamp || new Date().toISOString(),
-                    productName: run.product_name || run.category || 'Unknown Product',
-                    category: run.category || 'general',
-                    status: run.status || 'completed',
-                    errors: run.errors && run.errors.length > 0 ? run.errors.join('; ') : null,
-                    forecast: {
-                        baseForecast: run.forecast.base || run.forecast.final || 0,
-                        finalForecast: run.forecast.final || 0,
-                        seasonalMultiplier: run.forecast.multiplier || 1.0,
-                        event: run.forecast.event || 'None',
-                        narrative: run.forecast.narrative || ''
-                    },
-                    replenishment: {
-                        reorderQty: run.replenishment.reorder_qty || 0,
-                        timing: run.replenishment.timing || 'unknown',
-                        risk: run.replenishment.risk || 'unknown',
-                        narrative: run.replenishment.narrative || ''
-                    },
-                    pricing: {
-                        recommendedPrice: run.pricing.recommended_price || 0,
-                        priceChangePct: run.pricing.change_pct || 0,
-                        strategy: run.pricing.strategy || 'maintain',
-                        narrative: run.pricing.narrative || ''
-                    }
-                };
-            }
+<script type="text/babel">
+  const { useState, useEffect, useRef, useCallback } = React;
 
-            // DB record structure
-            return {
-                id: run.id,
-                timestamp: run.timestamp,
-                productName: run.productName || run.category || 'general',
-                category: run.category,
-                status: run.status,
-                errors: run.errors,
-                forecast: run.forecast ? {
-                    baseForecast: run.forecast.baseForecast,
-                    finalForecast: run.forecast.finalForecast,
-                    seasonalMultiplier: run.forecast.seasonalMultiplier,
-                    event: run.forecast.event,
-                    narrative: run.forecast.narrative
-                } : null,
-                replenishment: run.replenishment ? {
-                    reorderQty: run.replenishment.reorderQty,
-                    timing: run.replenishment.timing,
-                    risk: run.replenishment.risk || 'unknown',
-                    narrative: run.replenishment.narrative
-                } : null,
-                pricing: run.pricing ? {
-                    recommendedPrice: run.pricing.recommendedPrice,
-                    priceChangePct: run.pricing.priceChangePct,
-                    strategy: run.pricing.strategy,
-                    narrative: run.pricing.narrative
-                } : null
-            };
-        };
-
-        // Chart sub-component
-        const ForecastChart = ({ selectedRun }) => {
-            const canvasRef = useRef(null);
-            const chartRef = useRef(null);
-
-            useEffect(() => {
-                if (!canvasRef.current || !selectedRun || !selectedRun.forecast) {
-                    if (chartRef.current) {
-                        chartRef.current.destroy();
-                        chartRef.current = null;
-                    }
-                    return;
-                }
-
-                let checkInterval = null;
-
-                if (typeof Chart === 'undefined') {
-                    console.warn('[DASHBOARD] Chart.js is not loaded yet, polling...');
-                    checkInterval = setInterval(() => {
-                        if (typeof Chart !== 'undefined') {
-                            clearInterval(checkInterval);
-                            buildChart();
-                        }
-                    }, 150);
-                } else {
-                    buildChart();
-                }
-
-                function buildChart() {
-                    if (!canvasRef.current) return;
-                    if (chartRef.current) {
-                        chartRef.current.destroy();
-                    }
-
-                    const ctx = canvasRef.current.getContext('2d');
-                    const forecast = selectedRun.forecast;
-                    const replenishment = selectedRun.replenishment || {};
-                    
-                    chartRef.current = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: ['Base Demand', 'Adjusted Forecast', 'Safety Reorder'],
-                            datasets: [{
-                                label: 'Volume (Units)',
-                                data: [
-                                    forecast.baseForecast || 0,
-                                    forecast.finalForecast || 0,
-                                    replenishment.reorderQty || 0
-                                ],
-                                backgroundColor: [
-                                    'rgba(99, 102, 241, 0.4)',  // Indigo
-                                    'rgba(139, 92, 246, 0.7)',  // Violet
-                                    'rgba(236, 72, 153, 0.6)'   // Pink
-                                ],
-                                borderColor: [
-                                    'rgb(99, 102, 241)',
-                                    'rgb(139, 92, 246)',
-                                    'rgb(236, 72, 153)'
-                                ],
-                                borderWidth: 1.5,
-                                borderRadius: 6
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                                    titleColor: '#fff',
-                                    bodyColor: '#ccc',
-                                    borderColor: 'rgba(255, 255, 255, 0.1)',
-                                    borderWidth: 1
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    grid: {
-                                        color: 'rgba(255, 255, 255, 0.05)'
-                                    },
-                                    ticks: {
-                                        color: 'rgba(255, 255, 255, 0.6)',
-                                        font: { size: 11 }
-                                    }
-                                },
-                                x: {
-                                    grid: {
-                                        display: false
-                                    },
-                                    ticks: {
-                                        color: 'rgba(255, 255, 255, 0.6)',
-                                        font: { size: 11 }
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-
-                return () => {
-                    if (checkInterval) {
-                        clearInterval(checkInterval);
-                    }
-                    if (chartRef.current) {
-                        chartRef.current.destroy();
-                        chartRef.current = null;
-                    }
-                };
-            }, [selectedRun]);
-
-            const hasData = selectedRun && selectedRun.forecast;
-
-            return (
-                <div className="h-64 w-full relative">
-                    {!hasData ? (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center border border-dashed border-slate-800 rounded-xl bg-slate-900/20 text-slate-500">
-                            <i className="fa-solid fa-chart-simple text-3xl mb-2"></i>
-                            <span className="text-sm">Run analysis to generate visual projections</span>
-                        </div>
-                    ) : null}
-                    <div className="h-full w-full" style={{ display: hasData ? 'block' : 'none' }}>
-                        <canvas ref={canvasRef} />
-                    </div>
-                </div>
-            );
-        };
-
-        // Main App Component
-        function App() {
-            const [runs, setRuns] = useState([]);
-            const [loading, setLoading] = useState(false);
-            const [statusStep, setStatusStep] = useState(0); // 0 = idle, 1 = enrichment, 2 = forecast, 3 = replenishment, 4 = pricing, 5 = done
-            const [productInput, setProductInput] = useState('');
-            const [daysAhead, setDaysAhead] = useState(30);
-            const [selectedRun, setSelectedRun] = useState(null);
-            const [error, setError] = useState('');
-            const [success, setSuccess] = useState('');
-
-            // Presets to help users easily run samples
-            const presets = [
-                { name: 'Smart TV', query: 'Sony 65-inch Bravia OLED 4K Smart TV' },
-                { name: 'Pro Laptop', query: 'Apple MacBook Pro 16 M3 Max Slate' },
-                { name: 'Organic Grocery', query: 'Fresh Organic Pink Lady Apples' },
-                { name: 'Winter Fashion', query: 'Designer Waterproof Wool Trench Coat' },
-                { name: 'Noise-Canceling Headphone', query: 'Bose QuietComfort Wireless Headphones' }
-            ];
-
-            const loadRuns = async () => {
-                try {
-                    const response = await fetch('/api/runs');
-                    const data = await response.json();
-                    setRuns(data);
-                    if (data.length > 0 && !selectedRun) {
-                        setSelectedRun(normalizeRun(data[0]));
-                    }
-                } catch (err) {
-                    console.error('Failed to load past runs:', err);
-                }
-            };
-
-            useEffect(() => {
-                loadRuns();
-            }, []);
-
-            const runAnalysis = async (searchQuery) => {
-                const query = searchQuery || productInput;
-                if (!query.trim()) {
-                    setError('Please select a preset or type a product description.');
-                    return;
-                }
-
-                setError('');
-                setSuccess('');
-                setLoading(true);
-                setStatusStep(1);
-
-                // Simulation timers to make steps look beautiful and premium
-                const timer1 = setTimeout(() => setStatusStep(2), 1500);
-                const timer2 = setTimeout(() => setStatusStep(3), 3000);
-                const timer3 = setTimeout(() => setStatusStep(4), 4500);
-
-                try {
-                    const response = await fetch('/api/analyze', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            product_name: query,
-                            days_ahead: daysAhead
-                        })
-                    });
-
-                    const data = await response.json();
-                    
-                    // Clear the simulation timers if request returns fast
-                    clearTimeout(timer1);
-                    clearTimeout(timer2);
-                    clearTimeout(timer3);
-                    
-                    setStatusStep(5);
-
-                    if (data.errors && data.errors.length > 0 && data.status !== 'completed') {
-                        setError(`Workflow error: ${data.errors.join('; ')}`);
-                    } else {
-                        setSuccess(`Workflow completed for "${query}"!`);
-                        const normalized = normalizeRun(data);
-                        setSelectedRun(normalized);
-                        loadRuns();
-                    }
-                } catch (err) {
-                    setError(`Failed to trigger analysis: ${err.message}`);
-                } finally {
-                    setLoading(false);
-                    setTimeout(() => setStatusStep(0), 2000);
-                }
-            };
-
-            const clearAllRuns = async () => {
-                if (!confirm('Are you sure you want to clear the entire history log? This cannot be undone.')) {
-                    return;
-                }
-                try {
-                    const response = await fetch('/api/runs', { method: 'DELETE' });
-                    const data = await response.json();
-                    setRuns([]);
-                    setSelectedRun(null);
-                    setSuccess(data.message || 'Runs cleared.');
-                } catch (err) {
-                    setError(`Failed to clear database logs: ${err.message}`);
-                }
-            };
-
-            const formatDate = (isoString) => {
-                const date = new Date(isoString);
-                return date.toLocaleString();
-            };
-
-            const getRiskBadgeColor = (risk) => {
-                const r = String(risk).toLowerCase();
-                if (r === 'high') return 'bg-red-500/10 text-red-400 border border-red-500/20';
-                if (r === 'medium') return 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20';
-                if (r === 'low') return 'bg-green-500/10 text-green-400 border border-green-500/20';
-                return 'bg-slate-500/10 text-slate-400 border border-slate-500/20';
-            };
-
-            const getStatusBadge = (status) => {
-                const s = String(status).toLowerCase();
-                if (s === 'completed') return <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-500/10 text-green-400 border border-green-500/20"><i className="fa-solid fa-circle-check mr-1"></i>Completed</span>;
-                if (s.startsWith('failed')) return <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-red-500/10 text-red-400 border border-red-500/20"><i className="fa-solid fa-circle-exclamation mr-1"></i>Failed</span>;
-                return <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20"><i className="fa-solid fa-rotate mr-1 animate-spin"></i>{status}</span>;
-            };
-
-            return (
-                <div className="max-w-7xl mx-auto px-4 py-8">
-                    {/* Header */}
-                    <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b border-slate-800/80 pb-6">
-                        <div>
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
-                                    <i className="fa-solid fa-shop text-white text-lg"></i>
-                                </div>
-                                <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-indigo-100 to-indigo-300 bg-clip-text text-transparent">
-                                    RetailOps Dashboard
-                                </h1>
-                            </div>
-                            <p className="text-slate-400 text-sm mt-1">
-                                Enterprise demand forecasting, inventory planning, and dynamic price configuration
-                            </p>
-                        </div>
-                        <div className="flex gap-3">
-                            <button 
-                                onClick={loadRuns} 
-                                className="px-4 py-2 bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 text-xs font-medium rounded-lg transition"
-                                title="Sync with database cache"
-                            >
-                                <i className="fa-solid fa-arrows-rotate mr-1.5"></i> Refresh Logs
-                            </button>
-                            <button 
-                                onClick={clearAllRuns} 
-                                className="px-4 py-2 bg-red-950/20 hover:bg-red-950/40 border border-red-900/30 text-red-400 text-xs font-medium rounded-lg transition"
-                                title="Reset database cache"
-                            >
-                                <i className="fa-solid fa-trash-can mr-1.5"></i> Clear Cache
-                            </button>
-                        </div>
-                    </header>
-
-                    {/* Alert Notifications */}
-                    {error && (
-                        <div className="mb-6 p-4 rounded-xl bg-red-950/30 border border-red-900/40 text-red-300 text-sm flex items-start gap-3">
-                            <i className="fa-solid fa-circle-exclamation text-lg mt-0.5 text-red-400"></i>
-                            <div>{error}</div>
-                        </div>
-                    )}
-                    {success && (
-                        <div className="mb-6 p-4 rounded-xl bg-green-950/20 border border-green-900/30 text-green-300 text-sm flex items-start gap-3">
-                            <i className="fa-solid fa-circle-check text-lg mt-0.5 text-green-400"></i>
-                            <div>{success}</div>
-                        </div>
-                    )}
-
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
-                        {/* Control Panel: Left column */}
-                        <div className="lg:col-span-5 flex flex-col gap-6">
-                            <div className="glass-panel p-6 rounded-2xl shadow-xl flex flex-col gap-5">
-                                <div className="flex items-center justify-between">
-                                    <h2 className="text-sm font-semibold tracking-wider text-indigo-400 uppercase">
-                                        Workflow Runner
-                                    </h2>
-                                    <span className="text-xs text-slate-500">Step orchestrator</span>
-                                </div>
-
-                                {/* Product Category Presets */}
-                                <div>
-                                    <label className="block text-xs text-slate-400 font-medium mb-2">
-                                        Quick Presets: Select a category keyword
-                                    </label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {presets.map((preset, idx) => (
-                                            <button
-                                                key={idx}
-                                                onClick={() => {
-                                                    setProductInput(preset.query);
-                                                    runAnalysis(preset.query);
-                                                }}
-                                                disabled={loading}
-                                                className="px-2.5 py-1 text-xs bg-slate-900/80 hover:bg-indigo-950/30 border border-slate-800 hover:border-indigo-800 text-slate-300 rounded-md transition"
-                                            >
-                                                {preset.name}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Custom Keyword Input */}
-                                <div>
-                                    <label className="block text-xs text-slate-400 font-medium mb-1.5">
-                                        Custom Product Query: Enter keyword or product name
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            value={productInput}
-                                            onChange={(e) => setProductInput(e.target.value)}
-                                            placeholder="e.g. ultra high definition smart television"
-                                            className="w-full bg-slate-950 border border-slate-800 text-sm px-3.5 py-2.5 pr-10 rounded-lg focus:outline-none focus:border-indigo-500 text-slate-100 placeholder-slate-600"
-                                            disabled={loading}
-                                        />
-                                        <div className="absolute right-3.5 top-3 text-slate-600">
-                                            <i className="fa-solid fa-magnifying-glass text-xs"></i>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Forecast Horizon slider */}
-                                <div>
-                                    <div className="flex items-center justify-between mb-1.5">
-                                        <label className="text-xs text-slate-400 font-medium">
-                                            Forecasting Days Ahead:
-                                        </label>
-                                        <span className="text-xs font-bold text-indigo-300">{daysAhead} Days</span>
-                                    </div>
-                                    <input
-                                        type="range"
-                                        min="10"
-                                        max="90"
-                                        step="5"
-                                        value={daysAhead}
-                                        onChange={(e) => setDaysAhead(Number(e.target.value))}
-                                        className="w-full accent-indigo-500 cursor-pointer bg-slate-950 h-1.5 rounded-lg border-0"
-                                        disabled={loading}
-                                    />
-                                    <div className="flex justify-between text-[10px] text-slate-600 mt-1">
-                                        <span>10 Days</span>
-                                        <span>50 Days</span>
-                                        <span>90 Days</span>
-                                    </div>
-                                </div>
-
-                                {/* Trigger Action */}
-                                <button
-                                    onClick={() => runAnalysis()}
-                                    disabled={loading || !productInput.trim()}
-                                    className={`w-full py-3 px-4 rounded-xl text-xs font-semibold tracking-wider uppercase flex items-center justify-center gap-2 border transition ${
-                                        loading 
-                                            ? 'bg-slate-900 border-slate-800 text-slate-500 cursor-not-allowed'
-                                            : 'bg-indigo-600 hover:bg-indigo-500 border-indigo-700 text-white shadow-lg shadow-indigo-600/10'
-                                    }`}
-                                >
-                                    {loading ? (
-                                        <>
-                                            <i className="fa-solid fa-spinner animate-spin"></i>
-                                            Processing Pipeline...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <i className="fa-solid fa-play"></i>
-                                            Trigger Intelligent Analysis
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-
-                            {/* Live Step Progress Monitor */}
-                            {loading && (
-                                <div className="glass-panel p-6 rounded-2xl shadow-xl flex flex-col gap-4">
-                                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                        Pipeline Execution Status
-                                    </h3>
-                                    
-                                    <div className="flex flex-col gap-3">
-                                        {[
-                                            { step: 1, label: 'Enricher Node: Product Mapping', desc: 'Enriches raw keywords to strict category mapping' },
-                                            { step: 2, label: 'Forecasting Node: Event Adjustments', desc: 'Retrieves sales model and seasonal event surge profiles' },
-                                            { step: 3, label: 'Replenishment Node: Safety Ordering', desc: 'Computes MOQ, lead time stockout risks, and order quantity' },
-                                            { step: 4, label: 'Pricing Node: Dynamic Profit Margins', desc: 'Recommends optimized dynamic price point matching strategy' }
-                                        ].map((node) => {
-                                            const isActive = statusStep === node.step;
-                                            const isDone = statusStep > node.step;
-                                            return (
-                                                <div key={node.step} className="flex gap-3 items-start">
-                                                    <div className={`mt-0.5 h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold border transition ${
-                                                        isDone 
-                                                            ? 'bg-green-500/20 text-green-400 border-green-500/40' 
-                                                            : isActive 
-                                                                ? 'bg-indigo-600 text-white border-indigo-500 animate-pulse'
-                                                                : 'bg-slate-900/60 text-slate-600 border-slate-800'
-                                                    }`}>
-                                                        {isDone ? <i className="fa-solid fa-check"></i> : node.step}
-                                                    </div>
-                                                    <div>
-                                                        <div className={`text-xs font-semibold transition ${
-                                                            isActive ? 'text-indigo-300' : isDone ? 'text-slate-300' : 'text-slate-500'
-                                                        }`}>
-                                                            {node.label}
-                                                        </div>
-                                                        <div className={`text-[10px] transition ${
-                                                            isActive ? 'text-slate-400' : 'text-slate-600'
-                                                        }`}>
-                                                            {node.desc}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Projection Dashboard Details: Right column */}
-                        <div className="lg:col-span-7 flex flex-col gap-6">
-                            {/* Summary Title */}
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-sm font-semibold tracking-wider text-indigo-400 uppercase">
-                                    Analysis Workspace
-                                </h3>
-                                {selectedRun && (
-                                    <span className="text-[10px] px-2.5 py-0.5 rounded-md bg-slate-900 text-slate-400 border border-slate-800/80">
-                                        Run Ref: {selectedRun.id.substring(0, 8)}
-                                    </span>
-                                )}
-                            </div>
-
-                            {selectedRun ? (
-                                <>
-                                    {/* Primary Product Card info */}
-                                    <div className="glass-panel p-5 rounded-2xl flex flex-col gap-3">
-                                        <div className="flex items-start justify-between">
-                                            <div>
-                                                <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
-                                                    {selectedRun.category}
-                                                </span>
-                                                <h3 className="text-lg font-bold text-slate-100 mt-2">
-                                                    {selectedRun.productName}
-                                                </h3>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="text-[10px] text-slate-500">Analysis Date</div>
-                                                <div className="text-xs text-slate-400">{formatDate(selectedRun.timestamp)}</div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Cohesive Cards Grid Layout */}
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        {/* Card 1: Forecast */}
-                                        <div className="glass-card p-5 rounded-2xl flex flex-col justify-between min-h-[180px]">
-                                            <div>
-                                                <div className="flex items-center justify-between text-indigo-400 text-xs font-semibold mb-3">
-                                                    <span>Demand Projection</span>
-                                                    <i className="fa-solid fa-chart-line"></i>
-                                                </div>
-                                                <div className="text-2xl font-black text-slate-100">
-                                                    {selectedRun.forecast?.finalForecast?.toLocaleString() || 0}
-                                                    <span className="text-xs font-normal text-slate-500 ml-1">Units</span>
-                                                </div>
-                                            </div>
-                                            <div className="mt-4 pt-3 border-t border-slate-800/40 text-[10px] text-slate-400 flex flex-col gap-1">
-                                                <div className="flex justify-between">
-                                                    <span>Seasonal Multiplier:</span>
-                                                    <span className="font-bold text-indigo-300">{selectedRun.forecast?.seasonalMultiplier || 1.0}x</span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>Upcoming Event:</span>
-                                                    <span className="font-bold text-indigo-300 truncate max-w-[80px]" title={selectedRun.forecast?.event}>
-                                                        {selectedRun.forecast?.event || 'None'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Card 2: Replenishment */}
-                                        <div className="glass-card p-5 rounded-2xl flex flex-col justify-between min-h-[180px]">
-                                            <div>
-                                                <div className="flex items-center justify-between text-indigo-400 text-xs font-semibold mb-3">
-                                                    <span>Replenishment Order</span>
-                                                    <i className="fa-solid fa-box-open"></i>
-                                                </div>
-                                                <div className="text-2xl font-black text-slate-100">
-                                                    {selectedRun.replenishment?.reorderQty?.toLocaleString() || 0}
-                                                    <span className="text-xs font-normal text-slate-500 ml-1">Units</span>
-                                                </div>
-                                            </div>
-                                            <div className="mt-4 pt-3 border-t border-slate-800/40 text-[10px] text-slate-400 flex flex-col gap-1">
-                                                <div className="flex justify-between items-center">
-                                                    <span>Stockout Risk:</span>
-                                                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${getRiskBadgeColor(selectedRun.replenishment?.risk)}`}>
-                                                        {selectedRun.replenishment?.risk?.toUpperCase() || 'UNKNOWN'}
-                                                    </span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>Reorder Urgency:</span>
-                                                    <span className="font-bold text-slate-300 truncate max-w-[80px]" title={selectedRun.replenishment?.timing}>
-                                                        {selectedRun.replenishment?.timing || 'unknown'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Card 3: Pricing */}
-                                        <div className="glass-card p-5 rounded-2xl flex flex-col justify-between min-h-[180px]">
-                                            <div>
-                                                <div className="flex items-center justify-between text-indigo-400 text-xs font-semibold mb-3">
-                                                    <span>Pricing Strategy</span>
-                                                    <i className="fa-solid fa-tags"></i>
-                                                </div>
-                                                <div className="text-2xl font-black text-slate-100">
-                                                    ₹{selectedRun.pricing?.recommendedPrice?.toLocaleString() || 0}
-                                                </div>
-                                            </div>
-                                            <div className="mt-4 pt-3 border-t border-slate-800/40 text-[10px] text-slate-400 flex flex-col gap-1">
-                                                <div className="flex justify-between">
-                                                    <span>Change Rate:</span>
-                                                    <span className={`font-bold ${
-                                                        (selectedRun.pricing?.priceChangePct || 0) > 0 
-                                                            ? 'text-green-400' 
-                                                            : (selectedRun.pricing?.priceChangePct || 0) < 0 
-                                                                ? 'text-red-400' 
-                                                                : 'text-slate-400'
-                                                    }`}>
-                                                        {selectedRun.pricing?.priceChangePct > 0 ? '+' : ''}
-                                                        {(selectedRun.pricing?.priceChangePct || 0).toFixed(1)}%
-                                                    </span>
-                                                </div>
-                                                <div className="flex justify-between">
-                                                    <span>Strategy Name:</span>
-                                                    <span className="font-bold text-slate-300 truncate max-w-[80px]" title={selectedRun.pricing?.strategy}>
-                                                        {selectedRun.pricing?.strategy || 'maintain'}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Chart & Narrative Details */}
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                                        {/* Left: Chart */}
-                                        <div className="md:col-span-6 glass-panel p-5 rounded-2xl flex flex-col gap-4 justify-between">
-                                            <h4 className="text-xs font-bold text-indigo-300 uppercase tracking-wider">
-                                                Projection Analysis
-                                            </h4>
-                                            <ForecastChart selectedRun={selectedRun} />
-                                        </div>
-
-                                        {/* Right: Narrative snippets */}
-                                        <div className="md:col-span-6 glass-panel p-5 rounded-2xl flex flex-col gap-4 max-h-[310px] overflow-y-auto custom-scrollbar">
-                                            <h4 className="text-xs font-bold text-indigo-300 uppercase tracking-wider">
-                                                Strategy Narrative & Context
-                                            </h4>
-                                            
-                                            <div className="flex flex-col gap-3.5 text-xs">
-                                                {selectedRun.forecast?.narrative && (
-                                                    <div>
-                                                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
-                                                            Forecast Insights
-                                                        </div>
-                                                        <p className="text-slate-300 leading-relaxed italic bg-slate-950/45 p-2 rounded border border-slate-900">
-                                                            "{selectedRun.forecast.narrative}"
-                                                        </p>
-                                                    </div>
-                                                )}
-
-                                                {selectedRun.replenishment?.narrative && (
-                                                    <div>
-                                                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
-                                                            Replenishment Actions
-                                                        </div>
-                                                        <p className="text-slate-300 leading-relaxed italic bg-slate-950/45 p-2 rounded border border-slate-900">
-                                                            "{selectedRun.replenishment.narrative}"
-                                                        </p>
-                                                    </div>
-                                                )}
-
-                                                {selectedRun.pricing?.narrative && (
-                                                    <div>
-                                                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
-                                                            Pricing Rationale
-                                                        </div>
-                                                        <p className="text-slate-300 text-slate-300 leading-relaxed italic bg-slate-950/45 p-2 rounded border border-slate-900">
-                                                            "{selectedRun.pricing.narrative}"
-                                                        </p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </>
-                            ) : (
-                                <div className="glass-panel p-10 rounded-2xl flex flex-col items-center justify-center text-center h-[460px]">
-                                    <div className="h-16 w-16 bg-indigo-950/40 border border-indigo-800/20 text-indigo-400 rounded-full flex items-center justify-center text-2xl mb-4 shadow-inner">
-                                        <i className="fa-solid fa-inbox"></i>
-                                    </div>
-                                    <h3 className="text-lg font-bold text-slate-200">No active workspace</h3>
-                                    <p className="text-slate-400 text-sm max-w-sm mt-1">
-                                        Select a preset option or write a keyword description in the Workflow Runner panel to execute the end-to-end supply chain logic.
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Historical Run Table Logs */}
-                    <div className="glass-panel p-6 rounded-2xl shadow-xl">
-                        <div className="flex items-center justify-between mb-4">
-                            <div>
-                                <h3 className="text-sm font-semibold tracking-wider text-indigo-400 uppercase">
-                                    Historical Analysis Cache Logs
-                                </h3>
-                                <p className="text-slate-500 text-xs mt-0.5">
-                                    Cached workflows logged inside the local SQLite database
-                                </p>
-                            </div>
-                            <span className="text-[10px] px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-                                Total Cached: {runs.length} Runs
-                            </span>
-                        </div>
-
-                        <div className="overflow-x-auto custom-scrollbar">
-                            <table className="w-full text-left text-xs border-collapse">
-                                <thead>
-                                    <tr className="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
-                                        <th className="py-3 px-4">Timestamp</th>
-                                        <th className="py-3 px-4">Category</th>
-                                        <th className="py-3 px-4">Status</th>
-                                        <th className="py-3 px-4 text-right">Forecast Units</th>
-                                        <th className="py-3 px-4 text-right">Reorder Qty</th>
-                                        <th className="py-3 px-4 text-right">Recommended Price</th>
-                                        <th className="py-3 px-4">Strategy</th>
-                                        <th className="py-3 px-4 text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {runs.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="8" className="py-8 text-center text-slate-500">
-                                                No historical database runs found. Run an analysis above to cache results.
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        runs.map((run) => {
-                                            const norm = normalizeRun(run);
-                                            const isSelected = selectedRun && selectedRun.id === run.id;
-                                            return (
-                                                <tr 
-                                                    key={run.id}
-                                                    onClick={() => setSelectedRun(norm)}
-                                                    className={`border-b border-slate-900/60 hover:bg-slate-900/40 cursor-pointer transition ${
-                                                        isSelected ? 'bg-indigo-950/20 border-indigo-900/40 text-indigo-100 font-medium' : ''
-                                                    }`}
-                                                >
-                                                    <td className="py-3.5 px-4 whitespace-nowrap text-slate-400">
-                                                        {formatDate(run.timestamp)}
-                                                    </td>
-                                                    <td className="py-3.5 px-4">
-                                                        <div className="font-semibold text-slate-200 truncate max-w-[180px]" title={norm.productName}>
-                                                            {norm.productName}
-                                                        </div>
-                                                        <span className="mt-1 inline-block px-1.5 py-0.5 rounded text-[8px] bg-slate-900 border border-slate-800 text-slate-400 font-bold uppercase tracking-wider">
-                                                            {norm.category}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-3.5 px-4">
-                                                        {getStatusBadge(run.status)}
-                                                    </td>
-                                                    <td className="py-3.5 px-4 text-right font-mono text-slate-300">
-                                                        {run.forecast ? run.forecast.finalForecast.toLocaleString() : '-'}
-                                                    </td>
-                                                    <td className="py-3.5 px-4 text-right font-mono text-slate-300">
-                                                        {run.replenishment ? run.replenishment.reorderQty.toLocaleString() : '-'}
-                                                    </td>
-                                                    <td className="py-3.5 px-4 text-right font-mono text-slate-300">
-                                                        {run.pricing ? `₹${run.pricing.recommendedPrice.toLocaleString()}` : '-'}
-                                                    </td>
-                                                    <td className="py-3.5 px-4 text-slate-400 font-mono capitalize">
-                                                        {run.pricing ? run.pricing.strategy : '-'}
-                                                    </td>
-                                                    <td className="py-3.5 px-4 text-center" onClick={(e) => e.stopPropagation()}>
-                                                        <button 
-                                                            onClick={() => setSelectedRun(norm)}
-                                                            className={`px-3 py-1 text-[10px] font-bold rounded transition ${
-                                                                isSelected 
-                                                                    ? 'bg-indigo-600 text-white border border-indigo-500' 
-                                                                    : 'bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300'
-                                                            }`}
-                                                        >
-                                                            Load View
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            );
+  /* ─────────────────────────────────────────────
+     Helpers
+  ───────────────────────────────────────────── */
+  const normalizeRun = (run) => {
+    if (!run) return null;
+    // Raw client response
+    if (run.forecast && run.forecast.final !== undefined) {
+      return {
+        id: run.id || 'live-run',
+        timestamp: run.timestamp || new Date().toISOString(),
+        productName: run.product_name || run.category || 'Unknown Product',
+        category: run.category || 'general',
+        status: run.status || 'completed',
+        errors: run.errors && run.errors.length > 0 ? run.errors.join('; ') : null,
+        forecast: {
+          baseForecast: run.forecast.base || run.forecast.final || 0,
+          finalForecast: run.forecast.final || 0,
+          seasonalMultiplier: run.forecast.multiplier || 1.0,
+          event: run.forecast.event || 'None',
+          narrative: run.forecast.narrative || ''
+        },
+        replenishment: {
+          reorderQty: run.replenishment.reorder_qty || 0,
+          timing: run.replenishment.timing || 'unknown',
+          risk: run.replenishment.risk || 'unknown',
+          narrative: run.replenishment.narrative || ''
+        },
+        pricing: {
+          recommendedPrice: run.pricing.recommended_price || 0,
+          priceChangePct: run.pricing.change_pct || 0,
+          strategy: run.pricing.strategy || 'maintain',
+          narrative: run.pricing.narrative || ''
         }
+      };
+    }
+    // DB record structure
+    return {
+      id: run.id,
+      timestamp: run.timestamp,
+      productName: run.productName || run.category || 'general',
+      category: run.category,
+      status: run.status,
+      errors: run.errors,
+      forecast: run.forecast ? {
+        baseForecast: run.forecast.baseForecast,
+        finalForecast: run.forecast.finalForecast,
+        seasonalMultiplier: run.forecast.seasonalMultiplier,
+        event: run.forecast.event,
+        narrative: run.forecast.narrative
+      } : null,
+      replenishment: run.replenishment ? {
+        reorderQty: run.replenishment.reorderQty,
+        timing: run.replenishment.timing,
+        risk: run.replenishment.risk || 'unknown',
+        narrative: run.replenishment.narrative
+      } : null,
+      pricing: run.pricing ? {
+        recommendedPrice: run.pricing.recommendedPrice,
+        priceChangePct: run.pricing.priceChangePct,
+        strategy: run.pricing.strategy,
+        narrative: run.pricing.narrative
+      } : null
+    };
+  };
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+  const formatDate = (iso) => {
+    if (!iso) return '-';
+    const d = new Date(iso);
+    return d.toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' });
+  };
+
+  const riskBadgeClass = (risk) => {
+    const r = String(risk).toLowerCase();
+    if (r === 'high')   return 'badge badge-hi';
+    if (r === 'medium') return 'badge badge-md';
+    if (r === 'low')    return 'badge badge-lo';
+    return 'badge badge-neutral';
+  };
+
+  /* ─────────────────────────────────────────────
+     SVG Icons (inline, no icon CDN dependency)
+  ───────────────────────────────────────────── */
+  const Icon = ({ name, size = 16 }) => {
+    const icons = {
+      chart:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
+      box:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
+      tag:     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>,
+      play:    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>,
+      refresh: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>,
+      trash:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
+      check:   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+      warn:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
+      ok:      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+      logo:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>,
+      spin:    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56" style={{animation: 'spin 1s linear infinite', transformOrigin: 'center'}}/></svg>,
+      search:  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+    };
+    return icons[name] || null;
+  };
+
+  /* ─────────────────────────────────────────────
+     Forecast Chart
+  ───────────────────────────────────────────── */
+  const ForecastChart = ({ selectedRun }) => {
+    const canvasRef = useRef(null);
+    const chartRef  = useRef(null);
+
+    useEffect(() => {
+      if (!canvasRef.current || !selectedRun || !selectedRun.forecast) {
+        if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; }
+        return;
+      }
+      let pollId = null;
+      const build = () => {
+        if (!canvasRef.current) return;
+        if (chartRef.current) chartRef.current.destroy();
+        const ctx = canvasRef.current.getContext('2d');
+        const f   = selectedRun.forecast;
+        const r   = selectedRun.replenishment || {};
+        chartRef.current = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Base Demand', 'Adj. Forecast', 'Reorder Qty'],
+            datasets: [{
+              label: 'Units',
+              data: [f.baseForecast || 0, f.finalForecast || 0, r.reorderQty || 0],
+              backgroundColor: [
+                'oklch(68% 0.17 255 / 0.3)',
+                'oklch(65% 0.19 300 / 0.5)',
+                'oklch(74% 0.20 145 / 0.4)',
+              ],
+              borderColor: [
+                'oklch(68% 0.17 255)',
+                'oklch(65% 0.19 300)',
+                'oklch(74% 0.20 145)',
+              ],
+              borderWidth: 1.5,
+              borderRadius: 4,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'oklch(12% 0.014 252)',
+                titleColor: 'oklch(94% 0.008 250)',
+                bodyColor:  'oklch(52% 0.010 250)',
+                borderColor: 'oklch(100% 0 0 / 0.07)',
+                borderWidth: 1,
+                padding: 10,
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: { color: 'oklch(100% 0 0 / 0.05)' },
+                ticks: {
+                  color: 'oklch(36% 0.010 250)',
+                  font: { family: 'DM Mono, monospace', size: 10 }
+                }
+              },
+              x: {
+                grid: { display: false },
+                ticks: {
+                  color: 'oklch(52% 0.010 250)',
+                  font: { family: 'DM Mono, monospace', size: 10 }
+                }
+              }
+            }
+          }
+        });
+      };
+      if (typeof Chart === 'undefined') {
+        pollId = setInterval(() => { if (typeof Chart !== 'undefined') { clearInterval(pollId); build(); } }, 150);
+      } else {
+        build();
+      }
+      return () => {
+        if (pollId) clearInterval(pollId);
+        if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; }
+      };
+    }, [selectedRun]);
+
+    const hasData = selectedRun && selectedRun.forecast;
+    return (
+      <div className="chart-wrap">
+        {!hasData && (
+          <div className="chart-empty">
+            <span className="chart-empty-icon"><Icon name="chart" size={28}/></span>
+            <span>Run an analysis to generate projections</span>
+          </div>
+        )}
+        <div style={{ height: '100%', width: '100%', display: hasData ? 'block' : 'none' }}>
+          <canvas ref={canvasRef}/>
+        </div>
+      </div>
+    );
+  };
+
+  /* ─────────────────────────────────────────────
+     Main App
+  ───────────────────────────────────────────── */
+  function App() {
+    const [runs,         setRuns]         = useState([]);
+    const [loading,      setLoading]      = useState(false);
+    const [statusStep,   setStatusStep]   = useState(0);
+    const [productInput, setProductInput] = useState('');
+    const [daysAhead,    setDaysAhead]    = useState(30);
+    const [selectedRun,  setSelectedRun]  = useState(null);
+    const [error,        setError]        = useState('');
+    const [success,      setSuccess]      = useState('');
+
+    const presets = [
+      { name: 'Smart TV',      query: 'Sony 65-inch Bravia OLED 4K Smart TV' },
+      { name: 'Pro Laptop',    query: 'Apple MacBook Pro 16 M3 Max Slate' },
+      { name: 'Groceries',     query: 'Fresh Organic Pink Lady Apples' },
+      { name: 'Winter Coat',   query: 'Designer Waterproof Wool Trench Coat' },
+      { name: 'Headphones',    query: 'Bose QuietComfort Wireless Headphones' },
+    ];
+
+    const pipelineSteps = [
+      { step: 1, label: 'Catalog Enricher',   desc: 'Maps raw query to product category' },
+      { step: 2, label: 'Demand Forecasting', desc: 'Seasonal adjustments + event surges' },
+      { step: 3, label: 'Replenishment',      desc: 'Safety stock + MOQ + stockout risk' },
+      { step: 4, label: 'Pricing Strategy',   desc: 'Dynamic price + margin optimisation' },
+    ];
+
+    const loadRuns = useCallback(async () => {
+      try {
+        const res  = await fetch('/api/runs');
+        const data = await res.json();
+        setRuns(data);
+        if (data.length > 0 && !selectedRun) setSelectedRun(normalizeRun(data[0]));
+      } catch (e) {
+        console.error('Failed to load runs:', e);
+      }
+    }, []);
+
+    useEffect(() => { loadRuns(); }, []);
+
+    const runAnalysis = async (searchQuery) => {
+      const query = searchQuery || productInput;
+      if (!query.trim()) { setError('Enter a product name or select a preset.'); return; }
+
+      setError(''); setSuccess('');
+      setLoading(true); setStatusStep(1);
+
+      const t1 = setTimeout(() => setStatusStep(2), 1500);
+      const t2 = setTimeout(() => setStatusStep(3), 3000);
+      const t3 = setTimeout(() => setStatusStep(4), 4500);
+
+      try {
+        const res  = await fetch('/api/analyze', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ product_name: query, days_ahead: daysAhead })
+        });
+        const data = await res.json();
+        clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
+        setStatusStep(5);
+
+        if (data.errors && data.errors.length > 0 && data.status !== 'completed') {
+          setError(`Workflow error: ${data.errors.join('; ')}`);
+        } else {
+          setSuccess(`Analysis complete for "${query}"`);
+          const norm = normalizeRun(data);
+          setSelectedRun(norm);
+          loadRuns();
+        }
+      } catch (e) {
+        setError(`Failed to trigger analysis: ${e.message}`);
+      } finally {
+        setLoading(false);
+        setTimeout(() => setStatusStep(0), 2000);
+      }
+    };
+
+    const clearAllRuns = async () => {
+      if (!confirm('Clear all cached analysis runs? This cannot be undone.')) return;
+      try {
+        const res  = await fetch('/api/runs', { method: 'DELETE' });
+        const data = await res.json();
+        setRuns([]); setSelectedRun(null);
+        setSuccess(data.message || 'Runs cleared.');
+      } catch (e) {
+        setError(`Failed to clear logs: ${e.message}`);
+      }
+    };
+
+    const formatChangePct = (pct) => {
+      if (pct == null) return '-';
+      const sign = pct > 0 ? '+' : '';
+      return `${sign}${pct.toFixed(1)}%`;
+    };
+
+    const changePctClass = (pct) => {
+      if (pct > 0) return 'metric-meta-val positive';
+      if (pct < 0) return 'metric-meta-val negative';
+      return 'metric-meta-val';
+    };
+
+    return (
+      <div className="workbench">
+
+        {/* ─── Top Command Bar ─── */}
+        <header className="topbar">
+          <div className="topbar-brand">
+            <div className="topbar-dot"></div>
+            <span className="topbar-wordmark">RetailOps</span>
+            <span style={{color: 'var(--color-ink-4)', fontSize: 'var(--text-2xs)'}}>
+              Intelligence Suite
+            </span>
+          </div>
+
+          <div className="topbar-status">
+            <span className="status-live">LIVE</span>
+            <span style={{margin: '0 4px', color: 'var(--color-rule)'}}>|</span>
+            <span>MCP Workflow Engine</span>
+            <span style={{margin: '0 4px', color: 'var(--color-rule)'}}>|</span>
+            <span>{runs.length} runs cached</span>
+          </div>
+
+          <div className="topbar-actions">
+            <button
+              id="btn-refresh-runs"
+              onClick={loadRuns}
+              className="btn btn-ghost"
+              title="Sync with database"
+            >
+              <Icon name="refresh" size={14}/> Sync
+            </button>
+            <button
+              id="btn-clear-cache"
+              onClick={clearAllRuns}
+              className="btn btn-danger"
+              title="Clear all cached runs"
+            >
+              <Icon name="trash" size={14}/> Clear
+            </button>
+          </div>
+        </header>
+
+        {/* ─── Left Control Rail ─── */}
+        <aside className="rail">
+          {/* Presets */}
+          <div className="rail-section">
+            <div className="rail-label">Quick Presets</div>
+            <div className="preset-strip">
+              {presets.map((p, i) => (
+                <button
+                  key={i}
+                  id={`preset-${p.name.toLowerCase().replace(/\s+/g,'-')}`}
+                  className="preset-chip"
+                  disabled={loading}
+                  onClick={() => { setProductInput(p.query); runAnalysis(p.query); }}
+                >
+                  {p.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Product query input */}
+          <div className="rail-section">
+            <div className="field">
+              <label className="field-label" htmlFor="product-query">Product Query</label>
+              <input
+                id="product-query"
+                className="input"
+                type="text"
+                value={productInput}
+                onChange={(e) => setProductInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') runAnalysis(); }}
+                placeholder="e.g. 65-inch 4K Smart TV OLED"
+                disabled={loading}
+              />
+            </div>
+          </div>
+
+          {/* Days slider */}
+          <div className="rail-section">
+            <div className="field">
+              <div className="range-row">
+                <span className="field-label">Forecast Horizon</span>
+                <span className="range-value">{daysAhead}d</span>
+              </div>
+              <input
+                id="range-days"
+                type="range"
+                min="10" max="90" step="5"
+                value={daysAhead}
+                onChange={(e) => setDaysAhead(Number(e.target.value))}
+                className="range"
+                disabled={loading}
+              />
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginTop: 'var(--space-1)',
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'var(--text-2xs)',
+                color: 'var(--color-ink-4)'
+              }}>
+                <span>10d</span><span>50d</span><span>90d</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Run button */}
+          <div className="rail-section">
+            <button
+              id="btn-run-analysis"
+              onClick={() => runAnalysis()}
+              disabled={loading || !productInput.trim()}
+              className="btn btn-primary btn-full"
+            >
+              {loading ? (
+                <><Icon name="spin" size={14}/> Running pipeline...</>
+              ) : (
+                <><Icon name="play" size={13}/> Run Analysis</>
+              )}
+            </button>
+          </div>
+
+          {/* Pipeline step monitor */}
+          {(loading || statusStep === 5) && (
+            <div className="rail-section">
+              <div className="pipeline">
+                <div className="pipeline-title">Pipeline Status</div>
+                {pipelineSteps.map((node) => {
+                  const isActive = statusStep === node.step;
+                  const isDone   = statusStep > node.step;
+                  return (
+                    <div key={node.step} className="pipeline-step">
+                      <div className={`step-indicator ${isActive ? 'active' : isDone ? 'done' : ''}`}>
+                        {isDone ? <Icon name="check" size={9}/> : node.step}
+                      </div>
+                      <div className="step-content">
+                        <div className={`step-name ${isActive ? 'active' : isDone ? 'done' : ''}`}>
+                          {node.label}
+                        </div>
+                        <div className={`step-desc ${isActive ? 'active' : ''}`}>
+                          {node.desc}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </aside>
+
+        {/* ─── Main Workspace ─── */}
+        <main className="main">
+
+          {/* Alerts */}
+          {error && (
+            <div className="alert alert-error" role="alert">
+              <span className="alert-icon"><Icon name="warn" size={16}/></span>
+              <span>{error}</span>
+            </div>
+          )}
+          {success && (
+            <div className="alert alert-success" role="alert">
+              <span className="alert-icon"><Icon name="ok" size={16}/></span>
+              <span>{success}</span>
+            </div>
+          )}
+
+          {/* Analysis Results */}
+          {selectedRun ? (
+            <div className="fade-in" key={selectedRun.id}>
+              {/* Product identity card */}
+              <div className="product-card" style={{marginBottom: 'var(--space-4)'}}>
+                <div>
+                  <span className="product-card-cat">{selectedRun.category}</span>
+                  <div className="product-card-name">{selectedRun.productName}</div>
+                </div>
+                <div className="product-card-meta">
+                  <div className="product-card-date">{formatDate(selectedRun.timestamp)}</div>
+                  <div className="product-card-ref" style={{marginTop: 'var(--space-1)'}}>
+                    ref: {String(selectedRun.id).substring(0, 8)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Three metric cards */}
+              <div className="metrics-row">
+                {/* Forecast */}
+                <div className="metric-card">
+                  <div className="metric-card-header">
+                    <span className="metric-label">Demand Forecast</span>
+                    <span className="metric-icon forecast"><Icon name="chart" size={14}/></span>
+                  </div>
+                  <div className="metric-value counter">
+                    {(selectedRun.forecast?.finalForecast || 0).toLocaleString()}
+                    <span className="metric-value-unit">units</span>
+                  </div>
+                  <div className="metric-meta">
+                    <div className="metric-meta-row">
+                      <span className="metric-meta-key">Base demand</span>
+                      <span className="metric-meta-val">
+                        {(selectedRun.forecast?.baseForecast || 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="metric-meta-row">
+                      <span className="metric-meta-key">Seasonal mult.</span>
+                      <span className="metric-meta-val positive">
+                        {(selectedRun.forecast?.seasonalMultiplier || 1.0)}x
+                      </span>
+                    </div>
+                    <div className="metric-meta-row">
+                      <span className="metric-meta-key">Upcoming event</span>
+                      <span className="metric-meta-val" style={{
+                        maxWidth: '90px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {selectedRun.forecast?.event || 'None'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Replenishment */}
+                <div className="metric-card">
+                  <div className="metric-card-header">
+                    <span className="metric-label">Replenishment</span>
+                    <span className="metric-icon reorder"><Icon name="box" size={14}/></span>
+                  </div>
+                  <div className="metric-value counter">
+                    {(selectedRun.replenishment?.reorderQty || 0).toLocaleString()}
+                    <span className="metric-value-unit">units</span>
+                  </div>
+                  <div className="metric-meta">
+                    <div className="metric-meta-row">
+                      <span className="metric-meta-key">Stockout risk</span>
+                      <span className={riskBadgeClass(selectedRun.replenishment?.risk)}>
+                        {String(selectedRun.replenishment?.risk || 'unknown').toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="metric-meta-row">
+                      <span className="metric-meta-key">Reorder urgency</span>
+                      <span className="metric-meta-val" style={{
+                        maxWidth: '90px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {selectedRun.replenishment?.timing || 'unknown'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pricing */}
+                <div className="metric-card">
+                  <div className="metric-card-header">
+                    <span className="metric-label">Pricing</span>
+                    <span className="metric-icon pricing"><Icon name="tag" size={14}/></span>
+                  </div>
+                  <div className="metric-value counter">
+                    <span style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 'var(--text-lg)',
+                      fontWeight: 400,
+                      color: 'var(--color-ink-3)',
+                      marginRight: '2px'
+                    }}>&#8377;</span>
+                    {(selectedRun.pricing?.recommendedPrice || 0).toLocaleString()}
+                  </div>
+                  <div className="metric-meta">
+                    <div className="metric-meta-row">
+                      <span className="metric-meta-key">Price delta</span>
+                      <span className={changePctClass(selectedRun.pricing?.priceChangePct)}>
+                        {formatChangePct(selectedRun.pricing?.priceChangePct)}
+                      </span>
+                    </div>
+                    <div className="metric-meta-row">
+                      <span className="metric-meta-key">Strategy</span>
+                      <span className="metric-meta-val" style={{textTransform: 'capitalize'}}>
+                        {selectedRun.pricing?.strategy || 'maintain'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chart + Narratives */}
+              <div className="analysis-panels">
+                <div className="panel">
+                  <div className="panel-title">Projection Chart</div>
+                  <ForecastChart selectedRun={selectedRun}/>
+                </div>
+
+                <div className="panel" style={{overflowY: 'auto', maxHeight: '280px'}}>
+                  <div className="panel-title">Analysis Narratives</div>
+                  <div style={{display: 'flex', flexDirection: 'column', gap: 'var(--space-3)'}}>
+                    {selectedRun.forecast?.narrative && (
+                      <div>
+                        <div className="narrative-section-label">Forecast</div>
+                        <div className="narrative-block">{selectedRun.forecast.narrative}</div>
+                      </div>
+                    )}
+                    {selectedRun.replenishment?.narrative && (
+                      <div>
+                        <div className="narrative-section-label">Replenishment</div>
+                        <div className="narrative-block">{selectedRun.replenishment.narrative}</div>
+                      </div>
+                    )}
+                    {selectedRun.pricing?.narrative && (
+                      <div>
+                        <div className="narrative-section-label">Pricing</div>
+                        <div className="narrative-block">{selectedRun.pricing.narrative}</div>
+                      </div>
+                    )}
+                    {!selectedRun.forecast?.narrative && !selectedRun.replenishment?.narrative && !selectedRun.pricing?.narrative && (
+                      <div style={{
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 'var(--text-2xs)',
+                        color: 'var(--color-ink-4)',
+                        padding: 'var(--space-4)',
+                        textAlign: 'center'
+                      }}>
+                        No narratives returned for this run.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-glyph"><Icon name="logo" size={28}/></div>
+              <div className="empty-heading">No analysis selected</div>
+              <div className="empty-sub">
+                Select a preset or enter a product name in the left panel to run the pipeline.
+              </div>
+            </div>
+          )}
+
+          {/* Run Ledger Table */}
+          <div className="ledger-wrap">
+            <div className="ledger-header">
+              <div>
+                <div className="ledger-title">Analysis Ledger</div>
+                <div style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 'var(--text-2xs)',
+                  color: 'var(--color-ink-4)',
+                  marginTop: 'var(--space-1)'
+                }}>
+                  Cached workflow runs from local SQLite database
+                </div>
+              </div>
+              <span className="ledger-count">{runs.length} runs</span>
+            </div>
+
+            <div style={{overflowX: 'auto'}}>
+              <table className="ledger-table">
+                <thead>
+                  <tr>
+                    <th>Product / Category</th>
+                    <th>Timestamp</th>
+                    <th>Status</th>
+                    <th className="right">Forecast</th>
+                    <th className="right">Reorder</th>
+                    <th className="right">Price</th>
+                    <th>Strategy</th>
+                    <th className="center">View</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {runs.length === 0 ? (
+                    <tr>
+                      <td colSpan="8" style={{
+                        padding: 'var(--space-12) var(--space-4)',
+                        textAlign: 'center',
+                        color: 'var(--color-ink-4)',
+                        fontFamily: 'var(--font-mono)',
+                        fontSize: 'var(--text-2xs)'
+                      }}>
+                        No runs cached yet. Trigger an analysis above to populate the ledger.
+                      </td>
+                    </tr>
+                  ) : runs.map((run) => {
+                    const norm       = normalizeRun(run);
+                    const isSelected = selectedRun && selectedRun.id === run.id;
+                    const status     = String(run.status || '').toLowerCase();
+                    return (
+                      <tr
+                        key={run.id}
+                        className={isSelected ? 'selected' : ''}
+                        onClick={() => setSelectedRun(norm)}
+                      >
+                        <td>
+                          <div className="ledger-product-name" title={norm.productName}>
+                            {norm.productName}
+                          </div>
+                          <div className="ledger-category">{norm.category}</div>
+                        </td>
+                        <td className="ledger-date">{formatDate(run.timestamp)}</td>
+                        <td>
+                          {status === 'completed'
+                            ? <span className="badge badge-ok"><Icon name="check" size={9}/> Done</span>
+                            : status.startsWith('fail')
+                            ? <span className="badge badge-fail"><Icon name="warn" size={9}/> Failed</span>
+                            : <span className="badge badge-neutral">{run.status}</span>
+                          }
+                        </td>
+                        <td className="right ledger-mono">
+                          {run.forecast ? (run.forecast.finalForecast).toLocaleString() : '-'}
+                        </td>
+                        <td className="right ledger-mono">
+                          {run.replenishment ? (run.replenishment.reorderQty).toLocaleString() : '-'}
+                        </td>
+                        <td className="right ledger-mono">
+                          {run.pricing ? `\u20B9${(run.pricing.recommendedPrice).toLocaleString()}` : '-'}
+                        </td>
+                        <td>
+                          <span className="ledger-mono" style={{textTransform: 'capitalize'}}>
+                            {run.pricing ? run.pricing.strategy : '-'}
+                          </span>
+                        </td>
+                        <td className="center" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            id={`btn-view-${String(run.id).substring(0, 6)}`}
+                            className={`btn-ledger${isSelected ? ' active' : ''}`}
+                            onClick={() => setSelectedRun(norm)}
+                          >
+                            {isSelected ? 'Active' : 'View'}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(<App/>);
+</script>
+
+<!-- Hallmark · log entry written to .hallmark/log.json -->
 </body>
 </html>
