@@ -418,6 +418,43 @@ schedule.every().day.at("09:00").do(job)
 - **MCP Protocol**: https://modelcontextprotocol.io
 - **Async Python**: https://docs.python.org/3/library/asyncio.html
 
+## 🌐 TypeScript Client Migration
+
+A TypeScript version of the RetailOps Client and CLI utility has been introduced under `src/client/` to enable native TypeScript workflows and database persistence using Prisma.
+
+### 🎯 Features
+- **Prisma & SQLite Integration**: Workflow runs are saved directly in `data/retailops.db` under the `AnalysisRun` table with relations to `ForecastCache`, `ReplenishmentDecision`, and `PricingRecommendation`.
+- **Pure Node CLI**: Fast, dependency-free CLI runner using `tsx`.
+- **Full Compatibility**: Implements standard MCP stdio connection logic using `@modelcontextprotocol/sdk`.
+
+### 🚀 Usage
+
+#### Install Dependencies
+```bash
+npm install
+```
+
+#### Run TypeScript CLI
+```bash
+# Analyze a category
+npm run cli analyze tv
+
+# Batch analyze categories
+npm run cli batch tv laptop fashion
+
+# Forecast only
+npm run cli forecast groceries
+
+# Output results as JSON
+npm run cli json phone
+```
+
+#### Run Integration Tests
+To test the TypeScript client end-to-end against the live MCP servers:
+```bash
+npm run test:integration
+```
+
 ## 📄 License
 
 Part of the RetailOps MCP project.

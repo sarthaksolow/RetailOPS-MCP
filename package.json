@@ -1,0 +1,35 @@
+{
+  "name": "retailops-mcp",
+  "version": "1.0.0",
+  "description": "RetailOps MCP system in TypeScript",
+  "main": "dist/client/orchestrator.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "db:seed": "npx tsx src/database/seed.ts",
+    "start:forecasting": "node dist/servers/forecasting/server.js",
+    "start:replenishment": "node dist/servers/replenishment/server.js",
+    "start:pricing": "node dist/servers/pricing-strategy/server.js",
+    "start:enricher": "node dist/servers/catalog-enricher/server.js",
+    "start:dashboard": "tsx src/client/server.ts",
+    "cli": "tsx src/client/cli.ts",
+    "test:integration": "tsx tests/integration.test.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.1",
+    "@prisma/client": "^5.12.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.30",
+    "prisma": "^5.12.1",
+    "tsx": "^4.7.1",
+    "typescript": "^5.4.3"
+  }
+}

@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetailOps Intelligent Demand & Price Orchestrator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f5f7ff',
+                            100: '#ebf0ff',
+                            200: '#dbe2ff',
+                            300: '#bfcbff',
+                            400: '#99aaff',
+                            500: '#667cff',
+                            600: '#4d5cff',
+                            700: '#3943eb',
+                            800: '#2f36c4',
+                            900: '#2a309e',
+                            950: '#1b1c5c',
+                        },
+                        slate: {
+                            950: '#020617'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel for in-browser JSX parsing -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Solid icons library alternative for script usage -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Glassmorphism custom classes */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            background: rgba(30, 41, 59, 0.55);
+            border-color: rgba(99, 102, 241, 0.2);
+            transform: translateY(-2px);
+        }
+        body {
+            background: radial-gradient(circle at 50% -20%, #1e1b4b 0%, #020617 70%);
+            min-height: 100vh;
+            color: #f8fafc;
+        }
+        /* Hide scrollbars for slick looks but preserve scrolling */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.3);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.5);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased text-slate-200">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Normalize helper to unify raw API results and DB schema structures
+        const normalizeRun = (run) => {
+            if (!run) return null;
+            
+            // Raw client response
+            if (run.forecast && run.forecast.final !== undefined) {
+                return {
+                    id: run.id || 'live-run',
+                    timestamp: run.timestamp || new Date().toISOString(),
+                    productName: run.product_name || run.category || 'Unknown Product',
+                    category: run.category || 'general',
+                    status: run.status || 'completed',
+                    errors: run.errors && run.errors.length > 0 ? run.errors.join('; ') : null,
+                    forecast: {
+                        baseForecast: run.forecast.base || run.forecast.final || 0,
+                        finalForecast: run.forecast.final || 0,
+                        seasonalMultiplier: run.forecast.multiplier || 1.0,
+                        event: run.forecast.event || 'None',
+                        narrative: run.forecast.narrative || ''
+                    },
+                    replenishment: {
+                        reorderQty: run.replenishment.reorder_qty || 0,
+                        timing: run.replenishment.timing || 'unknown',
+                        risk: run.replenishment.risk || 'unknown',
+                        narrative: run.replenishment.narrative || ''
+                    },
+                    pricing: {
+                        recommendedPrice: run.pricing.recommended_price || 0,
+                        priceChangePct: run.pricing.change_pct || 0,
+                        strategy: run.pricing.strategy || 'maintain',
+                        narrative: run.pricing.narrative || ''
+                    }
+                };
+            }
+
+            // DB record structure
+            return {
+                id: run.id,
+                timestamp: run.timestamp,
+                productName: run.productName || run.category || 'general',
+                category: run.category,
+                status: run.status,
+                errors: run.errors,
+                forecast: run.forecast ? {
+                    baseForecast: run.forecast.baseForecast,
+                    finalForecast: run.forecast.finalForecast,
+                    seasonalMultiplier: run.forecast.seasonalMultiplier,
+                    event: run.forecast.event,
+                    narrative: run.forecast.narrative
+                } : null,
+                replenishment: run.replenishment ? {
+                    reorderQty: run.replenishment.reorderQty,
+                    timing: run.replenishment.timing,
+                    risk: run.replenishment.risk || 'unknown',
+                    narrative: run.replenishment.narrative
+                } : null,
+                pricing: run.pricing ? {
+                    recommendedPrice: run.pricing.recommendedPrice,
+                    priceChangePct: run.pricing.priceChangePct,
+                    strategy: run.pricing.strategy,
+                    narrative: run.pricing.narrative
+                } : null
+            };
+        };
+
+        // Chart sub-component
+        const ForecastChart = ({ selectedRun }) => {
+            const canvasRef = useRef(null);
+            const chartRef = useRef(null);
+
+            useEffect(() => {
+                if (!canvasRef.current || !selectedRun || !selectedRun.forecast) return;
+
+                if (chartRef.current) {
+                    chartRef.current.destroy();
+                }
+
+                const ctx = canvasRef.current.getContext('2d');
+                const forecast = selectedRun.forecast;
+                const replenishment = selectedRun.replenishment || {};
+                
+                chartRef.current = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Base Demand', 'Adjusted Forecast', 'Safety Reorder'],
+                        datasets: [{
+                            label: 'Volume (Units)',
+                            data: [
+                                forecast.baseForecast || 0,
+                                forecast.finalForecast || 0,
+                                replenishment.reorderQty || 0
+                            ],
+                            backgroundColor: [
+                                'rgba(99, 102, 241, 0.4)',  // Indigo
+                                'rgba(139, 92, 246, 0.7)',  // Violet
+                                'rgba(236, 72, 153, 0.6)'   // Pink
+                            ],
+                            borderColor: [
+                                'rgb(99, 102, 241)',
+                                'rgb(139, 92, 246)',
+                                'rgb(236, 72, 153)'
+                            ],
+                            borderWidth: 1.5,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                titleColor: '#fff',
+                                bodyColor: '#ccc',
+                                borderColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 1
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.05)'
+                                },
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.6)',
+                                    font: { size: 11 }
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: 'rgba(255, 255, 255, 0.6)',
+                                    font: { size: 11 }
+                                }
+                            }
+                        }
+                    }
+                });
+
+                return () => {
+                    if (chartRef.current) {
+                        chartRef.current.destroy();
+                    }
+                };
+            }, [selectedRun]);
+
+            if (!selectedRun || !selectedRun.forecast) {
+                return (
+                    <div className="flex flex-col items-center justify-center h-48 border border-dashed border-slate-800 rounded-xl bg-slate-900/20 text-slate-500">
+                        <i className="fa-solid fa-chart-simple text-3xl mb-2"></i>
+                        <span className="text-sm">Run analysis to generate visual projections</span>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="h-64 w-full">
+                    <canvas ref={canvasRef} />
+                </div>
+            );
+        };
+
+        // Main App Component
+        function App() {
+            const [runs, setRuns] = useState([]);
+            const [loading, setLoading] = useState(false);
+            const [statusStep, setStatusStep] = useState(0); // 0 = idle, 1 = enrichment, 2 = forecast, 3 = replenishment, 4 = pricing, 5 = done
+            const [productInput, setProductInput] = useState('');
+            const [daysAhead, setDaysAhead] = useState(30);
+            const [selectedRun, setSelectedRun] = useState(null);
+            const [error, setError] = useState('');
+            const [success, setSuccess] = useState('');
+
+            // Presets to help users easily run samples
+            const presets = [
+                { name: 'Smart TV', query: 'Sony 65-inch Bravia OLED 4K Smart TV' },
+                { name: 'Pro Laptop', query: 'Apple MacBook Pro 16 M3 Max Slate' },
+                { name: 'Organic Grocery', query: 'Fresh Organic Pink Lady Apples' },
+                { name: 'Winter Fashion', query: 'Designer Waterproof Wool Trench Coat' },
+                { name: 'Noise-Canceling Headphone', query: 'Bose QuietComfort Wireless Headphones' }
+            ];
+
+            const loadRuns = async () => {
+                try {
+                    const response = await fetch('/api/runs');
+                    const data = await response.json();
+                    setRuns(data);
+                    if (data.length > 0 && !selectedRun) {
+                        setSelectedRun(normalizeRun(data[0]));
+                    }
+                } catch (err) {
+                    console.error('Failed to load past runs:', err);
+                }
+            };
+
+            useEffect(() => {
+                loadRuns();
+            }, []);
+
+            const runAnalysis = async (searchQuery) => {
+                const query = searchQuery || productInput;
+                if (!query.trim()) {
+                    setError('Please select a preset or type a product description.');
+                    return;
+                }
+
+                setError('');
+                setSuccess('');
+                setLoading(true);
+                setStatusStep(1);
+
+                // Simulation timers to make steps look beautiful and premium
+                const timer1 = setTimeout(() => setStatusStep(2), 1500);
+                const timer2 = setTimeout(() => setStatusStep(3), 3000);
+                const timer3 = setTimeout(() => setStatusStep(4), 4500);
+
+                try {
+                    const response = await fetch('/api/analyze', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            product_name: query,
+                            days_ahead: daysAhead
+                        })
+                    });
+
+                    const data = await response.json();
+                    
+                    // Clear the simulation timers if request returns fast
+                    clearTimeout(timer1);
+                    clearTimeout(timer2);
+                    clearTimeout(timer3);
+                    
+                    setStatusStep(5);
+
+                    if (data.errors && data.errors.length > 0 && data.status !== 'completed') {
+                        setError(`Workflow error: ${data.errors.join('; ')}`);
+                    } else {
+                        setSuccess(`Workflow completed for "${query}"!`);
+                        const normalized = normalizeRun(data);
+                        setSelectedRun(normalized);
+                        loadRuns();
+                    }
+                } catch (err) {
+                    setError(`Failed to trigger analysis: ${err.message}`);
+                } finally {
+                    setLoading(false);
+                    setTimeout(() => setStatusStep(0), 2000);
+                }
+            };
+
+            const clearAllRuns = async () => {
+                if (!confirm('Are you sure you want to clear the entire history log? This cannot be undone.')) {
+                    return;
+                }
+                try {
+                    const response = await fetch('/api/runs', { method: 'DELETE' });
+                    const data = await response.json();
+                    setRuns([]);
+                    setSelectedRun(null);
+                    setSuccess(data.message || 'Runs cleared.');
+                } catch (err) {
+                    setError(`Failed to clear database logs: ${err.message}`);
+                }
+            };
+
+            const formatDate = (isoString) => {
+                const date = new Date(isoString);
+                return date.toLocaleString();
+            };
+
+            const getRiskBadgeColor = (risk) => {
+                const r = String(risk).toLowerCase();
+                if (r === 'high') return 'bg-red-500/10 text-red-400 border border-red-500/20';
+                if (r === 'medium') return 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20';
+                if (r === 'low') return 'bg-green-500/10 text-green-400 border border-green-500/20';
+                return 'bg-slate-500/10 text-slate-400 border border-slate-500/20';
+            };
+
+            const getStatusBadge = (status) => {
+                const s = String(status).toLowerCase();
+                if (s === 'completed') return <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-500/10 text-green-400 border border-green-500/20"><i className="fa-solid fa-circle-check mr-1"></i>Completed</span>;
+                if (s.startsWith('failed')) return <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-red-500/10 text-red-400 border border-red-500/20"><i className="fa-solid fa-circle-exclamation mr-1"></i>Failed</span>;
+                return <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20"><i className="fa-solid fa-rotate mr-1 animate-spin"></i>{status}</span>;
+            };
+
+            return (
+                <div className="max-w-7xl mx-auto px-4 py-8">
+                    {/* Header */}
+                    <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 border-b border-slate-800/80 pb-6">
+                        <div>
+                            <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                                    <i className="fa-solid fa-shop text-white text-lg"></i>
+                                </div>
+                                <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-indigo-100 to-indigo-300 bg-clip-text text-transparent">
+                                    RetailOps Dashboard
+                                </h1>
+                            </div>
+                            <p className="text-slate-400 text-sm mt-1">
+                                Enterprise demand forecasting, inventory planning, and dynamic price configuration
+                            </p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button 
+                                onClick={loadRuns} 
+                                className="px-4 py-2 bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 text-xs font-medium rounded-lg transition"
+                                title="Sync with database cache"
+                            >
+                                <i className="fa-solid fa-arrows-rotate mr-1.5"></i> Refresh Logs
+                            </button>
+                            <button 
+                                onClick={clearAllRuns} 
+                                className="px-4 py-2 bg-red-950/20 hover:bg-red-950/40 border border-red-900/30 text-red-400 text-xs font-medium rounded-lg transition"
+                                title="Reset database cache"
+                            >
+                                <i className="fa-solid fa-trash-can mr-1.5"></i> Clear Cache
+                            </button>
+                        </div>
+                    </header>
+
+                    {/* Alert Notifications */}
+                    {error && (
+                        <div className="mb-6 p-4 rounded-xl bg-red-950/30 border border-red-900/40 text-red-300 text-sm flex items-start gap-3">
+                            <i className="fa-solid fa-circle-exclamation text-lg mt-0.5 text-red-400"></i>
+                            <div>{error}</div>
+                        </div>
+                    )}
+                    {success && (
+                        <div className="mb-6 p-4 rounded-xl bg-green-950/20 border border-green-900/30 text-green-300 text-sm flex items-start gap-3">
+                            <i className="fa-solid fa-circle-check text-lg mt-0.5 text-green-400"></i>
+                            <div>{success}</div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+                        {/* Control Panel: Left column */}
+                        <div className="lg:col-span-5 flex flex-col gap-6">
+                            <div className="glass-panel p-6 rounded-2xl shadow-xl flex flex-col gap-5">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-sm font-semibold tracking-wider text-indigo-400 uppercase">
+                                        Workflow Runner
+                                    </h2>
+                                    <span className="text-xs text-slate-500">Step orchestrator</span>
+                                </div>
+
+                                {/* Product Category Presets */}
+                                <div>
+                                    <label className="block text-xs text-slate-400 font-medium mb-2">
+                                        Quick Presets: Select a category keyword
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {presets.map((preset, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => {
+                                                    setProductInput(preset.query);
+                                                    runAnalysis(preset.query);
+                                                }}
+                                                disabled={loading}
+                                                className="px-2.5 py-1 text-xs bg-slate-900/80 hover:bg-indigo-950/30 border border-slate-800 hover:border-indigo-800 text-slate-300 rounded-md transition"
+                                            >
+                                                {preset.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Custom Keyword Input */}
+                                <div>
+                                    <label className="block text-xs text-slate-400 font-medium mb-1.5">
+                                        Custom Product Query: Enter keyword or product name
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={productInput}
+                                            onChange={(e) => setProductInput(e.target.value)}
+                                            placeholder="e.g. ultra high definition smart television"
+                                            className="w-full bg-slate-950 border border-slate-800 text-sm px-3.5 py-2.5 pr-10 rounded-lg focus:outline-none focus:border-indigo-500 text-slate-100 placeholder-slate-600"
+                                            disabled={loading}
+                                        />
+                                        <div className="absolute right-3.5 top-3 text-slate-600">
+                                            <i className="fa-solid fa-magnifying-glass text-xs"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Forecast Horizon slider */}
+                                <div>
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <label className="text-xs text-slate-400 font-medium">
+                                            Forecasting Days Ahead:
+                                        </label>
+                                        <span className="text-xs font-bold text-indigo-300">{daysAhead} Days</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="10"
+                                        max="90"
+                                        step="5"
+                                        value={daysAhead}
+                                        onChange={(e) => setDaysAhead(Number(e.target.value))}
+                                        className="w-full accent-indigo-500 cursor-pointer bg-slate-950 h-1.5 rounded-lg border-0"
+                                        disabled={loading}
+                                    />
+                                    <div className="flex justify-between text-[10px] text-slate-600 mt-1">
+                                        <span>10 Days</span>
+                                        <span>50 Days</span>
+                                        <span>90 Days</span>
+                                    </div>
+                                </div>
+
+                                {/* Trigger Action */}
+                                <button
+                                    onClick={() => runAnalysis()}
+                                    disabled={loading || !productInput.trim()}
+                                    className={`w-full py-3 px-4 rounded-xl text-xs font-semibold tracking-wider uppercase flex items-center justify-center gap-2 border transition ${
+                                        loading 
+                                            ? 'bg-slate-900 border-slate-800 text-slate-500 cursor-not-allowed'
+                                            : 'bg-indigo-600 hover:bg-indigo-500 border-indigo-700 text-white shadow-lg shadow-indigo-600/10'
+                                    }`}
+                                >
+                                    {loading ? (
+                                        <>
+                                            <i className="fa-solid fa-spinner animate-spin"></i>
+                                            Processing Pipeline...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i className="fa-solid fa-play"></i>
+                                            Trigger Intelligent Analysis
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+
+                            {/* Live Step Progress Monitor */}
+                            {loading && (
+                                <div className="glass-panel p-6 rounded-2xl shadow-xl flex flex-col gap-4">
+                                    <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                                        Pipeline Execution Status
+                                    </h3>
+                                    
+                                    <div className="flex flex-col gap-3">
+                                        {[
+                                            { step: 1, label: 'Enricher Node: Product Mapping', desc: 'Enriches raw keywords to strict category mapping' },
+                                            { step: 2, label: 'Forecasting Node: Event Adjustments', desc: 'Retrieves sales model and seasonal event surge profiles' },
+                                            { step: 3, label: 'Replenishment Node: Safety Ordering', desc: 'Computes MOQ, lead time stockout risks, and order quantity' },
+                                            { step: 4, label: 'Pricing Node: Dynamic Profit Margins', desc: 'Recommends optimized dynamic price point matching strategy' }
+                                        ].map((node) => {
+                                            const isActive = statusStep === node.step;
+                                            const isDone = statusStep > node.step;
+                                            return (
+                                                <div key={node.step} className="flex gap-3 items-start">
+                                                    <div className={`mt-0.5 h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-bold border transition ${
+                                                        isDone 
+                                                            ? 'bg-green-500/20 text-green-400 border-green-500/40' 
+                                                            : isActive 
+                                                                ? 'bg-indigo-600 text-white border-indigo-500 animate-pulse'
+                                                                : 'bg-slate-900/60 text-slate-600 border-slate-800'
+                                                    }`}>
+                                                        {isDone ? <i className="fa-solid fa-check"></i> : node.step}
+                                                    </div>
+                                                    <div>
+                                                        <div className={`text-xs font-semibold transition ${
+                                                            isActive ? 'text-indigo-300' : isDone ? 'text-slate-300' : 'text-slate-500'
+                                                        }`}>
+                                                            {node.label}
+                                                        </div>
+                                                        <div className={`text-[10px] transition ${
+                                                            isActive ? 'text-slate-400' : 'text-slate-600'
+                                                        }`}>
+                                                            {node.desc}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Projection Dashboard Details: Right column */}
+                        <div className="lg:col-span-7 flex flex-col gap-6">
+                            {/* Summary Title */}
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-semibold tracking-wider text-indigo-400 uppercase">
+                                    Analysis Workspace
+                                </h3>
+                                {selectedRun && (
+                                    <span className="text-[10px] px-2.5 py-0.5 rounded-md bg-slate-900 text-slate-400 border border-slate-800/80">
+                                        Run Ref: {selectedRun.id.substring(0, 8)}
+                                    </span>
+                                )}
+                            </div>
+
+                            {selectedRun ? (
+                                <>
+                                    {/* Primary Product Card info */}
+                                    <div className="glass-panel p-5 rounded-2xl flex flex-col gap-3">
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
+                                                    {selectedRun.category}
+                                                </span>
+                                                <h3 className="text-lg font-bold text-slate-100 mt-2">
+                                                    {selectedRun.productName}
+                                                </h3>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-[10px] text-slate-500">Analysis Date</div>
+                                                <div className="text-xs text-slate-400">{formatDate(selectedRun.timestamp)}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Cohesive Cards Grid Layout */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        {/* Card 1: Forecast */}
+                                        <div className="glass-card p-5 rounded-2xl flex flex-col justify-between min-h-[180px]">
+                                            <div>
+                                                <div className="flex items-center justify-between text-indigo-400 text-xs font-semibold mb-3">
+                                                    <span>Demand Projection</span>
+                                                    <i className="fa-solid fa-chart-line"></i>
+                                                </div>
+                                                <div className="text-2xl font-black text-slate-100">
+                                                    {selectedRun.forecast?.finalForecast?.toLocaleString() || 0}
+                                                    <span className="text-xs font-normal text-slate-500 ml-1">Units</span>
+                                                </div>
+                                            </div>
+                                            <div className="mt-4 pt-3 border-t border-slate-800/40 text-[10px] text-slate-400 flex flex-col gap-1">
+                                                <div className="flex justify-between">
+                                                    <span>Seasonal Multiplier:</span>
+                                                    <span className="font-bold text-indigo-300">{selectedRun.forecast?.seasonalMultiplier || 1.0}x</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span>Upcoming Event:</span>
+                                                    <span className="font-bold text-indigo-300 truncate max-w-[80px]" title={selectedRun.forecast?.event}>
+                                                        {selectedRun.forecast?.event || 'None'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Card 2: Replenishment */}
+                                        <div className="glass-card p-5 rounded-2xl flex flex-col justify-between min-h-[180px]">
+                                            <div>
+                                                <div className="flex items-center justify-between text-indigo-400 text-xs font-semibold mb-3">
+                                                    <span>Replenishment Order</span>
+                                                    <i className="fa-solid fa-box-open"></i>
+                                                </div>
+                                                <div className="text-2xl font-black text-slate-100">
+                                                    {selectedRun.replenishment?.reorderQty?.toLocaleString() || 0}
+                                                    <span className="text-xs font-normal text-slate-500 ml-1">Units</span>
+                                                </div>
+                                            </div>
+                                            <div className="mt-4 pt-3 border-t border-slate-800/40 text-[10px] text-slate-400 flex flex-col gap-1">
+                                                <div className="flex justify-between items-center">
+                                                    <span>Stockout Risk:</span>
+                                                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${getRiskBadgeColor(selectedRun.replenishment?.risk)}`}>
+                                                        {selectedRun.replenishment?.risk?.toUpperCase() || 'UNKNOWN'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span>Reorder Urgency:</span>
+                                                    <span className="font-bold text-slate-300 truncate max-w-[80px]" title={selectedRun.replenishment?.timing}>
+                                                        {selectedRun.replenishment?.timing || 'unknown'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Card 3: Pricing */}
+                                        <div className="glass-card p-5 rounded-2xl flex flex-col justify-between min-h-[180px]">
+                                            <div>
+                                                <div className="flex items-center justify-between text-indigo-400 text-xs font-semibold mb-3">
+                                                    <span>Pricing Strategy</span>
+                                                    <i className="fa-solid fa-tags"></i>
+                                                </div>
+                                                <div className="text-2xl font-black text-slate-100">
+                                                    ₹{selectedRun.pricing?.recommendedPrice?.toLocaleString() || 0}
+                                                </div>
+                                            </div>
+                                            <div className="mt-4 pt-3 border-t border-slate-800/40 text-[10px] text-slate-400 flex flex-col gap-1">
+                                                <div className="flex justify-between">
+                                                    <span>Change Rate:</span>
+                                                    <span className={`font-bold ${
+                                                        (selectedRun.pricing?.priceChangePct || 0) > 0 
+                                                            ? 'text-green-400' 
+                                                            : (selectedRun.pricing?.priceChangePct || 0) < 0 
+                                                                ? 'text-red-400' 
+                                                                : 'text-slate-400'
+                                                    }`}>
+                                                        {selectedRun.pricing?.priceChangePct > 0 ? '+' : ''}
+                                                        {(selectedRun.pricing?.priceChangePct || 0).toFixed(1)}%
+                                                    </span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span>Strategy Name:</span>
+                                                    <span className="font-bold text-slate-300 truncate max-w-[80px]" title={selectedRun.pricing?.strategy}>
+                                                        {selectedRun.pricing?.strategy || 'maintain'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Chart & Narrative Details */}
+                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                                        {/* Left: Chart */}
+                                        <div className="md:col-span-6 glass-panel p-5 rounded-2xl flex flex-col gap-4 justify-between">
+                                            <h4 className="text-xs font-bold text-indigo-300 uppercase tracking-wider">
+                                                Projection Analysis
+                                            </h4>
+                                            <ForecastChart selectedRun={selectedRun} />
+                                        </div>
+
+                                        {/* Right: Narrative snippets */}
+                                        <div className="md:col-span-6 glass-panel p-5 rounded-2xl flex flex-col gap-4 max-h-[310px] overflow-y-auto custom-scrollbar">
+                                            <h4 className="text-xs font-bold text-indigo-300 uppercase tracking-wider">
+                                                Strategy Narrative & Context
+                                            </h4>
+                                            
+                                            <div className="flex flex-col gap-3.5 text-xs">
+                                                {selectedRun.forecast?.narrative && (
+                                                    <div>
+                                                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                                                            Forecast Insights
+                                                        </div>
+                                                        <p className="text-slate-300 leading-relaxed italic bg-slate-950/45 p-2 rounded border border-slate-900">
+                                                            "{selectedRun.forecast.narrative}"
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {selectedRun.replenishment?.narrative && (
+                                                    <div>
+                                                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                                                            Replenishment Actions
+                                                        </div>
+                                                        <p className="text-slate-300 leading-relaxed italic bg-slate-950/45 p-2 rounded border border-slate-900">
+                                                            "{selectedRun.replenishment.narrative}"
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {selectedRun.pricing?.narrative && (
+                                                    <div>
+                                                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                                                            Pricing Rationale
+                                                        </div>
+                                                        <p className="text-slate-300 text-slate-300 leading-relaxed italic bg-slate-950/45 p-2 rounded border border-slate-900">
+                                                            "{selectedRun.pricing.narrative}"
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="glass-panel p-10 rounded-2xl flex flex-col items-center justify-center text-center h-[460px]">
+                                    <div className="h-16 w-16 bg-indigo-950/40 border border-indigo-800/20 text-indigo-400 rounded-full flex items-center justify-center text-2xl mb-4 shadow-inner">
+                                        <i className="fa-solid fa-inbox"></i>
+                                    </div>
+                                    <h3 className="text-lg font-bold text-slate-200">No active workspace</h3>
+                                    <p className="text-slate-400 text-sm max-w-sm mt-1">
+                                        Select a preset option or write a keyword description in the Workflow Runner panel to execute the end-to-end supply chain logic.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Historical Run Table Logs */}
+                    <div className="glass-panel p-6 rounded-2xl shadow-xl">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 className="text-sm font-semibold tracking-wider text-indigo-400 uppercase">
+                                    Historical Analysis Cache Logs
+                                </h3>
+                                <p className="text-slate-500 text-xs mt-0.5">
+                                    Cached workflows logged inside the local SQLite database
+                                </p>
+                            </div>
+                            <span className="text-[10px] px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                                Total Cached: {runs.length} Runs
+                            </span>
+                        </div>
+
+                        <div className="overflow-x-auto custom-scrollbar">
+                            <table className="w-full text-left text-xs border-collapse">
+                                <thead>
+                                    <tr className="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
+                                        <th className="py-3 px-4">Timestamp</th>
+                                        <th className="py-3 px-4">Category</th>
+                                        <th className="py-3 px-4">Status</th>
+                                        <th className="py-3 px-4 text-right">Forecast Units</th>
+                                        <th className="py-3 px-4 text-right">Reorder Qty</th>
+                                        <th className="py-3 px-4 text-right">Recommended Price</th>
+                                        <th className="py-3 px-4">Strategy</th>
+                                        <th className="py-3 px-4 text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {runs.length === 0 ? (
+                                        <tr>
+                                            <td colSpan="8" className="py-8 text-center text-slate-500">
+                                                No historical database runs found. Run an analysis above to cache results.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        runs.map((run) => {
+                                            const norm = normalizeRun(run);
+                                            const isSelected = selectedRun && selectedRun.id === run.id;
+                                            return (
+                                                <tr 
+                                                    key={run.id}
+                                                    onClick={() => setSelectedRun(norm)}
+                                                    className={`border-b border-slate-900/60 hover:bg-slate-900/40 cursor-pointer transition ${
+                                                        isSelected ? 'bg-indigo-950/20 border-indigo-900/40 text-indigo-100 font-medium' : ''
+                                                    }`}
+                                                >
+                                                    <td className="py-3.5 px-4 whitespace-nowrap text-slate-400">
+                                                        {formatDate(run.timestamp)}
+                                                    </td>
+                                                    <td className="py-3.5 px-4">
+                                                        <span className="px-2 py-0.5 rounded text-[10px] bg-slate-900 border border-slate-800 text-slate-300 font-bold uppercase tracking-wider">
+                                                            {run.category}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-3.5 px-4">
+                                                        {getStatusBadge(run.status)}
+                                                    </td>
+                                                    <td className="py-3.5 px-4 text-right font-mono text-slate-300">
+                                                        {run.forecast ? run.forecast.finalForecast.toLocaleString() : '-'}
+                                                    </td>
+                                                    <td className="py-3.5 px-4 text-right font-mono text-slate-300">
+                                                        {run.replenishment ? run.replenishment.reorderQty.toLocaleString() : '-'}
+                                                    </td>
+                                                    <td className="py-3.5 px-4 text-right font-mono text-slate-300">
+                                                        {run.pricing ? `₹${run.pricing.recommendedPrice.toLocaleString()}` : '-'}
+                                                    </td>
+                                                    <td className="py-3.5 px-4 text-slate-400 font-mono capitalize">
+                                                        {run.pricing ? run.pricing.strategy : '-'}
+                                                    </td>
+                                                    <td className="py-3.5 px-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                                        <button 
+                                                            onClick={() => setSelectedRun(norm)}
+                                                            className={`px-3 py-1 text-[10px] font-bold rounded transition ${
+                                                                isSelected 
+                                                                    ? 'bg-indigo-600 text-white border border-indigo-500' 
+                                                                    : 'bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300'
+                                                            }`}
+                                                        >
+                                                            Load View
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

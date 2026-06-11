@@ -1,0 +1,69 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:../data/retailops.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model AnalysisRun {
+  id                      String                   @id @default(uuid())
+  timestamp               DateTime                 @default(now())
+  category                String
+  status                  String
+  errors                  String?                  // Stores joined error messages if any
+  forecast                ForecastCache?
+  replenishment           ReplenishmentDecision?
+  pricing                 PricingRecommendation?
+}
+
+model ForecastCache {
+  id                      String       @id @default(uuid())
+  runId                   String       @unique
+  run                     AnalysisRun  @relation(fields: [runId], references: [id], onDelete: Cascade)
+  category                String
+  baseForecast            Float
+  finalForecast           Float
+  seasonalMultiplier      Float
+  event                   String
+  narrative               String
+}
+
+model ReplenishmentDecision {
+  id                      String       @id @default(uuid())
+  runId                   String       @unique
+  run                     AnalysisRun  @relation(fields: [runId], references: [id], onDelete: Cascade)
+  category                String
+  reorderQty              Int
+  timing                  String
+  risk                    String
+  narrative               String
+}
+
+model PricingRecommendation {
+  id                      String       @id @default(uuid())
+  runId                   String       @unique
+  run                     AnalysisRun  @relation(fields: [runId], references: [id], onDelete: Cascade)
+  category                String
+  recommendedPrice        Float
+  priceChangePct          Float
+  strategy                String
+  narrative               String
+}
+
+model CatalogProduct {
+  id                      String   @id
+  name                    String
+  brand                   String
+  category                String
+  price                   Float
+  marginPct               Float
+  description             String
+}
+
+model CategoryMapping {
+  keyword                 String   @id
+  category                String
+}
+
