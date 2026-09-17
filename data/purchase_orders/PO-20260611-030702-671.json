@@ -1,0 +1,12 @@
+{
+  "id": "PO-20260611-030702-671",
+  "productId": "temp-prod-id",
+  "productName": "Top-up for PO PO-20260611-030702-858",
+  "supplierId": "SUP-004",
+  "supplierName": "Arvind Fashions Wholesale",
+  "category": "fashion",
+  "qty": 188,
+  "totalValue": 141000,
+  "status": "pending_approval",
+  "createdAt": "2026-06-11T21:37:02.294Z"
+}

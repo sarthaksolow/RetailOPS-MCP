@@ -1,0 +1,16 @@
+{
+  "id": "PO-20260611-030313-412",
+  "productId": "temp-prod-id",
+  "productName": "Replacement for rejected PO PO-20260611-030313-374",
+  "supplierId": "SUP-001",
+  "supplierName": "TechDistributors India",
+  "category": "electronics",
+  "qty": 596,
+  "totalValue": 5066000,
+  "status": "delayed",
+  "logisticsEvent": {
+    "type": "delayed",
+    "estimatedResolution": "2026-06-18T21:33:13.883Z"
+  },
+  "createdAt": "2026-06-11T21:33:13.883Z"
+}

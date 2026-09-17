@@ -1,0 +1,15 @@
+{
+  "id": "PO-20260611-031850-724",
+  "productId": "FASH-003",
+  "productName": "Raymond Formal Trousers",
+  "supplierId": "SUP-005",
+  "supplierName": "Manyavar Vendor Direct",
+  "category": "fashion",
+  "qty": 546,
+  "totalValue": 447720,
+  "status": "rejected",
+  "logisticsEvent": {
+    "type": "rejected"
+  },
+  "createdAt": "2026-06-11T21:48:50.218Z"
+}

@@ -1,0 +1,16 @@
+{
+  "id": "PO-20260611-031705-665",
+  "productId": "FASH-002",
+  "productName": "W for Woman Printed Saree",
+  "supplierId": "SUP-005",
+  "supplierName": "Manyavar Vendor Direct",
+  "category": "fashion",
+  "qty": 480,
+  "totalValue": 393600,
+  "status": "delayed",
+  "logisticsEvent": {
+    "type": "delayed",
+    "estimatedResolution": "2026-06-18T21:47:05.947Z"
+  },
+  "createdAt": "2026-06-11T21:47:05.947Z"
+}

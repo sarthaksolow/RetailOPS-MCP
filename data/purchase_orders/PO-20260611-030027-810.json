@@ -1,0 +1,15 @@
+{
+  "id": "PO-20260611-030027-810",
+  "productId": "temp-prod-id",
+  "productName": "Replacement for rejected PO PO-20260611-030026-199",
+  "supplierId": "SUP-004",
+  "supplierName": "Arvind Fashions Wholesale",
+  "category": "fashion",
+  "qty": 480,
+  "totalValue": 360000,
+  "status": "rejected",
+  "logisticsEvent": {
+    "type": "rejected"
+  },
+  "createdAt": "2026-06-11T21:30:27.386Z"
+}

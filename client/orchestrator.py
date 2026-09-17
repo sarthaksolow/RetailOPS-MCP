@@ -18,6 +18,13 @@ from mcp.client.stdio import StdioServerParameters, stdio_client
 from mcp.client.session import ClientSession
 from typing import Optional
 
+import uuid
+import time
+try:
+    from .telemetry import ServiceCallTelemetry, ExecutionTelemetry, TelemetryLogger, now_iso
+except ImportError:
+    from telemetry import ServiceCallTelemetry, ExecutionTelemetry, TelemetryLogger, now_iso
+
 # Load environment
 load_dotenv()
 
@@ -33,6 +40,14 @@ log(">>> Initializing RetailOps LangGraph Client")
 # =====================================================
 class RetailOpsState(TypedDict):
     """Complete state for retail operations workflow"""
+    # Telemetry metadata
+    execution_id: str
+    workflow_name: str
+    start_time: str
+    completed_steps: List[str]
+    failed_steps: List[str]
+    service_calls: List[Dict[str, Any]]
+
     # Input
     product_name: str
     days_ahead: int
@@ -100,9 +115,11 @@ class MCPServerManager:
             env={"OPENROUTER_API_KEY": os.getenv("OPENROUTER_API_KEY", "")}
         )
 
-    async def call_enrichment(self, product_name: str) -> Dict[str, Any]:
+    async def call_enrichment(self, product_name: str, telemetry_sink: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
         """Call catalog enricher server"""
         log(f"🧹 Calling Catalog Enricher for '{product_name}'")
+        t_start_iso = now_iso()
+        t_start = time.perf_counter()
         
         try:
             params = self.get_server_params("enricher")
@@ -126,17 +143,52 @@ class MCPServerManager:
                             if hasattr(content, 'text'):
                                 result = json.loads(content.text)
                                 log(f"✅ Enriched: Mapped to category '{result.get('category')}'")
+                                if telemetry_sink is not None:
+                                    t_dur = (time.perf_counter() - t_start) * 1000
+                                    telemetry_sink.append(ServiceCallTelemetry(
+                                        service_name="Catalog Enricher",
+                                        tool_name="enrichProduct",
+                                        start_time=t_start_iso,
+                                        end_time=now_iso(),
+                                        duration_ms=round(t_dur, 2),
+                                        status="success"
+                                    ).to_dict())
                                 return result
             
-            return {"error": "No enrichment data received"}
+            err_msg = "No enrichment data received"
+            if telemetry_sink is not None:
+                t_dur = (time.perf_counter() - t_start) * 1000
+                telemetry_sink.append(ServiceCallTelemetry(
+                    service_name="Catalog Enricher",
+                    tool_name="enrichProduct",
+                    start_time=t_start_iso,
+                    end_time=now_iso(),
+                    duration_ms=round(t_dur, 2),
+                    status="failure",
+                    error=err_msg
+                ).to_dict())
+            return {"error": err_msg}
             
         except Exception as e:
             log(f"❌ Enrichment error: {e}")
+            if telemetry_sink is not None:
+                t_dur = (time.perf_counter() - t_start) * 1000
+                telemetry_sink.append(ServiceCallTelemetry(
+                    service_name="Catalog Enricher",
+                    tool_name="enrichProduct",
+                    start_time=t_start_iso,
+                    end_time=now_iso(),
+                    duration_ms=round(t_dur, 2),
+                    status="failure",
+                    error=str(e)
+                ).to_dict())
             return {"error": str(e)}
     
-    async def call_forecasting(self, category: str, days_ahead: int = 30) -> Dict[str, Any]:
+    async def call_forecasting(self, category: str, days_ahead: int = 30, telemetry_sink: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
         """Call forecasting server"""
         log(f"📊 Calling Forecasting Server for {category}")
+        t_start_iso = now_iso()
+        t_start = time.perf_counter()
         
         try:
             # Type safety
@@ -158,24 +210,72 @@ class MCPServerManager:
                             if hasattr(content, 'text'):
                                 result = json.loads(content.text)
                                 log(f"✅ Forecast received: {result.get('final_forecast')}")
+                                if "error" in result:
+                                    if telemetry_sink is not None:
+                                        t_dur = (time.perf_counter() - t_start) * 1000
+                                        telemetry_sink.append(ServiceCallTelemetry(
+                                            service_name="Forecasting",
+                                            tool_name="getForecast",
+                                            start_time=t_start_iso,
+                                            end_time=now_iso(),
+                                            duration_ms=round(t_dur, 2),
+                                            status="failure",
+                                            error=result["error"]
+                                        ).to_dict())
+                                    return result
+                                if telemetry_sink is not None:
+                                    t_dur = (time.perf_counter() - t_start) * 1000
+                                    telemetry_sink.append(ServiceCallTelemetry(
+                                        service_name="Forecasting",
+                                        tool_name="getForecast",
+                                        start_time=t_start_iso,
+                                        end_time=now_iso(),
+                                        duration_ms=round(t_dur, 2),
+                                        status="success"
+                                    ).to_dict())
                                 return result
             
-            return {"error": "No forecast data received"}
+            err_msg = "No forecast data received"
+            if telemetry_sink is not None:
+                t_dur = (time.perf_counter() - t_start) * 1000
+                telemetry_sink.append(ServiceCallTelemetry(
+                    service_name="Forecasting",
+                    tool_name="getForecast",
+                    start_time=t_start_iso,
+                    end_time=now_iso(),
+                    duration_ms=round(t_dur, 2),
+                    status="failure",
+                    error=err_msg
+                ).to_dict())
+            return {"error": err_msg}
             
         except Exception as e:
-            # Handle TaskGroup/AnyIO errors gracefully
             err_msg = str(e)
             if "TaskGroup" in err_msg or "subprocess" in err_msg:
                 log(f"❌ Forecasting Server Crash: {err_msg}")
             else:
                 log(f"❌ Forecasting error: {err_msg}")
+            if telemetry_sink is not None:
+                t_dur = (time.perf_counter() - t_start) * 1000
+                telemetry_sink.append(ServiceCallTelemetry(
+                    service_name="Forecasting",
+                    tool_name="getForecast",
+                    start_time=t_start_iso,
+                    end_time=now_iso(),
+                    duration_ms=round(t_dur, 2),
+                    status="failure",
+                    error=err_msg
+                ).to_dict())
             return {"error": err_msg}
     
     async def call_replenishment(self, forecast_data: Dict[str, Any], 
                                   current_stock: int = None,
-                                  in_transit: int = None) -> Dict[str, Any]:
+                                  in_transit: int = None,
+                                  telemetry_sink: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
         """Call replenishment server"""
         log(f"📦 Calling Replenishment Server")
+        t_start_iso = now_iso()
+        t_start = time.perf_counter()
         
         # Realistic inventory levels
         inventory_levels = {
@@ -233,20 +333,69 @@ class MCPServerManager:
                             if hasattr(content, 'text'):
                                 result = json.loads(content.text)
                                 log(f"✅ Replenishment: {result.get('reorder_qty')} units")
+                                if "error" in result:
+                                    if telemetry_sink is not None:
+                                        t_dur = (time.perf_counter() - t_start) * 1000
+                                        telemetry_sink.append(ServiceCallTelemetry(
+                                            service_name="Replenishment",
+                                            tool_name="getReplenishmentDecision",
+                                            start_time=t_start_iso,
+                                            end_time=now_iso(),
+                                            duration_ms=round(t_dur, 2),
+                                            status="failure",
+                                            error=result["error"]
+                                        ).to_dict())
+                                    return result
+                                if telemetry_sink is not None:
+                                    t_dur = (time.perf_counter() - t_start) * 1000
+                                    telemetry_sink.append(ServiceCallTelemetry(
+                                        service_name="Replenishment",
+                                        tool_name="getReplenishmentDecision",
+                                        start_time=t_start_iso,
+                                        end_time=now_iso(),
+                                        duration_ms=round(t_dur, 2),
+                                        status="success"
+                                    ).to_dict())
                                 return result
             
-            return {"error": "No replenishment data received"}
+            err_msg = "No replenishment data received"
+            if telemetry_sink is not None:
+                t_dur = (time.perf_counter() - t_start) * 1000
+                telemetry_sink.append(ServiceCallTelemetry(
+                    service_name="Replenishment",
+                    tool_name="getReplenishmentDecision",
+                    start_time=t_start_iso,
+                    end_time=now_iso(),
+                    duration_ms=round(t_dur, 2),
+                    status="failure",
+                    error=err_msg
+                ).to_dict())
+            return {"error": err_msg}
             
         except Exception as e:
             log(f"❌ Replenishment error: {e}")
+            if telemetry_sink is not None:
+                t_dur = (time.perf_counter() - t_start) * 1000
+                telemetry_sink.append(ServiceCallTelemetry(
+                    service_name="Replenishment",
+                    tool_name="getReplenishmentDecision",
+                    start_time=t_start_iso,
+                    end_time=now_iso(),
+                    duration_ms=round(t_dur, 2),
+                    status="failure",
+                    error=str(e)
+                ).to_dict())
             return {"error": str(e)}
     
     async def call_pricing(self, category: str, 
                           forecasted_demand: float,
                           inventory_level: int = None,
-                          current_price: float = None) -> Dict[str, Any]:
+                          current_price: float = None,
+                          telemetry_sink: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
         """Call pricing strategy server"""
         log(f"💰 Calling Pricing Strategy Server")
+        t_start_iso = now_iso()
+        t_start = time.perf_counter()
         
         # Default prices
         default_prices = {
@@ -289,12 +438,58 @@ class MCPServerManager:
                             if hasattr(content, 'text'):
                                 result = json.loads(content.text)
                                 log(f"✅ Pricing: ₹{result.get('recommended_price')}")
+                                if "error" in result:
+                                    if telemetry_sink is not None:
+                                        t_dur = (time.perf_counter() - t_start) * 1000
+                                        telemetry_sink.append(ServiceCallTelemetry(
+                                            service_name="Pricing Strategy",
+                                            tool_name="getPricingStrategy",
+                                            start_time=t_start_iso,
+                                            end_time=now_iso(),
+                                            duration_ms=round(t_dur, 2),
+                                            status="failure",
+                                            error=result["error"]
+                                        ).to_dict())
+                                    return result
+                                if telemetry_sink is not None:
+                                    t_dur = (time.perf_counter() - t_start) * 1000
+                                    telemetry_sink.append(ServiceCallTelemetry(
+                                        service_name="Pricing Strategy",
+                                        tool_name="getPricingStrategy",
+                                        start_time=t_start_iso,
+                                        end_time=now_iso(),
+                                        duration_ms=round(t_dur, 2),
+                                        status="success"
+                                    ).to_dict())
                                 return result
             
-            return {"error": "No pricing data received"}
+            err_msg = "No pricing data received"
+            if telemetry_sink is not None:
+                t_dur = (time.perf_counter() - t_start) * 1000
+                telemetry_sink.append(ServiceCallTelemetry(
+                    service_name="Pricing Strategy",
+                    tool_name="getPricingStrategy",
+                    start_time=t_start_iso,
+                    end_time=now_iso(),
+                    duration_ms=round(t_dur, 2),
+                    status="failure",
+                    error=err_msg
+                ).to_dict())
+            return {"error": err_msg}
             
         except Exception as e:
             log(f"❌ Pricing error: {e}")
+            if telemetry_sink is not None:
+                t_dur = (time.perf_counter() - t_start) * 1000
+                telemetry_sink.append(ServiceCallTelemetry(
+                    service_name="Pricing Strategy",
+                    tool_name="getPricingStrategy",
+                    start_time=t_start_iso,
+                    end_time=now_iso(),
+                    duration_ms=round(t_dur, 2),
+                    status="failure",
+                    error=str(e)
+                ).to_dict())
             return {"error": str(e)}
 
 
@@ -307,13 +502,18 @@ async def enrichment_node(state: RetailOpsState) -> RetailOpsState:
     """Node 1: Enrich product and determine category"""
     log(f"🔵 NODE 1: Catalog Enrichment for '{state['product_name']}'")
     
-    enrich_result = await server_manager.call_enrichment(state["product_name"])
+    enrich_result = await server_manager.call_enrichment(
+        state["product_name"],
+        telemetry_sink=state.get("service_calls")
+    )
     
     if "error" in enrich_result:
         state["errors"].append(f"Enrichment: {enrich_result['error']}")
+        state["failed_steps"].append("enrich")
         state["category"] = "general"
         return state
 
+    state["completed_steps"].append("enrich")
     state["category"] = enrich_result.get("category", "general")
     state["brand"] = enrich_result.get("brand", "Unknown")
     state["description"] = enrich_result.get("description", "")
@@ -329,13 +529,19 @@ async def forecasting_node(state: RetailOpsState) -> RetailOpsState:
     # Cast days_ahead to int just in case
     days = int(state.get("days_ahead", 30))
     
-    forecast_data = await server_manager.call_forecasting(category, days)
+    forecast_data = await server_manager.call_forecasting(
+        category,
+        days,
+        telemetry_sink=state.get("service_calls")
+    )
     
     if "error" in forecast_data:
         state["errors"].append(f"Forecasting: {forecast_data['error']}")
+        state["failed_steps"].append("forecast")
         state["workflow_status"] = "failed_forecast"
         return state
     
+    state["completed_steps"].append("forecast")
     state["forecast_data"] = forecast_data
     state["base_forecast"] = forecast_data.get("base_forecast", 0)
     state["final_forecast"] = forecast_data.get("final_forecast", 0)
@@ -354,14 +560,17 @@ async def replenishment_node(state: RetailOpsState) -> RetailOpsState:
     replenish_data = await server_manager.call_replenishment(
         state["forecast_data"],
         current_stock=None,
-        in_transit=None
+        in_transit=None,
+        telemetry_sink=state.get("service_calls")
     )
     
     if "error" in replenish_data:
         state["errors"].append(f"Replenishment: {replenish_data['error']}")
+        state["failed_steps"].append("replenish")
         state["workflow_status"] = "failed_replenishment"
         return state
     
+    state["completed_steps"].append("replenish")
     state["replenishment_data"] = replenish_data
     state["reorder_qty"] = replenish_data.get("reorder_qty", 0)
     state["reorder_timing"] = replenish_data.get("reorder_timing", "unknown")
@@ -378,14 +587,17 @@ async def pricing_node(state: RetailOpsState) -> RetailOpsState:
     
     pricing_data = await server_manager.call_pricing(
         state["category"],
-        state["final_forecast"]
+        state["final_forecast"],
+        telemetry_sink=state.get("service_calls")
     )
     
     if "error" in pricing_data:
         state["errors"].append(f"Pricing: {pricing_data['error']}")
+        state["failed_steps"].append("price")
         state["workflow_status"] = "failed_pricing"
         return state
     
+    state["completed_steps"].append("price")
     state["pricing_data"] = pricing_data
     state["current_price"] = pricing_data.get("current_price", 0)
     state["recommended_price"] = pricing_data.get("recommended_price", 0)
@@ -414,13 +626,25 @@ def build_retail_ops_graph():
     return workflow.compile()
 
 class RetailOpsClient:
-    def __init__(self):
+    def __init__(self, telemetry_logger: Optional[TelemetryLogger] = None):
         self.graph = build_retail_ops_graph()
+        self.telemetry_logger = telemetry_logger or TelemetryLogger()
     
     async def run_full_workflow(self, product_name: str, days_ahead: int = 30) -> Dict[str, Any]:
         log(f"\n{'='*60}\n🎯 Starting Full Workflow for '{product_name}'\n{'='*60}\n")
         
+        execution_id = f"exec-{uuid.uuid4().hex[:12]}"
+        workflow_name = "retail_operations_orchestrator"
+        start_time_iso = now_iso()
+        t_start_perf = time.perf_counter()
+        
         initial_state = RetailOpsState(
+            execution_id=execution_id,
+            workflow_name=workflow_name,
+            start_time=start_time_iso,
+            completed_steps=[],
+            failed_steps=[],
+            service_calls=[],
             product_name=product_name,
             days_ahead=int(days_ahead),
             errors=[],
@@ -430,8 +654,19 @@ class RetailOpsClient:
         
         try:
             final_state = await self.graph.ainvoke(initial_state)
+            t_end_perf = time.perf_counter()
+            end_time_iso = now_iso()
+            total_duration_ms = round((t_end_perf - t_start_perf) * 1000, 2)
             
             result = {
+                "execution_id": execution_id,
+                "workflow_name": workflow_name,
+                "start_time": start_time_iso,
+                "end_time": end_time_iso,
+                "total_duration_ms": total_duration_ms,
+                "completed_steps": final_state.get("completed_steps", []),
+                "failed_steps": final_state.get("failed_steps", []),
+                "service_calls": final_state.get("service_calls", []),
                 "product_name": product_name,
                 "category": final_state.get("category"), # ROOT LEVEL
                 "timestamp": final_state.get("timestamp"),
@@ -461,11 +696,75 @@ class RetailOpsClient:
                 "errors": final_state.get("errors", [])
             }
             
+            # Partial result snapshot containing completed outputs
+            partial_result = {
+                "category": final_state.get("category"),
+                "enrichment": result["enrichment"],
+                "forecast": result["forecast"],
+                "replenishment": result["replenishment"],
+                "pricing": result["pricing"]
+            }
+            result["partial_result"] = partial_result
+            
+            # Log telemetry
+            exec_telemetry = ExecutionTelemetry(
+                execution_id=execution_id,
+                workflow_name=workflow_name,
+                product_name=product_name,
+                category=final_state.get("category"),
+                start_time=start_time_iso,
+                end_time=end_time_iso,
+                total_duration_ms=total_duration_ms,
+                workflow_status=final_state.get("workflow_status", "unknown"),
+                completed_steps=final_state.get("completed_steps", []),
+                failed_steps=final_state.get("failed_steps", []),
+                service_calls=final_state.get("service_calls", []),
+                partial_result=partial_result,
+                errors=final_state.get("errors", [])
+            )
+            self.telemetry_logger.log_execution(exec_telemetry)
+            
             log(f"\n{'='*60}\n✅ Workflow Completed: {result['status']}\n{'='*60}\n")
             return result
         except Exception as e:
+            t_end_perf = time.perf_counter()
+            end_time_iso = now_iso()
+            total_duration_ms = round((t_end_perf - t_start_perf) * 1000, 2)
             log(f"❌ Workflow failed: {e}")
-            return {"product_name": product_name, "status": "error", "error": str(e)}
+            
+            err_result = {
+                "execution_id": execution_id,
+                "workflow_name": workflow_name,
+                "start_time": start_time_iso,
+                "end_time": end_time_iso,
+                "total_duration_ms": total_duration_ms,
+                "completed_steps": [],
+                "failed_steps": ["workflow_execution"],
+                "service_calls": [],
+                "product_name": product_name,
+                "category": None,
+                "status": "error",
+                "error": str(e),
+                "errors": [str(e)],
+                "partial_result": {}
+            }
+            exec_telemetry = ExecutionTelemetry(
+                execution_id=execution_id,
+                workflow_name=workflow_name,
+                product_name=product_name,
+                category=None,
+                start_time=start_time_iso,
+                end_time=end_time_iso,
+                total_duration_ms=total_duration_ms,
+                workflow_status="error",
+                completed_steps=[],
+                failed_steps=["workflow_execution"],
+                service_calls=[],
+                partial_result={},
+                errors=[str(e)]
+            )
+            self.telemetry_logger.log_execution(exec_telemetry)
+            return err_result
 
     # Helper methods restored for tests/NLP
     async def run_forecast_only(self, category: str, days_ahead: int = 30) -> Dict[str, Any]:

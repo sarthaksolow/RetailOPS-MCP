@@ -1,0 +1,16 @@
+{
+  "id": "PO-20260611-032401-521",
+  "productId": "ELEC-003",
+  "productName": "Realme Narzo 60",
+  "supplierId": "SUP-002",
+  "supplierName": "Redington India Ltd",
+  "category": "electronics",
+  "qty": 357,
+  "totalValue": 5483200,
+  "status": "partial",
+  "logisticsEvent": {
+    "type": "partial",
+    "qty": 357
+  },
+  "createdAt": "2026-06-11T21:54:01.502Z"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "PO-20260611-030600-191",
+  "productId": "temp-prod-id",
+  "productName": "Replacement for rejected PO PO-20260611-030539-317",
+  "supplierId": "SUP-002",
+  "supplierName": "Redington India Ltd",
+  "category": "electronics",
+  "qty": 918,
+  "totalValue": 8445600,
+  "status": "pending_approval",
+  "createdAt": "2026-06-11T21:36:00.265Z"
+}

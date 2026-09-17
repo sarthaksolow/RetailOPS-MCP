@@ -1,0 +1,16 @@
+{
+  "id": "PO-20260611-025556-257",
+  "productId": "FASH-004",
+  "productName": "Fabindia Cotton Kurta",
+  "supplierId": "SUP-005",
+  "supplierName": "Manyavar Vendor Direct",
+  "category": "fashion",
+  "qty": 471,
+  "totalValue": 386220,
+  "status": "delayed",
+  "logisticsEvent": {
+    "type": "delayed",
+    "estimatedResolution": "2026-06-18T21:25:56.608Z"
+  },
+  "createdAt": "2026-06-11T21:25:56.608Z"
+}

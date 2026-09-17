@@ -1,0 +1,12 @@
+{
+  "id": "PO-20260611-031112-620",
+  "productId": "temp-prod-id",
+  "productName": "Top-up for PO PO-20260611-031111-424",
+  "supplierId": "SUP-001",
+  "supplierName": "TechDistributors India",
+  "category": "electronics",
+  "qty": 238,
+  "totalValue": 2023000,
+  "status": "pending_approval",
+  "createdAt": "2026-06-11T21:41:12.171Z"
+}

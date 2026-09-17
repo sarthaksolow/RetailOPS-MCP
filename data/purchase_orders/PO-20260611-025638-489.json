@@ -1,0 +1,12 @@
+{
+  "id": "PO-20260611-025638-489",
+  "productId": "temp-prod-id",
+  "productName": "Top-up for PO PO-20260611-025617-193",
+  "supplierId": "SUP-005",
+  "supplierName": "Manyavar Vendor Direct",
+  "category": "fashion",
+  "qty": 100,
+  "totalValue": 82000,
+  "status": "pending_approval",
+  "createdAt": "2026-06-11T21:26:38.508Z"
+}

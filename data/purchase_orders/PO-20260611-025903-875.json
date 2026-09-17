@@ -1,0 +1,16 @@
+{
+  "id": "PO-20260611-025903-875",
+  "productId": "ELEC-002",
+  "productName": "boAt Rockerz 450 Headphones",
+  "supplierId": "SUP-002",
+  "supplierName": "Redington India Ltd",
+  "category": "electronics",
+  "qty": 550,
+  "totalValue": 8445600,
+  "status": "partial",
+  "logisticsEvent": {
+    "type": "partial",
+    "qty": 550
+  },
+  "createdAt": "2026-06-11T21:29:03.461Z"
+}

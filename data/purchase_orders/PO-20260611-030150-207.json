@@ -1,0 +1,15 @@
+{
+  "id": "PO-20260611-030150-207",
+  "productId": "ELEC-004",
+  "productName": "Philips Air Fryer HD9200",
+  "supplierId": "SUP-002",
+  "supplierName": "Redington India Ltd",
+  "category": "electronics",
+  "qty": 539,
+  "totalValue": 4958800,
+  "status": "rejected",
+  "logisticsEvent": {
+    "type": "rejected"
+  },
+  "createdAt": "2026-06-11T21:31:50.368Z"
+}

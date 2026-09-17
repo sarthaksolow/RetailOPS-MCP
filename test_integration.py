@@ -20,6 +20,7 @@ async def test_suite():
     client = RetailOpsClient()
     passed = 0
     failed = 0
+    skipped = 0
     
     # Test 1: Single category workflow
     print("1️⃣ Test: Single Category Workflow")
@@ -65,6 +66,7 @@ async def test_suite():
         result = await client.run_full_workflow("invalid_category_xyz")
         # Should return error or failed status, not crash
         assert 'status' in result, "Missing status field"
+        assert result['status'] in ('error', 'failed_forecast', 'failed_replenishment', 'failed_pricing', 'completed'), f"Unexpected status: {result['status']}"
         print("   ✅ PASSED: Error handling works (graceful failure)")
         passed += 1
     except Exception as e:
@@ -75,16 +77,14 @@ async def test_suite():
     print("\n5️⃣ Test: State Accumulation")
     try:
         result = await client.run_full_workflow("fashion", days_ahead=30)
+        assert result['status'] == 'completed', f"Workflow failed with status: {result.get('status')}, errors: {result.get('errors')}"
         
-        if result['status'] == 'completed':
-            # Check that state accumulated data from all nodes
-            assert result['forecast']['final'] > 0, "Missing forecast value"
-            assert result['replenishment']['reorder_qty'] >= 0, "Missing reorder qty"
-            assert result['pricing']['recommended_price'] > 0, "Missing price"
-            print("   ✅ PASSED: State accumulation works correctly")
-            passed += 1
-        else:
-            print(f"   ⚠️ SKIPPED: Workflow failed (status: {result['status']})")
+        # Check that state accumulated data from all nodes
+        assert result['forecast']['final'] > 0, "Missing forecast value"
+        assert result['replenishment']['reorder_qty'] >= 0, "Missing reorder qty"
+        assert result['pricing']['recommended_price'] > 0, "Missing price"
+        print("   ✅ PASSED: State accumulation works correctly")
+        passed += 1
     except Exception as e:
         print(f"   ❌ FAILED: {e}")
         failed += 1
@@ -104,12 +104,14 @@ async def test_suite():
         failed += 1
     
     # Summary
+    total_tests = passed + failed + skipped
     print("\n" + "="*70)
     print("📊 TEST SUMMARY")
     print("="*70)
     print(f"✅ Passed: {passed}")
     print(f"❌ Failed: {failed}")
-    print(f"📈 Success Rate: {(passed/(passed+failed)*100):.1f}%")
+    print(f"⚠️ Skipped: {skipped}")
+    print(f"📈 Success Rate: {(passed / total_tests * 100) if total_tests > 0 else 0:.1f}%")
     
     if failed == 0:
         print("\n🎉 ALL TESTS PASSED! Client is working perfectly.")
@@ -118,11 +120,11 @@ async def test_suite():
     
     print("="*70 + "\n")
     
-    return passed, failed
+    return passed, failed, skipped
 
 
 if __name__ == "__main__":
-    passed, failed = asyncio.run(test_suite())
+    passed, failed, skipped = asyncio.run(test_suite())
     
     # Exit with appropriate code
     sys.exit(0 if failed == 0 else 1)

@@ -1,0 +1,16 @@
+{
+  "id": "PO-20260611-031317-168",
+  "productId": "temp-prod-id",
+  "productName": "Top-up for PO PO-20260611-031316-255",
+  "supplierId": "SUP-004",
+  "supplierName": "Arvind Fashions Wholesale",
+  "category": "fashion",
+  "qty": 192,
+  "totalValue": 144000,
+  "status": "delayed",
+  "logisticsEvent": {
+    "type": "delayed",
+    "estimatedResolution": "2026-06-18T21:43:17.318Z"
+  },
+  "createdAt": "2026-06-11T21:43:17.318Z"
+}
