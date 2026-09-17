@@ -693,7 +693,8 @@ class RetailOpsClient:
                     "change_pct": final_state.get("price_change_pct"),
                     "narrative": final_state.get("pricing_narrative")
                 },
-                "errors": final_state.get("errors", [])
+                "errors": final_state.get("errors", []),
+                "architecture": "mcp"
             }
             
             # Partial result snapshot containing completed outputs
@@ -720,7 +721,8 @@ class RetailOpsClient:
                 failed_steps=final_state.get("failed_steps", []),
                 service_calls=final_state.get("service_calls", []),
                 partial_result=partial_result,
-                errors=final_state.get("errors", [])
+                errors=final_state.get("errors", []),
+                architecture="mcp"
             )
             self.telemetry_logger.log_execution(exec_telemetry)
             
@@ -746,7 +748,8 @@ class RetailOpsClient:
                 "status": "error",
                 "error": str(e),
                 "errors": [str(e)],
-                "partial_result": {}
+                "partial_result": {},
+                "architecture": "mcp"
             }
             exec_telemetry = ExecutionTelemetry(
                 execution_id=execution_id,
@@ -761,7 +764,8 @@ class RetailOpsClient:
                 failed_steps=["workflow_execution"],
                 service_calls=[],
                 partial_result={},
-                errors=[str(e)]
+                errors=[str(e)],
+                architecture="mcp"
             )
             self.telemetry_logger.log_execution(exec_telemetry)
             return err_result

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Execution telemetry models and structured logger for RetailOps.
 Records execution-level and per-service telemetry for research evaluation.
 """
@@ -63,6 +63,7 @@ class ExecutionTelemetry:
     service_calls: List[Dict[str, Any]]
     partial_result: Dict[str, Any]
     errors: List[str]
+    architecture: str = "mcp"  # "mcp" | "tightly_coupled"
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
