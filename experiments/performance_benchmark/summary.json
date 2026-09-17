@@ -1,0 +1,174 @@
+{
+  "metadata": {
+    "timestamp": "2026-09-18T02:37:55.447697",
+    "environment": {
+      "os": "nt",
+      "platform": "win32",
+      "python_version": "3.12.0"
+    }
+  },
+  "deterministic_tightly_coupled": {
+    "total_runs": 30,
+    "successful_runs": 30,
+    "failed_runs": 0,
+    "completion_rate": 100.0,
+    "overall_runtime_ms": {
+      "count": 30,
+      "mean": 3.5,
+      "median": 2.5,
+      "min": 2.28,
+      "max": 28.37,
+      "std_dev": 4.72,
+      "p95": 4.14
+    },
+    "per_service_ms": {
+      "Catalog Enricher": {
+        "count": 30,
+        "mean": 0.01,
+        "median": 0.01,
+        "min": 0.01,
+        "max": 0.02,
+        "std_dev": 0.0,
+        "p95": 0.02
+      },
+      "Forecasting": {
+        "count": 30,
+        "mean": 0.4,
+        "median": 0.38,
+        "min": 0.35,
+        "max": 0.56,
+        "std_dev": 0.05,
+        "p95": 0.53
+      },
+      "Replenishment": {
+        "count": 30,
+        "mean": 0.01,
+        "median": 0.01,
+        "min": 0.01,
+        "max": 0.01,
+        "std_dev": 0.0,
+        "p95": 0.01
+      },
+      "Pricing Strategy": {
+        "count": 30,
+        "mean": 0.01,
+        "median": 0.01,
+        "min": 0.0,
+        "max": 0.01,
+        "std_dev": 0.0,
+        "p95": 0.01
+      }
+    }
+  },
+  "deterministic_mcp": {
+    "total_runs": 30,
+    "successful_runs": 30,
+    "failed_runs": 0,
+    "completion_rate": 100.0,
+    "overall_runtime_ms": {
+      "count": 30,
+      "mean": 9586.15,
+      "median": 9430.13,
+      "min": 9052.02,
+      "max": 11102.17,
+      "std_dev": 458.05,
+      "p95": 10309.89
+    },
+    "per_service_ms": {
+      "Catalog Enricher": {
+        "count": 30,
+        "mean": 2273.16,
+        "median": 2261.56,
+        "min": 2090.74,
+        "max": 2607.88,
+        "std_dev": 113.36,
+        "p95": 2525.86
+      },
+      "Forecasting": {
+        "count": 30,
+        "mean": 1645.37,
+        "median": 1585.2,
+        "min": 1468.83,
+        "max": 2190.17,
+        "std_dev": 167.82,
+        "p95": 1975.52
+      },
+      "Replenishment": {
+        "count": 30,
+        "mean": 2265.13,
+        "median": 2223.47,
+        "min": 2104.83,
+        "max": 2756.94,
+        "std_dev": 144.53,
+        "p95": 2671.5
+      },
+      "Pricing Strategy": {
+        "count": 30,
+        "mean": 2297.73,
+        "median": 2245.34,
+        "min": 2082.74,
+        "max": 2959.21,
+        "std_dev": 168.14,
+        "p95": 2564.24
+      }
+    }
+  },
+  "end_to_end_mcp": {
+    "total_runs": 5,
+    "successful_runs": 5,
+    "failed_runs": 0,
+    "completion_rate": 100.0,
+    "overall_runtime_ms": {
+      "count": 5,
+      "mean": 100034.82,
+      "median": 90292.51,
+      "min": 74440.1,
+      "max": 125134.88,
+      "std_dev": 22368.61,
+      "p95": 125134.88
+    },
+    "per_service_ms": {
+      "Catalog Enricher": {
+        "count": 5,
+        "mean": 46392.93,
+        "median": 40694.95,
+        "min": 27531.14,
+        "max": 74742.37,
+        "std_dev": 17901.16,
+        "p95": 74742.37
+      },
+      "Forecasting": {
+        "count": 5,
+        "mean": 22481.62,
+        "median": 19824.22,
+        "min": 15337.79,
+        "max": 40566.57,
+        "std_dev": 10396.87,
+        "p95": 40566.57
+      },
+      "Replenishment": {
+        "count": 5,
+        "mean": 13409.27,
+        "median": 13717.58,
+        "min": 11636.26,
+        "max": 14548.45,
+        "std_dev": 1133.51,
+        "p95": 14548.45
+      },
+      "Pricing Strategy": {
+        "count": 5,
+        "mean": 15158.37,
+        "median": 15358.79,
+        "min": 13037.91,
+        "max": 16408.78,
+        "std_dev": 1296.59,
+        "p95": 16408.78
+      }
+    }
+  },
+  "derived_comparisons": {
+    "deterministic_runtime_difference_ms": 9582.65,
+    "deterministic_runtime_ratio": 2738.9,
+    "notes": "The runtime difference includes subprocess creation, Python interpreter startup, FastMCP initialization, and stdio IPC communication across 4 stages. It does not isolate pure MCP wire protocol overhead."
+  }
+}

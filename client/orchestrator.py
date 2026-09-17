@@ -96,20 +96,44 @@ class MCPServerManager:
     
     def __init__(self):
         self.base_dir = Path(__file__).parent.parent
+        enricher_server = os.getenv(
+            "RETAILOPS_ENRICHER_SERVER_PATH",
+            str(self.base_dir / "servers" / "catalog-enricher" / "server.py")
+        )
         forecasting_server = os.getenv(
             "RETAILOPS_FORECASTING_SERVER_PATH",
             str(self.base_dir / "servers" / "forecasting" / "server.py")
         )
+        replenishment_server = os.getenv(
+            "RETAILOPS_REPLENISHMENT_SERVER_PATH",
+            str(self.base_dir / "servers" / "replenishment" / "server.py")
+        )
+        pricing_server = os.getenv(
+            "RETAILOPS_PRICING_SERVER_PATH",
+            str(self.base_dir / "servers" / "pricing-strategy" / "server.py")
+        )
         self.servers = {
-            "enricher": self.base_dir / "servers" / "catalog-enricher" / "server.py",
+            "enricher": Path(enricher_server),
             "forecasting": Path(forecasting_server),
-            "replenishment": self.base_dir / "servers" / "replenishment" / "server.py",
-            "pricing": self.base_dir / "servers" / "pricing-strategy" / "server.py"
+            "replenishment": Path(replenishment_server),
+            "pricing": Path(pricing_server)
         }
         
     def get_server_params(self, server_name: str) -> StdioServerParameters:
         """Get server parameters for MCP connection"""
-        server_path = self.servers[server_name]
+        # Re-resolve paths from environment if modified at runtime
+        server_env_map = {
+            "enricher": "RETAILOPS_ENRICHER_SERVER_PATH",
+            "forecasting": "RETAILOPS_FORECASTING_SERVER_PATH",
+            "replenishment": "RETAILOPS_REPLENISHMENT_SERVER_PATH",
+            "pricing": "RETAILOPS_PRICING_SERVER_PATH"
+        }
+        env_var = server_env_map.get(server_name)
+        if env_var and os.getenv(env_var):
+            server_path = Path(os.getenv(env_var))
+        else:
+            server_path = self.servers[server_name]
+
         if not server_path.exists():
             log(f"⚠️  Warning: Server not found at {server_path}")
             
