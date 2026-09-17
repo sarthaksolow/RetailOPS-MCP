@@ -96,9 +96,13 @@ class MCPServerManager:
     
     def __init__(self):
         self.base_dir = Path(__file__).parent.parent
+        forecasting_server = os.getenv(
+            "RETAILOPS_FORECASTING_SERVER_PATH",
+            str(self.base_dir / "servers" / "forecasting" / "server.py")
+        )
         self.servers = {
             "enricher": self.base_dir / "servers" / "catalog-enricher" / "server.py",
-            "forecasting": self.base_dir / "servers" / "forecasting" / "server.py",
+            "forecasting": Path(forecasting_server),
             "replenishment": self.base_dir / "servers" / "replenishment" / "server.py",
             "pricing": self.base_dir / "servers" / "pricing-strategy" / "server.py"
         }

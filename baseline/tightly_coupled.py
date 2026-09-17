@@ -1,4 +1,4 @@
-﻿"""
+"""
 Tightly Coupled Baseline for RetailOps.
 Performs the same 4-stage workflow (Catalog Enrichment -> Forecasting -> Replenishment -> Pricing)
 via direct in-process Python function calls without MCP protocol or subprocess isolation.
@@ -9,7 +9,7 @@ import json
 import uuid
 import time
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Callable
 from datetime import datetime
 import pandas as pd
 from dotenv import load_dotenv
@@ -35,9 +35,14 @@ class TightlyCoupledRetailOps:
     as the 4 MCP servers, but executes directly in-memory.
     """
 
-    def __init__(self, telemetry_logger: Optional[TelemetryLogger] = None):
+    def __init__(
+        self,
+        telemetry_logger: Optional[TelemetryLogger] = None,
+        forecasting_service: Optional[Callable[..., Dict[str, Any]]] = None
+    ):
         self.root_dir = ROOT_DIR
         self.telemetry_logger = telemetry_logger or TelemetryLogger()
+        self.forecasting_service = forecasting_service
 
         # Load shared datasets directly
         self._load_datasets()
@@ -381,12 +386,23 @@ class TightlyCoupledRetailOps:
         # Step 2: Forecasting
         t2_iso = now_iso()
         t2_start = time.perf_counter()
-        forecast_result = self.direct_get_forecast(category, days_ahead=days_ahead)
+        if self.forecasting_service is not None:
+            forecast_result = self.forecasting_service(
+                category=category,
+                days_ahead=days_ahead,
+                sales_df=self.sales_df,
+                events=self.events,
+                surge_profiles=self.surge_profiles
+            )
+            forecast_tool_name = getattr(self.forecasting_service, "__name__", "custom_forecasting_service")
+        else:
+            forecast_result = self.direct_get_forecast(category, days_ahead=days_ahead)
+            forecast_tool_name = "direct_get_forecast"
         t2_dur = (time.perf_counter() - t2_start) * 1000
         if "error" in forecast_result:
             service_calls.append(ServiceCallTelemetry(
                 service_name="Forecasting",
-                tool_name="direct_get_forecast",
+                tool_name=forecast_tool_name,
                 start_time=t2_iso,
                 end_time=now_iso(),
                 duration_ms=round(t2_dur, 2),
@@ -399,7 +415,7 @@ class TightlyCoupledRetailOps:
         else:
             service_calls.append(ServiceCallTelemetry(
                 service_name="Forecasting",
-                tool_name="direct_get_forecast",
+                tool_name=forecast_tool_name,
                 start_time=t2_iso,
                 end_time=now_iso(),
                 duration_ms=round(t2_dur, 2),
