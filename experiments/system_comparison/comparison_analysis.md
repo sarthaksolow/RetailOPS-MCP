@@ -94,7 +94,7 @@ The reviewed systems address different application and orchestration objectives.
 
 ## 6. Implications for RetailOps
 
-The comparative analysis validates the core research proposition of RetailOps:
+The comparative analysis provides context for evaluating the research proposition of RetailOps:
 1. **Instrumented Evaluation Framework:** While existing retail agent research focuses predominantly on high-level operational metrics (stockouts, compliance), RetailOps provides an instrumented systems-engineering framework to evaluate how these architectures behave as software systems within its own prototype.
 2. **Standardized Protocol Decoupling:** Both Flowr and RetailOps demonstrate the utility of MCP for breaking down monolithic LLM architectures. RetailOps experimentally quantifies the software engineering costs and runtime characteristics of this protocol decoupling in the evaluated environment.
-3. **Distinct Architectural Paradigms:** RetailOps (deterministic DAG orchestration with persistent MCP services) and Flowr (cognitive multi-agent reasoning with supervisory governance) represent distinct architectural paradigms tailored to different operational requirements. Bounded pipelines benefit from deterministic state machine guarantees, while open-ended strategic negotiations require cognitive agent coordination.
+3. **Distinct Architectural Approaches:** RetailOps (deterministic DAG orchestration with persistent MCP services) and Flowr (cognitive multi-agent reasoning with supervisory governance) represent distinct architectural approaches tailored to different operational requirements. Bounded pipelines operate under deterministic state machine transitions, while open-ended strategic negotiations involve dynamic agent coordination.
