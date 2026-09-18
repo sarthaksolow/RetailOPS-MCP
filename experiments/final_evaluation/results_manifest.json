@@ -1,0 +1,80 @@
+{
+  "project": "RetailOps: An MCP-Based Enterprise Decision Orchestration Framework for Autonomous Retail Operations",
+  "generated_at": "2026-09-18T21:05:00+05:30",
+  "charts": [
+    {
+      "chart_id": "chart_01",
+      "filename": "charts/latency_process_per_call_vs_baseline.png",
+      "title": "Task 05: Process-per-Call Execution vs. In-Process Latency (N=30)",
+      "experiment_task": "Task 05: Performance Benchmark",
+      "source_file": "experiments/performance_benchmark/summary.json",
+      "sample_size": 30,
+      "metrics": [
+        "In-Process Pipeline Mean Latency: 3.50 ms",
+        "MCP Process-per-Call Pipeline Mean Latency: 9586.15 ms",
+        "Enricher Stage Mean Latency (TC vs MCP): 0.01 ms vs 2273.16 ms",
+        "Forecasting Stage Mean Latency (TC vs MCP): 0.40 ms vs 1645.37 ms",
+        "Replenishment Stage Mean Latency (TC vs MCP): 0.01 ms vs 2265.13 ms",
+        "Pricing Stage Mean Latency (TC vs MCP): 0.01 ms vs 2297.73 ms"
+      ],
+      "notes": "Process-per-call latency reflects full subshell lifecycle overhead (Python startup, MCP handshake, stdio pipes, and exit) repeated across 4 pipeline stages on Windows."
+    },
+    {
+      "chart_id": "chart_02",
+      "filename": "charts/latency_persistent_vs_process_per_call.png",
+      "title": "Task 06: Latency Optimization via Persistent MCP Server Pool (N=30)",
+      "experiment_task": "Task 06: Persistent MCP Evaluation",
+      "source_file": "experiments/persistent_mcp/summary.json",
+      "sample_size": "N=30 (steady-state pipeline latency); N=1 (one-time pool startup/shutdown)",
+      "metrics": [
+        "In-Process Baseline Mean Latency: 0.94 ms (P95: 1.02 ms, N=30)",
+        "Process-per-Call MCP Mean Latency (Task 06 benchmark): 11489.28 ms (P95: 13314.00 ms, N=30)",
+        "Persistent MCP Session Pool Mean Latency: 37.75 ms (P95: 41.93 ms, N=30)",
+        "Persistent Pool 1-Time Startup Overhead: 9490.23 ms (single observation)",
+        "Persistent Pool 1-Time Shutdown Overhead: 1458.25 ms (single observation)",
+        "Speedup Factor: ~304.3x reduction relative to Task 06 process-per-call measurement"
+      ],
+      "notes": "Steady-state persistent MCP sessions avoid per-call subprocess spawns, reducing MCP overhead to stdio JSON-RPC communication and orchestration overhead, excluding repeated subprocess startup. Note: The Task 06 process-per-call measurement (11,489.28 ms) was obtained from a separate evaluation suite and is reported separately from the Task 05 benchmark (9,586.15 ms)."
+    },
+    {
+      "chart_id": "chart_03",
+      "filename": "charts/fault_tolerance_scenarios.png",
+      "title": "Task 07: Fault-Tolerance Scenario Outcomes & Protection Rates (N=60, 10/scenario)",
+      "experiment_task": "Task 07: Fault Tolerance and Cleanup Experiments",
+      "source_file": "experiments/fault_tolerance/summary.json",
+      "sample_size": 60,
+      "metrics": [
+        "Failure Detection Rate: 100% (60/60 runs)",
+        "Downstream Cascade Protection: 100% (0 corrupted or illegal executions across downstream stages)",
+        "Process Cleanup Rate: 100% (0 orphan/zombie processes remaining across all runs)",
+        "Scenario A Mean Duration: 2789.02 ms (Enricher crash on bad inputs)",
+        "Scenario B Mean Duration: 4508.98 ms (Forecasting timeout 2.0s reached)",
+        "Scenario C Mean Duration: 6915.58 ms (Replenishment simulated internal error 500)",
+        "Scenario D Mean Duration: 10241.71 ms (Pricing abrupt SIGKILL / terminate)",
+        "Scenario E Mean Duration: 10369.61 ms (Pricing corrupted JSON stdout payload)",
+        "Scenario F Mean Duration: 4531.95 ms (Simultaneous multi-server failure)"
+      ],
+      "notes": "Demonstrates the observed fail-safe behavior and process cleanup under the tested failure scenarios."
+    },
+    {
+      "chart_id": "chart_04",
+      "filename": "charts/extensibility_code_churn.png",
+      "title": "Extensibility and Coupling Analysis (Tasks 04 & 08)",
+      "experiment_task": "Task 04 (Service Replacement) and Task 08 (Extensibility Experiment)",
+      "source_files": [
+        "experiments/service_replacement/results.md",
+        "experiments/extensibility/summary.json"
+      ],
+      "sample_size": "N=10 (schema and domain parity evaluation); LOC values are static code audits",
+      "metrics": [
+        "Task 04 Existing Service Code Modified: 0 LOC (0 files)",
+        "Task 04 Client Parameter Change: 1 LOC",
+        "Task 08 Existing Server Files Modified: 0 files (0 LOC)",
+        "Task 08 New Server Implementation (Supplier Intelligence): 183 LOC",
+        "Task 08 Extended Client Orchestration: 439 LOC",
+        "Task 08 Schema & Domain Parity: 100% (11/11 domain fields matched across N=10 runs)"
+      ],
+      "notes": "The tested changes preserved existing service code while adding or replacing functionality."
+    }
+  ]
+}
