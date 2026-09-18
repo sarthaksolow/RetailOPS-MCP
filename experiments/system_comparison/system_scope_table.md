@@ -1,0 +1,10 @@
+# Table 1: System Scope Comparison
+
+This table compares the primary problem domain, business scope, agent decomposition, and orchestration approach of RetailOps and the three examined related systems.
+
+| System | Application Domain | Primary Workflow | Agent / Service Structure | Orchestration Approach | Source Evidence |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **RetailOps** | Autonomous retail decision orchestration | Sequential 5-stage retail pipeline: Catalog Enrichment → Demand Forecasting → Inventory Replenishment → Supplier Intelligence → Dynamic Pricing Strategy | Microservice-backed functional tools executing as standalone FastMCP Python executables | Explicit StateGraph DAG via LangGraph with state accumulation and deterministic failure guards | RetailOps Codebase (`client/orchestrator.py`, `servers/`) & Empirical Artifacts |
+| **Flowr** | Enterprise supermarket supply chain operations | End-to-end supermarket supply chain workflows covering demand forecasting, inventory monitoring, procurement, and DC replenishment | Specialized cognitive agents backed by domain-specialized fine-tuned LLMs | Central reasoning LLM coordinating a multi-agent consortium with dynamic task planning | Bandara et al. (2026), arXiv:2604.05987 [cs.AI] |
+| **WorkflowLLM** | General-purpose multi-application workflow orchestration | Multi-step user-intent task automation across 83 software applications and 1,503 APIs (WorkflowBench) | Unified fine-tuned language model (WorkflowLlama) generating tool-call sequences | Dynamic generative planning creating API call graphs from natural language prompts | Fan et al. (ICLR 2025), arXiv:2411.02052 [cs.CL] |
+| **Agentic Inventory Replenishment** | Autonomous retail inventory management and replenishment | Continuous inventory monitoring, stockout detection, purchase order generation, and supplier negotiation | Autonomous multi-agent network combining LLM reasoning with reinforcement learning agents | Multi-agent autonomous reasoning loops and collaborative negotiation | Syed et al. (2025), arXiv:2511.23366 [cs.AI] |

@@ -1,8 +1,15 @@
 {
   "task": "Task 08 - Extensibility Evaluation of RetailOps",
-  "timestamp": "2026-09-18T02:30:32.452454+00:00",
+  "timestamp": "2026-09-18T11:32:40.032942+00:00",
   "hypothesis": "H1: The MCP-based architecture can integrate an additional specialized service while limiting changes to existing service implementations and preserving existing service interfaces.",
-  "hypothesis_supported": true,
+  "conclusion": "Preliminary evidence supports H1 within the evaluated scenario.",
+  "evidence_assertions": {
+    "existing_service_source_modifications": 0,
+    "existing_service_interface_modifications": 0,
+    "new_service_isolated_process": true,
+    "extended_orchestration_pipeline_completed": true,
+    "domain_output_parity_verified": true
+  },
   "structural_metrics": {
     "mcp_architecture": {
       "service_name": "supplier-intelligence",
@@ -11,7 +18,7 @@
       "existing_service_files_modified": 0,
       "existing_service_loc_modified": 0,
       "existing_service_functions_modified": 0,
-      "orchestration_extension_loc": 437,
+      "orchestration_extension_loc": 439,
       "process_isolation": true,
       "transport": "stdio",
       "interface_coupling": "decoupled_json_rpc_schema",
@@ -25,7 +32,7 @@
       "existing_service_files_modified": 0,
       "existing_service_loc_modified": 0,
       "existing_service_functions_modified": 0,
-      "orchestration_extension_loc": 297,
+      "orchestration_extension_loc": 298,
       "process_isolation": false,
       "transport": "in_process_python_call",
       "interface_coupling": "direct_python_signature",
@@ -36,15 +43,23 @@
   "empirical_execution_summary": {
     "total_evaluations": 10,
     "test_products_count": 5,
-    "baseline_mean_latency_ms": 1.69,
-    "mcp_mean_latency_ms": 7998.64,
+    "tested_categories": [
+      "electronics",
+      "electronics",
+      "groceries",
+      "fashion",
+      "kitchen_appliances"
+    ],
+    "baseline_mean_latency_ms": 1.41,
+    "mcp_mean_latency_ms": 7905.96,
     "all_steps_completed_ratio": 1.0,
     "domain_output_parity": 1.0
   },
   "extensibility_findings": {
     "isolation": "The MCP architecture allowed the Supplier Intelligence service to be implemented in an isolated subprocess with its own entrypoint and FastMCP tool decoration, without sharing in-memory state or object references.",
-    "impact_on_existing_services": "Zero lines of code and zero function signatures were modified in the existing 4 MCP servers (catalog-enricher, forecasting, replenishment, pricing-strategy).",
-    "impact_on_baseline": "The baseline architecture required extending the in-process class or adding a direct Python import/method. While clean in Python via subclassing, in production enterprise environments without process boundaries, monolithic in-process additions increase memory surface and dependency collision risk.",
-    "interface_stability": "Both original 4-stage workflows remain 100% functional and pass all prior regression tests unchanged."
+    "unchanged_existing_services": "Zero lines of code and zero function signatures were modified in the existing 4 MCP servers (catalog-enricher, forecasting, replenishment, pricing-strategy).",
+    "extended_orchestration_changes": "Integrating the new service into the execution pipeline required creating an extended orchestrator (client/extended_orchestrator.py, 439 LOC) to register the server path and append the LangGraph node. In the baseline, an extended workflow class (baseline/extended_tightly_coupled.py, 298 LOC) was created.",
+    "interface_stability": "Both original 4-stage workflows remain 100% functional and pass all prior regression tests unchanged.",
+    "parity_scope_note": "Observed 100% output parity verifies deterministic equivalence of the supplier recommendation logic between both implementations. It does not represent or prove improved forecasting, pricing, or overall retail decision quality."
   }
 }

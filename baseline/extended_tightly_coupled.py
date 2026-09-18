@@ -266,6 +266,7 @@ class ExtendedTightlyCoupledRetailOps(TightlyCoupledRetailOps):
             "supplier_intelligence": {
                 "supplier_id": supplier_result.get("supplier_id"),
                 "supplier_name": supplier_result.get("supplier_name"),
+                "category": supplier_result.get("category"),
                 "reliability_score": supplier_result.get("reliability_score"),
                 "lead_time_days": supplier_result.get("lead_time_days"),
                 "risk_category": supplier_result.get("risk_category"),

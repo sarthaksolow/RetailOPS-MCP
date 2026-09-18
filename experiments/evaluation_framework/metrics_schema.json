@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RetailOpsEvaluationMetricsSchema",
+  "description": "Standardized metrics schema for evaluating enterprise decision orchestration frameworks across integration effort, extensibility, service replacement, runtime performance, fault tolerance, and model quality.",
+  "type": "object",
+  "required": [
+    "metadata",
+    "integration_effort",
+    "extensibility",
+    "service_replacement",
+    "performance",
+    "reliability_and_fault_handling",
+    "model_or_service_quality"
+  ],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["framework_name", "architecture_type", "evaluation_date", "execution_environment"],
+      "properties": {
+        "framework_name": { "type": "string" },
+        "architecture_type": { "type": "string", "enum": ["mcp_process_per_call", "mcp_persistent", "tightly_coupled_baseline", "external_reference"] },
+        "evaluation_date": { "type": "string", "format": "date-time" },
+        "execution_environment": {
+          "type": "object",
+          "required": ["os", "python_version", "cpu_model"],
+          "properties": {
+            "os": { "type": "string" },
+            "python_version": { "type": "string" },
+            "cpu_model": { "type": "string" },
+            "memory_gb": { "type": "number" }
+          }
+        }
+      }
+    },
+    "integration_effort": {
+      "type": "object",
+      "description": "Quantitative measurements of source-code churn and structural coupling required to introduce new services.",
+      "required": [
+        "existing_service_files_modified",
+        "existing_service_loc_modified",
+        "existing_interfaces_modified",
+        "orchestration_files_modified",
+        "orchestration_loc_added",
+        "new_service_files_created",
+        "cross_service_dependencies_introduced"
+      ],
+      "properties": {
+        "existing_service_files_modified": { "type": "integer", "minimum": 0 },
+        "existing_service_loc_modified": { "type": "integer", "minimum": 0 },
+        "existing_interfaces_modified": { "type": "integer", "minimum": 0 },
+        "orchestration_files_modified": { "type": "integer", "minimum": 0 },
+        "orchestration_loc_added": { "type": "integer", "minimum": 0 },
+        "new_service_files_created": { "type": "integer", "minimum": 0 },
+        "cross_service_dependencies_introduced": { "type": "integer", "minimum": 0 },
+        "developer_time_minutes": {
+          "type": ["number", "null"],
+          "description": "Controlled measurement of developer implementation time, if collected under formal observation protocol. Null if not tracked."
+        }
+      }
+    },
+    "extensibility": {
+      "type": "object",
+      "description": "Metrics assessing the addition of a specialized capability into an existing multi-stage workflow.",
+      "required": [
+        "service_name",
+        "new_service_loc",
+        "existing_service_implementations_modified",
+        "existing_interfaces_modified",
+        "orchestration_changes_loc",
+        "tests_added_or_modified",
+        "successful_workflow_completion_rate",
+        "output_schema_compatibility"
+      ],
+      "properties": {
+        "service_name": { "type": "string" },
+        "new_service_loc": { "type": "integer", "minimum": 0 },
+        "existing_service_implementations_modified": { "type": "integer", "minimum": 0 },
+        "existing_interfaces_modified": { "type": "integer", "minimum": 0 },
+        "orchestration_changes_loc": { "type": "integer", "minimum": 0 },
+        "tests_added_or_modified": { "type": "integer", "minimum": 0 },
+        "successful_workflow_completion_rate": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "output_schema_compatibility": { "type": "boolean" },
+        "output_parity_fields_matched": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "service_replacement": {
+      "type": "object",
+      "description": "Metrics evaluating the clean swap of one service implementation for an alternative without mutating upstream/downstream components.",
+      "required": [
+        "replaced_service_name",
+        "replacement_service_name",
+        "existing_upstream_downstream_files_modified",
+        "existing_interfaces_modified",
+        "workflow_orchestrator_files_modified",
+        "successful_replacement_rate",
+        "output_schema_compatibility",
+        "downstream_decision_consumption_rate"
+      ],
+      "properties": {
+        "replaced_service_name": { "type": "string" },
+        "replacement_service_name": { "type": "string" },
+        "existing_upstream_downstream_files_modified": { "type": "integer", "minimum": 0 },
+        "existing_interfaces_modified": { "type": "integer", "minimum": 0 },
+        "workflow_orchestrator_files_modified": { "type": "integer", "minimum": 0 },
+        "successful_replacement_rate": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "output_schema_compatibility": { "type": "boolean" },
+        "downstream_decision_consumption_rate": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "latency_delta_ms": { "type": "number" }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "description": "Fine-grained latency metrics explicitly separating process lifecycle overhead, service logic execution, and IPC transport time.",
+      "required": [
+        "repetition_count",
+        "end_to_end_latency_ms",
+        "service_execution_latency_ms",
+        "mcp_lifecycle_overhead_ms"
+      ],
+      "properties": {
+        "repetition_count": { "type": "integer", "minimum": 1 },
+        "end_to_end_latency_ms": {
+          "type": "object",
+          "required": ["mean", "median", "p95", "std_dev"],
+          "properties": {
+            "mean": { "type": "number" },
+            "median": { "type": "number" },
+            "p95": { "type": "number" },
+            "std_dev": { "type": "number" }
+          }
+        },
+        "service_execution_latency_ms": {
+          "type": "object",
+          "required": ["mean", "median"],
+          "properties": {
+            "mean": { "type": "number" },
+            "median": { "type": "number" }
+          }
+        },
+        "mcp_lifecycle_overhead_ms": {
+          "type": "object",
+          "required": ["process_spawn_mean", "session_init_mean", "shutdown_mean"],
+          "properties": {
+            "process_spawn_mean": { "type": "number" },
+            "session_init_mean": { "type": "number" },
+            "shutdown_mean": { "type": "number" }
+          }
+        },
+        "persistent_session_amortized_overhead_ms": { "type": ["number", "null"] }
+      }
+    },
+    "reliability_and_fault_handling": {
+      "type": "object",
+      "description": "Evaluation of failure detection, state integrity, and process boundary cleanup under fault injection.",
+      "required": [
+        "failure_detection_rate",
+        "expected_workflow_status_adherence_rate",
+        "partial_result_preservation_rate",
+        "downstream_protection_rate",
+        "subprocess_cleanup_rate",
+        "unhandled_exception_rate"
+      ],
+      "properties": {
+        "failure_detection_rate": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "expected_workflow_status_adherence_rate": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "partial_result_preservation_rate": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "downstream_protection_rate": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "subprocess_cleanup_rate": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "unhandled_exception_rate": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "recovery_mechanism_tested": {
+          "type": "string",
+          "enum": ["graceful_abortion", "retry", "fallback_assignment", "human_escalation", "none"]
+        }
+      }
+    },
+    "model_or_service_quality": {
+      "type": "object",
+      "description": "Domain algorithm quality metrics kept strictly separated from orchestration and software architectural metrics.",
+      "required": ["evaluated_in_experiment"],
+      "properties": {
+        "evaluated_in_experiment": { "type": "boolean" },
+        "forecasting_mae": { "type": ["number", "null"] },
+        "forecasting_rmse": { "type": ["number", "null"] },
+        "forecasting_mape": { "type": ["number", "null"] },
+        "inventory_stockout_rate": { "type": ["number", "null"] },
+        "pricing_margin_realization": { "type": ["number", "null"] },
+        "quality_scope_note": {
+          "type": "string",
+          "description": "Explicit declaration that orchestration framework tests do not constitute proof of algorithmic forecasting accuracy improvements."
+        }
+      }
+    }
+  }
+}

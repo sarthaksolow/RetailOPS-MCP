@@ -150,9 +150,10 @@ class ExtendedMCPServerManager(MCPServerManager):
             async with stdio_client(params) as (read, write):
                 async with ClientSession(read, write) as session:
                     await session.initialize()
+                    safe_reorder_qty = int(reorder_qty) if reorder_qty is not None else 100
                     response = await session.call_tool(
                         "getSupplierIntelligence",
-                        {"category": category, "reorder_qty": int(reorder_qty or 100)}
+                        {"category": category, "reorder_qty": safe_reorder_qty}
                     )
 
                     if hasattr(response, 'content') and response.content:
@@ -433,6 +434,7 @@ class ExtendedRetailOpsClient:
                 "supplier_intelligence": {
                     "supplier_id": final_state.get("supplier_id"),
                     "supplier_name": final_state.get("supplier_name"),
+                    "category": final_state.get("category"),
                     "reliability_score": final_state.get("reliability_score"),
                     "lead_time_days": final_state.get("lead_time_days"),
                     "risk_category": final_state.get("risk_category"),

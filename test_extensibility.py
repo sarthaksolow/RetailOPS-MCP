@@ -118,11 +118,28 @@ class TestExtensibilityEvaluation(unittest.TestCase):
                     resp = await session.call_tool("getSupplierIntelligence", {"category": "tv", "reorder_qty": 150})
                     m_out = json.loads(resp.content[0].text)
 
-            self.assertEqual(b_out["supplier_id"], m_out["supplier_id"])
-            self.assertEqual(b_out["supplier_name"], m_out["supplier_name"])
-            self.assertEqual(b_out["risk_category"], m_out["risk_category"])
-            self.assertEqual(b_out["lead_time_days"], m_out["lead_time_days"])
-            self.assertEqual(b_out["reliability_score"], m_out["reliability_score"])
+            # Exhaustive field-by-field comparison
+            fields_to_compare = [
+                "supplier_id",
+                "supplier_name",
+                "category",
+                "reliability_score",
+                "lead_time_days",
+                "risk_category",
+                "on_time_delivery_rate",
+                "quality_rating",
+                "cost_index",
+                "recommended_supplier",
+                "narrative"
+            ]
+            for fld in fields_to_compare:
+                self.assertIn(fld, b_out, f"Field '{fld}' missing from baseline output")
+                self.assertIn(fld, m_out, f"Field '{fld}' missing from MCP output")
+                self.assertEqual(
+                    b_out[fld],
+                    m_out[fld],
+                    f"Mismatch in field '{fld}': baseline '{b_out[fld]}' vs MCP '{m_out[fld]}'"
+                )
 
         asyncio.run(compare_outputs())
 
@@ -225,7 +242,14 @@ class TestExtensibilityEvaluation(unittest.TestCase):
 
         with open(summary_file, "r", encoding="utf-8") as f:
             summary = json.load(f)
-            self.assertTrue(summary.get("hypothesis_supported"))
+            # Evidence-based assertions rather than automatic boolean check
+            self.assertIn("Preliminary evidence supports H1", summary.get("conclusion", ""))
+            evidence = summary.get("evidence_assertions", {})
+            self.assertEqual(evidence.get("existing_service_source_modifications"), 0)
+            self.assertEqual(evidence.get("existing_service_interface_modifications"), 0)
+            self.assertTrue(evidence.get("new_service_isolated_process"))
+            self.assertTrue(evidence.get("extended_orchestration_pipeline_completed"))
+            self.assertTrue(evidence.get("domain_output_parity_verified"))
             self.assertIn("structural_metrics", summary)
             self.assertIn("empirical_execution_summary", summary)
 

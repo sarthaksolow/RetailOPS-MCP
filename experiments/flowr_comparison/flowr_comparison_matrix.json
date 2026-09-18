@@ -1,0 +1,255 @@
+{
+  "comparison_scope": {
+    "retailops_version_or_commit": "phase-2-client-orchestrator",
+    "flowr_source": "Bandara, E., Gore, R., Shetty, S., Siyambalapitiya, P., Rajapakse, S., Kularathna, I., Karunarathna, P., Mukkamala, R., Foytik, P., Bouk, S. H., Rahman, A., Liang, X., Hass, A., Hewa, T., Keong, N. W., De Zoysa, K., Withanage, A., & Loganathan, N. (2026). 'Flowr -- Scaling Up Retail Supply Chain Operations Through Agentic AI in Large Scale Supermarket Chains'. arXiv:2604.05987 [cs.AI].",
+    "comparison_type": "architectural and evaluation-scope comparison",
+    "direct_flowr_reproduction": false,
+    "methodology_note": "Flowr characteristics are documented strictly from published literature (arXiv:2604.05987 and associated PAGRL governance preprints). RetailOps characteristics are derived directly from verified codebase implementations and empirical benchmarks. No direct empirical reproduction of Flowr is performed because a reproducible public code repository and identical supermarket proprietary datasets are not publicly available."
+  },
+  "dimensions": [
+    {
+      "dimension": "Problem scope",
+      "retailops": {
+        "description": "Multi-stage autonomous retail decision orchestration pipeline coordinating specialized microservices (catalog enrichment, demand forecasting, inventory replenishment, pricing strategy, and supplier intelligence).",
+        "evidence_type": "implementation"
+      },
+      "flowr": {
+        "description": "Enterprise-scale supermarket supply chain operations spanning demand forecasting, procurement, inventory monitoring, distribution center replenishment, and supplier coordination.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987"
+      },
+      "comparability": "comparable",
+      "limitations": "Flowr targets supermarket distribution chains with real-world partner deployments, whereas RetailOps is scoped as an extensible academic decision-orchestration framework evaluated on deterministic local datasets and OpenRouter LLM engines."
+    },
+    {
+      "dimension": "Retail workflow coverage",
+      "retailops": {
+        "description": "5 sequential retail decision stages: Catalog Enrichment -> Demand Forecasting -> Inventory Replenishment -> Supplier Intelligence -> Dynamic Pricing Strategy.",
+        "evidence_type": "experiment"
+      },
+      "flowr": {
+        "description": "End-to-end supermarket supply chain workflows covering forecasting, procurement, inventory replenishment, supplier negotiation/coordination, and distribution center logistics.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987"
+      },
+      "comparability": "partial",
+      "limitations": "RetailOps explicitly evaluates dynamic pricing strategy within the core pipeline; Flowr literature places heavier operational emphasis on procurement execution, warehouse distribution centers, and supplier coordination."
+    },
+    {
+      "dimension": "Agent responsibilities",
+      "retailops": {
+        "description": "Microservice-backed functional roles: Catalog Enricher (category/attribute extraction), Forecaster (moving averages + seasonal surges), Replenishment Decider (safety stock + runaways), Supplier Intelligence (vendor risk/lead time assessment), Pricing Strategist (elasticity multiplier).",
+        "evidence_type": "implementation"
+      },
+      "flowr": {
+        "description": "Network of specialized cognitive agents decomposed by supply chain domain task, powered by fine-tuned domain-specialized LLMs coordinated by a central reasoning LLM.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987"
+      },
+      "comparability": "comparable",
+      "limitations": "RetailOps relies on deterministic local algorithms and general-purpose LLMs via OpenRouter, whereas Flowr documents consortiums of fine-tuned domain-specialized LLMs."
+    },
+    {
+      "dimension": "Orchestration strategy",
+      "retailops": {
+        "description": "Explicit StateGraph workflow orchestration using LangGraph with state accumulation, deterministic conditional branching, and early-abort downstream protection upon failure.",
+        "evidence_type": "implementation"
+      },
+      "flowr": {
+        "description": "Centralized LLM reasoning orchestrator coordinating a network/consortium of specialized cognitive agents with dynamic planning.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987"
+      },
+      "comparability": "partial",
+      "limitations": "RetailOps uses a formal static graph DAG (LangGraph) for deterministic execution paths; Flowr describes dynamic multi-agent planning coordinated by a central reasoning model."
+    },
+    {
+      "dimension": "MCP usage",
+      "retailops": {
+        "description": "Standard Model Context Protocol (MCP) JSON-RPC 2.0 transport over STDIO. Specialized services run as isolated subprocesses exposing FastMCP tools. Persistent session pooling evaluated in Task 06.",
+        "evidence_type": "experiment"
+      },
+      "flowr": {
+        "description": "Model Context Protocol (MCP) utilized as an interface/integration mechanism connecting cognitive agents to external databases, enterprise systems, tools, audit logging, and human oversight interfaces.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987"
+      },
+      "comparability": "comparable",
+      "limitations": "RetailOps evaluates low-level OS process spawn overhead, persistent session reuse, and IPC latency; Flowr literature discusses MCP primarily at the system architecture and governance integration level without publishing raw process-spawn latency breakdowns."
+    },
+    {
+      "dimension": "Service/tool interoperability",
+      "retailops": {
+        "description": "Interoperability governed by strict JSON-RPC schemas and Pydantic/TypedDict structures over MCP STDIO transport. Seamless direct replacement of tools proven in Task 04.",
+        "evidence_type": "experiment"
+      },
+      "flowr": {
+        "description": "Agents interface with external supermarket inventory systems, databases, supplier communication APIs, and ERP platforms via MCP server endpoints.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987"
+      },
+      "comparability": "comparable",
+      "limitations": "Flowr interfaces with proprietary live supermarket enterprise backends; RetailOps interfaces with mock and CSV/JSON-backed deterministic local services."
+    },
+    {
+      "dimension": "Modularity",
+      "retailops": {
+        "description": "High modularity: Each service is an autonomous Python executable running in its own OS process, decoupled by standard MCP tool definitions.",
+        "evidence_type": "implementation"
+      },
+      "flowr": {
+        "description": "High modularity: Decomposition of monolithic supply chain operations into autonomous domain-specialized agent units coordinated via standard protocols.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987"
+      },
+      "comparability": "comparable",
+      "limitations": "Both systems adopt modular multi-agent or multi-service designs, but RetailOps emphasizes runtime OS process boundaries while Flowr emphasizes cognitive task decomposition."
+    },
+    {
+      "dimension": "Extensibility",
+      "retailops": {
+        "description": "Experimentally proven in Task 08: 5th service (Supplier Intelligence) integrated with 0 modifications to existing service source code, 0 interface modifications, and complete output parity across 11 fields.",
+        "evidence_type": "experiment"
+      },
+      "flowr": {
+        "description": "Framework designed as a generalizable, domain-independent blueprint allowing addition of agents and workflow stages for supermarket enterprise operations.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987"
+      },
+      "comparability": "partial",
+      "limitations": "RetailOps provides quantitative developer metrics (0 LOC in existing services, 183 LOC new service, 439 LOC orchestration); Flowr literature describes architectural extensibility qualitatively without publishing quantitative integration effort metrics."
+    },
+    {
+      "dimension": "Service replacement",
+      "retailops": {
+        "description": "Experimentally proven in Task 04: Forecasting service replaced with 60-day moving average variant with 0 modifications to upstream/downstream services and 100% downstream decision consumption.",
+        "evidence_type": "experiment"
+      },
+      "flowr": {
+        "description": "Not reported in the reviewed source. The literature discusses modular model replacement conceptually but does not present a formal empirical service replacement experiment.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987"
+      },
+      "comparability": "not_reported_in_flowr",
+      "limitations": "Direct experimental data on service replacement is documented and tested in RetailOps, but is absent from the reviewed Flowr publications."
+    },
+    {
+      "dimension": "Governance mechanisms",
+      "retailops": {
+        "description": "Deterministic validation guards in LangGraph nodes, schema validation, and fail-safe fallback policies (e.g. failed_enrichment downstream execution abortion).",
+        "evidence_type": "implementation"
+      },
+      "flowr": {
+        "description": "Pre-Action Governance Reasoning Loop (PAGRL) where agents pause and consult a multi-layer governance rule set (global, workflow-specific, agent-specific, and situational) via an MCP governance server prior to execution.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987; PAGRL technical notes"
+      },
+      "comparability": "comparable",
+      "limitations": "Flowr provides a significantly more elaborate multi-tiered pre-action governance reasoning loop (PAGRL); RetailOps focuses on post-invocation state guards and deterministic node-level downstream checks."
+    },
+    {
+      "dimension": "Auditability",
+      "retailops": {
+        "description": "Fine-grained research telemetry logging to JSONL: unique execution IDs, per-service start/end ISO timestamps, durations in ms, status flags, and automatic secret redaction.",
+        "evidence_type": "experiment"
+      },
+      "flowr": {
+        "description": "MCP-backed centralized governance server maintaining tamper-evident audit logging of agent deliberations, rule evaluations, and execution decisions for compliance.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987"
+      },
+      "comparability": "comparable",
+      "limitations": "RetailOps auditability is focused on engineering benchmarking and latency telemetry; Flowr auditability is oriented toward enterprise supply chain compliance, policy adherence, and organizational accountability."
+    },
+    {
+      "dimension": "Fault handling",
+      "retailops": {
+        "description": "Rigorously evaluated in Task 07 across 6 failure scenarios (tool errors, crash exits, corrupt outputs) with 100% downstream protection and OS-level psutil cleanup verification.",
+        "evidence_type": "experiment"
+      },
+      "flowr": {
+        "description": "Proactive exception handling and policy enforcement via PAGRL, preventing unauthorized or out-of-policy actions before execution.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987"
+      },
+      "comparability": "partial",
+      "limitations": "RetailOps experimentally measures runtime crash handling, partial result preservation, and subprocess cleanup; Flowr literature addresses semantic governance exceptions and business rule violations."
+    },
+    {
+      "dimension": "Recovery behavior",
+      "retailops": {
+        "description": "Explicit failure state recording, graceful workflow termination, and partial result preservation without unhandled exceptions. Self-healing/auto-restart is not implemented.",
+        "evidence_type": "implementation"
+      },
+      "flowr": {
+        "description": "Human escalation and supervisory intervention when exceptions or policy violations cannot be resolved autonomously.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987"
+      },
+      "comparability": "partial",
+      "limitations": "Neither architecture claims autonomous self-healing; RetailOps preserves partial results and aborts safely, while Flowr escalates unresolvable exceptions to human supervisors via an MCP interface."
+    },
+    {
+      "dimension": "Human interaction",
+      "retailops": {
+        "description": "Autonomous programmatic execution without interactive human-in-the-loop pauses during workflow runs; outputs formatted for store-manager readability.",
+        "evidence_type": "implementation"
+      },
+      "flowr": {
+        "description": "Dedicated human-in-the-loop (HITL) supervisory model using an MCP-enabled interface allowing supply chain managers to monitor, review, approve, or override agent decisions.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987"
+      },
+      "comparability": "contrasting",
+      "limitations": "Flowr emphasizes active human supervision and intervention in production procurement; RetailOps is architected as an automated decision pipeline evaluating execution overhead and service decoupling."
+    },
+    {
+      "dimension": "Evaluation methodology",
+      "retailops": {
+        "description": "Empirical systems benchmarking: Controlled paired comparisons against tightly coupled in-process baseline across latency distributions, process lifecycle overhead, fault injection, and extensibility metrics.",
+        "evidence_type": "experiment"
+      },
+      "flowr": {
+        "description": "Enterprise case study and operational workflow validation in collaboration with a large-scale supermarket chain, examining supply chain exception handling and agent workflow coordination.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987"
+      },
+      "comparability": "contrasting",
+      "limitations": "RetailOps measures systems software engineering and architectural performance metrics (latency, process overhead, code churn, fault tolerance); Flowr reports operational supply chain validation in enterprise retail environments."
+    },
+    {
+      "dimension": "Public reproducibility",
+      "retailops": {
+        "description": "Fully reproducible local repository containing end-to-end runnable code, deterministic test harnesses, regression battery, raw JSONL telemetry, and benchmark evaluation scripts.",
+        "evidence_type": "implementation"
+      },
+      "flowr": {
+        "description": "Research preprint published on arXiv (arXiv:2604.05987). Public standalone source repository with reproducible datasets and execution scripts is not established from the reviewed sources.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987"
+      },
+      "comparability": "contrasting",
+      "limitations": "RetailOps can be executed and verified completely locally; Flowr cannot be directly reproduced or executed independently based on currently published materials."
+    },
+    {
+      "dimension": "Reported limitations",
+      "retailops": {
+        "description": "Process-per-call STDIO MCP introduces significant process-lifecycle overhead (~1.5–2.0s per call on Windows) unless persistent sessions are used; relies on synthetic/local retail datasets rather than live production supermarket ERP feeds.",
+        "evidence_type": "experiment"
+      },
+      "flowr": {
+        "description": "High complexity of multi-agent coordination, reliance on domain-specific fine-tuned LLMs, potential inference costs, and dependence on human supervisor availability for unresolved escalations.",
+        "evidence_type": "literature",
+        "source": "Bandara et al. (2026), arXiv:2604.05987"
+      },
+      "comparability": "comparable",
+      "limitations": "Both projects openly acknowledge distinct operational trade-offs: RetailOps quantifies software systems and process latency trade-offs, while Flowr highlights organizational and cognitive coordination challenges."
+    }
+  ],
+  "overall_limitations": [
+    "The reviewed public source provides the academic description of Flowr, but the present comparison did not establish access to a complete reproducible implementation, equivalent datasets, and the full experimental environment.",
+    "Flowr observations are derived exclusively from published literature (Bandara et al., 2026, arXiv:2604.05987) and author preprints.",
+    "The comparison evaluates architectural properties, governance concepts, and evaluation scope; it does not claim that either system achieves higher forecasting accuracy or retail profitability.",
+    "RetailOps experimental evidence reflects local environments and deterministic benchmarks designed for systems architecture analysis."
+  ]
+}

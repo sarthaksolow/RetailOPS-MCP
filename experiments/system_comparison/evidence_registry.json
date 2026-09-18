@@ -1,0 +1,97 @@
+{
+  "registry_version": "1.0.0",
+  "project": "RetailOps: An MCP-Based Enterprise Decision Orchestration Framework for Autonomous Retail Operations",
+  "verified_at": "2026-09-18T20:00:00Z",
+  "records": [
+    {
+      "system": "Flowr",
+      "claim": "Flowr decomposes supermarket supply chain operations into specialized AI agents coordinated by a central reasoning LLM and incorporates an MCP-enabled supervisory interface.",
+      "evidence_type": "literature",
+      "source": "Bandara et al. (2026), 'Flowr -- Scaling Up Retail Supply Chain Operations Through Agentic AI in Large Scale Supermarket Chains', arXiv:2604.05987",
+      "location": "Abstract, arXiv:2604.05987",
+      "confidence": "high",
+      "comparison_relevance": "Demonstrates independent adoption of MCP in enterprise retail supply chain orchestration."
+    },
+    {
+      "system": "Flowr",
+      "claim": "The reviewed public source provides the academic description of Flowr, but the present comparison did not establish access to a complete reproducible implementation, equivalent datasets, and the full experimental environment.",
+      "evidence_type": "literature",
+      "source": "Bandara et al. (2026), arXiv:2604.05987",
+      "location": "arXiv publication",
+      "confidence": "high",
+      "comparison_relevance": "Defines the boundary of comparative reproducibility."
+    },
+    {
+      "system": "WorkflowLLM",
+      "claim": "WorkflowLLM constructs WorkflowBench (106,763 samples, 1,503 APIs) and trains WorkflowLlama to evaluate dynamic workflow generation and tool orchestration.",
+      "evidence_type": "literature",
+      "source": "Fan et al. (ICLR 2025), 'WorkflowLLM: Enhancing Workflow Orchestration Capability of Large Language Models', arXiv:2411.02052",
+      "location": "Abstract & Section 1, arXiv:2411.02052",
+      "confidence": "high",
+      "comparison_relevance": "Exemplifies dynamic generative planning versus explicit DAG state-machine orchestration."
+    },
+    {
+      "system": "Agentic Inventory Replenishment",
+      "claim": "Proposes an autonomous multi-agent AI system combining LLMs and reinforcement learning for retail inventory replenishment, evaluated in a middle-scale mart setting.",
+      "evidence_type": "literature",
+      "source": "Syed et al. (2025), 'Agentic AI Framework for Smart Inventory Replenishment', arXiv:2511.23366",
+      "location": "Abstract & Section 1, arXiv:2511.23366",
+      "confidence": "high",
+      "comparison_relevance": "Illustrates domain decision-quality evaluation (stockouts, holding costs) distinct from software systems orchestration metrics."
+    },
+    {
+      "system": "RetailOps",
+      "claim": "Coordinates a sequential 5-stage retail decision pipeline via an explicit LangGraph StateGraph DAG connecting microservices over FastMCP STDIO transport.",
+      "evidence_type": "implementation",
+      "source": "RetailOps Repository",
+      "location": "client/orchestrator.py, client/extended_orchestrator.py",
+      "confidence": "high",
+      "comparison_relevance": "Defines core RetailOps architectural topology and protocol interface."
+    },
+    {
+      "system": "RetailOps",
+      "claim": "Demonstrated service replacement with 0 lines of code modified in existing sibling services and 100% downstream decision consumption.",
+      "evidence_type": "experiment",
+      "source": "RetailOps Task 04 Experiment",
+      "location": "experiments/service_replacement/summary.json",
+      "confidence": "high",
+      "comparison_relevance": "Quantifies modularity and blast-radius isolation."
+    },
+    {
+      "system": "RetailOps",
+      "claim": "Persistent MCP session pooling reduced repeated process initialization costs, yielding a mean workflow latency of 37.75 ms compared to 11,489.28 ms for process-per-call execution in the evaluated test environment.",
+      "evidence_type": "experiment",
+      "source": "RetailOps Task 06 Experiment",
+      "location": "experiments/persistent_mcp/summary.json",
+      "confidence": "high",
+      "comparison_relevance": "Quantifies process lifecycle amortization and runtime performance."
+    },
+    {
+      "system": "RetailOps",
+      "claim": "Evaluated across 6 failure scenarios with 100% failure detection, 100% downstream protection aborts via failed_enrichment, and 0 zombie processes verified via psutil.",
+      "evidence_type": "experiment",
+      "source": "RetailOps Task 07 Experiment",
+      "location": "experiments/fault_tolerance/summary.json",
+      "confidence": "high",
+      "comparison_relevance": "Quantifies fault tolerance and OS subprocess resource cleanup."
+    },
+    {
+      "system": "RetailOps",
+      "claim": "Integrated a 5th specialized service (Supplier Intelligence) with 0 modifications to existing service code, 183 LOC in the new service, and complete field-by-field output parity across 11 fields.",
+      "evidence_type": "experiment",
+      "source": "RetailOps Task 08 Experiment",
+      "location": "experiments/extensibility/summary.json",
+      "confidence": "high",
+      "comparison_relevance": "Quantifies developer effort and architectural extensibility."
+    },
+    {
+      "system": "RetailOps vs Related Systems",
+      "claim": "RetailOps and Flowr occupy complementary tiers of the retail enterprise stack: RetailOps provides high-performance, fault-isolated systems execution, while Flowr provides high-level cognitive supervisory governance.",
+      "evidence_type": "inference",
+      "source": "Comparative Architectural Synthesis",
+      "location": "experiments/system_comparison/comparison_analysis.md, Section 6",
+      "confidence": "medium",
+      "comparison_relevance": "Conceptual synthesis of enterprise AI orchestration paradigms."
+    }
+  ]
+}

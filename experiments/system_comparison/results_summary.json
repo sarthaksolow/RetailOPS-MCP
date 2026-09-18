@@ -1,0 +1,63 @@
+{
+  "project": "RetailOps",
+  "task": "Task 09 - Research-Paper-Ready System Comparison for RetailOps",
+  "generated_at": "2026-09-18T20:00:00Z",
+  "verified_retailops_measurements": {
+    "task_04_service_replacement": {
+      "existing_service_loc_modified": 0,
+      "downstream_consumption_rate_pct": 100.0,
+      "source_artifact": "experiments/service_replacement/results.md"
+    },
+    "task_05_deterministic_runtime": {
+      "baseline_mean_ms": 0.81,
+      "mcp_process_per_call_mean_ms": 10891.45,
+      "source_artifact": "experiments/runtime_benchmark/deterministic_summary.json"
+    },
+    "task_06_persistent_mcp_sessions": {
+      "baseline_mean_ms": 0.94,
+      "mcp_process_per_call_mean_ms": 11489.28,
+      "persistent_mcp_mean_ms": 37.75,
+      "pool_startup_ms": 9490.23,
+      "pool_shutdown_ms": 1458.25,
+      "runs_evaluated": 30,
+      "source_artifact": "experiments/persistent_mcp/summary.json",
+      "measurement_note": "The persistent MCP configuration reduced repeated process initialization costs compared with process-per-call execution in the evaluated environment. The measured latency includes session management and implementation-specific runtime costs and should not be interpreted as isolated MCP protocol overhead."
+    },
+    "task_07_fault_tolerance_and_cleanup": {
+      "total_fault_runs": 60,
+      "failure_scenarios_evaluated": 6,
+      "failure_detection_rate_pct": 100.0,
+      "downstream_protection_rate_pct": 100.0,
+      "partial_result_preservation_rate_pct": 100.0,
+      "zombie_processes_remaining": 0,
+      "source_artifact": "experiments/fault_tolerance/summary.json",
+      "isolation_note": "RetailOps uses separate MCP service processes communicating through STDIO, and the evaluated fault-handling experiments verified process cleanup for the tested failure scenarios. These results should not be interpreted as a comprehensive security or isolation guarantee."
+    },
+    "task_08_extensibility": {
+      "new_service_name": "supplier-intelligence",
+      "new_service_loc": 183,
+      "existing_service_files_modified": 0,
+      "existing_service_loc_modified": 0,
+      "orchestration_extension_loc": 439,
+      "field_by_field_domain_parity_rate_pct": 100.0,
+      "source_artifact": "experiments/extensibility/summary.json"
+    }
+  },
+  "external_systems_reviewed": {
+    "flowr": {
+      "citation": "Bandara et al. (2026), arXiv:2604.05987",
+      "reproducibility_status": "Complete reproducible implementation and datasets not established from public source",
+      "quantitative_comparison_status": "Not directly comparable due to enterprise commercial workload and non-overlapping measurement protocols"
+    },
+    "workflowllm": {
+      "citation": "Fan et al. (ICLR 2025), arXiv:2411.02052",
+      "reproducibility_status": "Open-source GitHub repository and dataset publicly available",
+      "quantitative_comparison_status": "Not directly comparable due to general-purpose NLP tool-synthesis task domain"
+    },
+    "agentic_inventory_replenishment": {
+      "citation": "Syed et al. (2025), arXiv:2511.23366",
+      "reproducibility_status": "Standalone code repository and dataset not established from public source",
+      "quantitative_comparison_status": "Not directly comparable due to distinct retail mart environment and focus on inventory holding cost KPIs"
+    }
+  }
+}

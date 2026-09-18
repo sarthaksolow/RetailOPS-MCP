@@ -1,0 +1,110 @@
+{
+  "framework_name": "RetailOps Evaluation Experiment Matrix",
+  "version": "1.0.0",
+  "description": "Formal mapping of core systems research questions to baseline comparisons, experimental implementations, evaluation metrics, and verified empirical evidence.",
+  "experiments": [
+    {
+      "id": "EXP-01",
+      "research_question": "Can a new service be added without changing existing service implementations?",
+      "hypothesis": "H1: The MCP-based architecture can integrate an additional specialized service while limiting changes to existing service implementations and preserving existing service interfaces.",
+      "baseline": "Tightly coupled in-process baseline (baseline/extended_tightly_coupled.py)",
+      "retailops_implementation": "MCP architecture (servers/supplier-intelligence/server.py + client/extended_orchestrator.py)",
+      "evaluation_type": "extensibility_and_structural_churn",
+      "metrics": [
+        "existing_service_files_modified",
+        "existing_service_loc_modified",
+        "existing_interfaces_modified",
+        "orchestration_loc_added",
+        "output_parity_fields_matched",
+        "workflow_completion_rate"
+      ],
+      "evidence_location": "experiments/extensibility/summary.json",
+      "verified_result": "0 existing service files modified, 0 existing service LOC modified, 11/11 schema fields matched, 100% workflow completion rate across 5 retail categories."
+    },
+    {
+      "id": "EXP-02",
+      "research_question": "Can a service be replaced while preserving the interface and downstream decision consumption?",
+      "hypothesis": "A specialized service can be replaced with an alternative algorithm without modifying upstream/downstream services or degrading interface contracts.",
+      "baseline": "Original in-process 30-day moving average forecasting",
+      "retailops_implementation": "Replacement Forecasting MCP Server (60-day moving average variant in servers/forecasting-replacement/server.py)",
+      "evaluation_type": "service_replacement_and_interoperability",
+      "metrics": [
+        "existing_upstream_downstream_files_modified",
+        "interface_contract_changes",
+        "downstream_replenishment_consumption_rate",
+        "downstream_pricing_consumption_rate",
+        "replacement_success_rate"
+      ],
+      "evidence_location": "experiments/service_replacement/results.md",
+      "verified_result": "0 existing sibling services modified, identical getForecast schema preserved, 100% downstream consumption by replenishment and pricing nodes."
+    },
+    {
+      "id": "EXP-03",
+      "research_question": "What is the runtime cost and process-lifecycle overhead of process-based MCP execution?",
+      "hypothesis": "Process-per-call MCP execution introduces measurable process-lifecycle overhead compared to direct in-process function invocation.",
+      "baseline": "Tightly coupled in-process baseline (in-memory execution)",
+      "retailops_implementation": "MCP process-per-call orchestrator (client/orchestrator.py launching servers per node)",
+      "evaluation_type": "performance_and_latency_distribution",
+      "metrics": [
+        "end_to_end_mean_latency_ms",
+        "end_to_end_median_latency_ms",
+        "end_to_end_p95_latency_ms",
+        "lifecycle_overhead_ratio",
+        "service_execution_latency_ms"
+      ],
+      "evidence_location": "experiments/performance_benchmark/summary.json",
+      "verified_result": "Direct in-process execution achieves ~1-5ms mean latency; MCP process-per-call requires ~1.5-2.0s per service spawn on Windows, demonstrating that process-spawn dominates runtime."
+    },
+    {
+      "id": "EXP-04",
+      "research_question": "What is the effect of persistent MCP sessions on workflow execution latency?",
+      "hypothesis": "Reusing long-lived MCP server processes amortizes process spawn overhead and isolates pure IPC protocol communication time.",
+      "baseline": "MCP process-per-call execution (Condition B)",
+      "retailops_implementation": "Persistent MCP session pool (client/persistent_client.py, Condition C)",
+      "evaluation_type": "process_lifecycle_overhead_analysis",
+      "metrics": [
+        "server_startup_time_ms",
+        "session_handshake_time_ms",
+        "per_call_execution_time_ms",
+        "clean_shutdown_time_ms",
+        "overhead_reduction_percentage"
+      ],
+      "evidence_location": "experiments/persistent_mcp/summary.json",
+      "verified_result": "Persistent session reuse eliminates repeated OS subprocess spawn, reducing subsequent execution latency by >85% compared to process-per-call."
+    },
+    {
+      "id": "EXP-05",
+      "research_question": "How does the workflow behave under service failure, and does it guarantee downstream protection and OS-level cleanup?",
+      "hypothesis": "An explicit state-based orchestration layer with MCP boundaries detects service failures, preserves partial results, prevents downstream cascades, and ensures complete OS process termination.",
+      "baseline": "Expected failure behavior across 6 formal fault scenarios (A through F)",
+      "retailops_implementation": "LangGraph node-level state guards, failed_enrichment downstream protection, and psutil-verified process exit",
+      "evaluation_type": "fault_tolerance_and_cleanup",
+      "metrics": [
+        "failure_detection_rate",
+        "expected_workflow_status_rate",
+        "downstream_protection_rate",
+        "partial_result_preservation_rate",
+        "zombie_process_cleanup_rate"
+      ],
+      "evidence_location": "experiments/fault_tolerance/summary.json",
+      "verified_result": "100% failure detection across all 6 scenarios, 100% downstream protection prevented calls after upstream failures, 0 zombie processes confirmed via psutil."
+    },
+    {
+      "id": "EXP-06",
+      "research_question": "How does RetailOps compare architecturally with published state-of-the-art retail agent frameworks such as Flowr?",
+      "hypothesis": "RetailOps and Flowr share overlapping goals in decomposing retail operations via MCP, but differ fundamentally in orchestration strategy, governance philosophy, evaluation focus, and public reproducibility.",
+      "baseline": "Documented literature evidence from Flowr (Bandara et al., 2026, arXiv:2604.05987)",
+      "retailops_implementation": "RetailOps verified implementation and empirical experiment artifacts",
+      "evaluation_type": "qualitative_and_architectural_comparison",
+      "metrics": [
+        "dimension_coverage_count",
+        "evidence_type_classification",
+        "governance_mechanism_comparison",
+        "reproducibility_status",
+        "comparability_limitations"
+      ],
+      "evidence_location": "experiments/flowr_comparison/flowr_comparison_matrix.json",
+      "verified_result": "17 architectural dimensions analyzed; evidence strictly classified into literature, implementation, and experiment tiers; preliminary evidence documented with no unsupported superiority claims."
+    }
+  ]
+}
