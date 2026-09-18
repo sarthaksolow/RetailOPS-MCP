@@ -1,4 +1,4 @@
-﻿"""
+"""
 Unit and Mock Tests for RetailOps Research Instrumentation.
 Verifies telemetry generation, service timings, error recording, log sanitization, and JSONL serialization.
 """
@@ -266,16 +266,16 @@ async def test_mocked_workflow_failure():
              patch("client.orchestrator.server_manager.call_forecasting", side_effect=fake_forecast_fail):
 
             result = await client.run_full_workflow("Unknown Widget", days_ahead=30)
-            assert result["status"] == "failed_forecast"
+            # Following Task 07 hardening, failed enrichment stops downstream execution immediately
+            assert result["status"] == "failed_enrichment"
             assert "enrich" in result["failed_steps"]
-            assert "forecast" in result["failed_steps"]
             assert len(result["errors"]) >= 1
 
             with open(log_file, "r", encoding="utf-8") as f:
                 logs = [json.loads(line) for line in f]
             assert len(logs) == 1
-            assert logs[0]["workflow_status"] == "failed_forecast"
-            assert logs[0]["failed_steps"] == ["enrich", "forecast"]
+            assert logs[0]["workflow_status"] == "failed_enrichment"
+            assert logs[0]["failed_steps"] == ["enrich"]
     print("   ✅ PASSED: Failure telemetry captured correctly")
 
 
