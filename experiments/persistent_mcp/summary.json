@@ -1,0 +1,208 @@
+{
+  "metadata": {
+    "timestamp": "2026-09-18T03:42:18.334394",
+    "environment": {
+      "os": "nt",
+      "platform": "win32",
+      "python_version": "3.12.0"
+    }
+  },
+  "tightly_coupled": {
+    "total_runs": 30,
+    "successful_runs": 30,
+    "failed_runs": 0,
+    "completion_rate": 100.0,
+    "overall_runtime_ms": {
+      "count": 30,
+      "mean": 0.94,
+      "median": 0.89,
+      "min": 0.58,
+      "max": 2.14,
+      "std_dev": 0.32,
+      "p95": 1.6
+    },
+    "per_service_ms": {
+      "Catalog Enricher": {
+        "count": 30,
+        "mean": 0.03,
+        "median": 0.03,
+        "min": 0.02,
+        "max": 0.06,
+        "std_dev": 0.01,
+        "p95": 0.04
+      },
+      "Forecasting": {
+        "count": 30,
+        "mean": 0.8,
+        "median": 0.76,
+        "min": 0.5,
+        "max": 1.53,
+        "std_dev": 0.23,
+        "p95": 1.32
+      },
+      "Replenishment": {
+        "count": 30,
+        "mean": 0.02,
+        "median": 0.01,
+        "min": 0.01,
+        "max": 0.25,
+        "std_dev": 0.04,
+        "p95": 0.02
+      },
+      "Pricing Strategy": {
+        "count": 30,
+        "mean": 0.02,
+        "median": 0.01,
+        "min": 0.01,
+        "max": 0.31,
+        "std_dev": 0.06,
+        "p95": 0.05
+      }
+    }
+  },
+  "mcp_process_per_call": {
+    "total_runs": 30,
+    "successful_runs": 30,
+    "failed_runs": 0,
+    "completion_rate": 100.0,
+    "overall_runtime_ms": {
+      "count": 30,
+      "mean": 11489.28,
+      "median": 11230.43,
+      "min": 10759.86,
+      "max": 14810.15,
+      "std_dev": 858.81,
+      "p95": 13314.0
+    },
+    "per_service_ms": {
+      "Catalog Enricher": {
+        "count": 30,
+        "mean": 2725.14,
+        "median": 2613.55,
+        "min": 2534.15,
+        "max": 4175.52,
+        "std_dev": 332.53,
+        "p95": 3506.1
+      },
+      "Forecasting": {
+        "count": 30,
+        "mean": 1911.6,
+        "median": 1864.36,
+        "min": 1771.8,
+        "max": 2588.59,
+        "std_dev": 172.39,
+        "p95": 2357.47
+      },
+      "Replenishment": {
+        "count": 30,
+        "mean": 2698.15,
+        "median": 2595.99,
+        "min": 2459.66,
+        "max": 3785.08,
+        "std_dev": 313.07,
+        "p95": 3693.74
+      },
+      "Pricing Strategy": {
+        "count": 30,
+        "mean": 2712.0,
+        "median": 2621.39,
+        "min": 2484.52,
+        "max": 3212.44,
+        "std_dev": 182.47,
+        "p95": 3016.17
+      }
+    }
+  },
+  "persistent_mcp": {
+    "total_runs": 30,
+    "successful_runs": 30,
+    "failed_runs": 0,
+    "completion_rate": 100.0,
+    "overall_runtime_ms": {
+      "count": 30,
+      "mean": 37.75,
+      "median": 37.67,
+      "min": 34.19,
+      "max": 44.2,
+      "std_dev": 2.24,
+      "p95": 41.93
+    },
+    "per_service_ms": {
+      "Catalog Enricher": {
+        "count": 30,
+        "mean": 9.8,
+        "median": 9.84,
+        "min": 8.0,
+        "max": 11.73,
+        "std_dev": 1.12,
+        "p95": 11.45
+      },
+      "Forecasting": {
+        "count": 30,
+        "mean": 7.42,
+        "median": 7.46,
+        "min": 5.85,
+        "max": 9.09,
+        "std_dev": 0.75,
+        "p95": 8.92
+      },
+      "Replenishment": {
+        "count": 30,
+        "mean": 9.94,
+        "median": 9.91,
+        "min": 7.5,
+        "max": 14.71,
+        "std_dev": 1.44,
+        "p95": 12.44
+      },
+      "Pricing Strategy": {
+        "count": 30,
+        "mean": 10.24,
+        "median": 10.34,
+        "min": 7.95,
+        "max": 12.61,
+        "std_dev": 1.23,
+        "p95": 12.49
+      }
+    }
+  },
+  "derived_comparisons": {
+    "tc_mean_ms": 0.94,
+    "mcp_process_per_call_mean_ms": 11489.28,
+    "persistent_mcp_mean_ms": 37.75,
+    "process_per_call_vs_persistent_diff_ms": 11451.53,
+    "persistent_speedup_factor_vs_process_per_call": 304.35,
+    "persistent_vs_tightly_coupled_diff_ms": 36.81,
+    "notes": "Condition A (Tightly Coupled) executes directly in-memory with zero IPC. Condition B (MCP Process-per-Call) spawns 4 new Python subprocesses per workflow. Condition C (Persistent MCP) reuses 4 running FastMCP processes across all workflows via stdio, isolating IPC and protocol latency from process creation and bootstrap."
+  },
+  "lifecycle_breakdown": {
+    "pool_startup_timings": {
+      "enricher": {
+        "process_spawn_ms": 7.67,
+        "session_context_ms": 0.04,
+        "initialize_handshake_ms": 2530.38,
+        "total_startup_ms": 2538.1
+      },
+      "forecasting": {
+        "process_spawn_ms": 6.59,
+        "session_context_ms": 0.03,
+        "initialize_handshake_ms": 1781.09,
+        "total_startup_ms": 1787.7
+      },
+      "replenishment": {
+        "process_spawn_ms": 6.96,
+        "session_context_ms": 0.03,
+        "initialize_handshake_ms": 2548.98,
+        "total_startup_ms": 2555.98
+      },
+      "pricing": {
+        "process_spawn_ms": 6.03,
+        "session_context_ms": 0.03,
+        "initialize_handshake_ms": 2602.31,
+        "total_startup_ms": 2608.36
+      },
+      "_total_pool_startup_ms": 9490.23
+    },
+    "pool_shutdown_ms": 1458.25
+  }
+}
