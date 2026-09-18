@@ -46,14 +46,18 @@ MOCK_SERVER_PATHS = {
 class TestFaultTolerance(unittest.TestCase):
 
     def test_01_scenario_a_enricher_failure(self):
-        """Scenario A: Enricher fails, error is recorded, downstream stages handled safely."""
+        """Scenario A: Enricher fails, error is recorded, workflow halts at failed_enrichment."""
         with FaultInjectionContext("enricher", "tool_error", "Simulated enricher failure"):
             res = asyncio.run(run_deterministic_mcp("Samsung TV"))
-            self.assertIn("failed", res.get("status", ""))
-            self.assertIn("enrich", res.get("failed_steps", []))
+            self.assertEqual(res.get("status"), "failed_enrichment")
+            self.assertEqual(res.get("failed_steps"), ["enrich"])
+            self.assertEqual(res.get("completed_steps"), [])
             self.assertTrue(any("Enrichment" in err for err in res.get("errors", [])))
-            # Downstream protection: pricing should not have executed
-            self.assertNotIn("price", res.get("completed_steps", []))
+            # Downstream protection: neither forecasting, replenishment, nor pricing should have executed
+            service_call_names = [c["service_name"] for c in res.get("service_calls", [])]
+            self.assertNotIn("Forecasting", service_call_names)
+            self.assertNotIn("Replenishment", service_call_names)
+            self.assertNotIn("Pricing Strategy", service_call_names)
 
     def test_02_scenario_b_forecasting_failure_preserves_enrichment(self):
         """Scenario B: Forecasting fails, enrichment output is preserved in partial results."""
@@ -193,6 +197,8 @@ class TestFaultTolerance(unittest.TestCase):
             self.assertEqual(metrics["expected_behavior_rate_pct"], 100.0)
             self.assertEqual(metrics["downstream_protection_rate_pct"], 100.0)
             self.assertEqual(metrics["cleanup_success_rate_pct"], 100.0)
+            self.assertEqual(metrics["os_process_cleanup_rate_pct"], 100.0)
+        self.assertEqual(summary["overall"]["overall_os_process_cleanup_rate_pct"], 100.0)
 
     def test_12_no_secrets_in_results(self):
         """Verify benchmark output does not leak API keys, tokens, or credentials."""

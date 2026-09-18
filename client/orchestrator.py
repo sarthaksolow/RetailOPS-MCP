@@ -541,6 +541,7 @@ async def enrichment_node(state: RetailOpsState) -> RetailOpsState:
     if "error" in enrich_result:
         state["errors"].append(f"Enrichment: {enrich_result['error']}")
         state["failed_steps"].append("enrich")
+        state["workflow_status"] = "failed_enrichment"
         state["category"] = "general"
         return state
 
@@ -554,6 +555,9 @@ async def enrichment_node(state: RetailOpsState) -> RetailOpsState:
 
 async def forecasting_node(state: RetailOpsState) -> RetailOpsState:
     """Node 2: Get demand forecast"""
+    if "failed" in state.get("workflow_status", ""):
+        return state
+
     category = state.get("category", "general")
     log(f"🔵 NODE 2: Forecasting for category '{category}'")
     
@@ -585,7 +589,7 @@ async def replenishment_node(state: RetailOpsState) -> RetailOpsState:
     """Node 3: Get replenishment decision"""
     log(f"🔵 NODE 3: Replenishment Decision")
     
-    if state.get("workflow_status") == "failed_forecast":
+    if "failed" in state.get("workflow_status", ""):
         return state
     
     replenish_data = await server_manager.call_replenishment(

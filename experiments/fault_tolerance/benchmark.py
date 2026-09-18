@@ -27,6 +27,7 @@ import time
 import uuid
 import asyncio
 import argparse
+import psutil
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 from datetime import datetime
@@ -58,6 +59,7 @@ def evaluate_run(
     scenario_meta: FailureScenarioMetadata,
     workflow_result: Dict[str, Any],
     cleanup_successful: bool,
+    os_process_cleanup_verified: bool,
     latency_ms: float
 ) -> Dict[str, Any]:
     """
@@ -124,6 +126,7 @@ def evaluate_run(
         "partial_results_preserved": partial_preserved,
         "downstream_protected": downstream_protected,
         "cleanup_successful": cleanup_successful,
+        "os_process_cleanup_verified": os_process_cleanup_verified,
         "error_classification": error_class,
         "primary_error": primary_error_msg,
         "workflow_status": status,
@@ -142,7 +145,11 @@ async def run_scenario_iteration(scenario_id: str, repetition: int) -> Dict[str,
     t_start = time.perf_counter()
 
     cleanup_ok = True
+    os_process_cleanup_verified = True
     workflow_result = {}
+
+    current_proc = psutil.Process(os.getpid())
+    before_pids = {c.pid for c in current_proc.children(recursive=True)}
 
     if scenario_id == "scenario_e_persistent_tool_failure":
         # Use PersistentMCPSessionPool
@@ -183,11 +190,28 @@ async def run_scenario_iteration(scenario_id: str, repetition: int) -> Dict[str,
                 "completed_steps": []
             }
 
+    # OS-level process cleanup check with timeout
+    t_check_start = time.perf_counter()
+    while time.perf_counter() - t_check_start < 2.0:
+        active_children = [
+            c for c in current_proc.children(recursive=True)
+            if c.is_running() and c.status() != psutil.STATUS_ZOMBIE and c.pid not in before_pids
+        ]
+        if not active_children:
+            break
+        time.sleep(0.1)
+
+    final_active_children = [
+        c for c in current_proc.children(recursive=True)
+        if c.is_running() and c.status() != psutil.STATUS_ZOMBIE and c.pid not in before_pids
+    ]
+    os_process_cleanup_verified = (len(final_active_children) == 0)
+
     t_end = time.perf_counter()
     duration_ms = round((t_end - t_start) * 1000, 2)
     end_iso = now_iso()
 
-    eval_metrics = evaluate_run(meta, workflow_result, cleanup_ok, duration_ms)
+    eval_metrics = evaluate_run(meta, workflow_result, cleanup_ok, os_process_cleanup_verified, duration_ms)
 
     record = {
         "run_id": run_id,
@@ -281,6 +305,7 @@ def compute_fault_tolerance_summary(records: List[Dict[str, Any]]) -> Dict[str, 
     total_partial_preserved = 0
     total_downstream_protected = 0
     total_cleanup_ok = 0
+    total_os_proc_cleaned = 0
     all_latencies = []
 
     for scen, recs in grouped.items():
@@ -290,6 +315,7 @@ def compute_fault_tolerance_summary(records: List[Dict[str, Any]]) -> Dict[str, 
         part_cnt = sum(1 for r in recs if r["evaluation"]["partial_results_preserved"])
         down_cnt = sum(1 for r in recs if r["evaluation"]["downstream_protected"])
         clean_cnt = sum(1 for r in recs if r["evaluation"]["cleanup_successful"])
+        os_proc_cnt = sum(1 for r in recs if r["evaluation"].get("os_process_cleanup_verified", False))
         latencies = [r["duration_ms"] for r in recs]
         err_classes = [r["error_classification"] for r in recs]
 
@@ -298,6 +324,7 @@ def compute_fault_tolerance_summary(records: List[Dict[str, Any]]) -> Dict[str, 
         total_partial_preserved += part_cnt
         total_downstream_protected += down_cnt
         total_cleanup_ok += clean_cnt
+        total_os_proc_cleaned += os_proc_cnt
         all_latencies.extend(latencies)
 
         summary["scenarios"][scen] = {
@@ -309,7 +336,8 @@ def compute_fault_tolerance_summary(records: List[Dict[str, Any]]) -> Dict[str, 
                 "expected_behavior_rate_pct": round((exp_cnt / n) * 100, 2),
                 "partial_result_preservation_rate_pct": round((part_cnt / n) * 100, 2),
                 "downstream_protection_rate_pct": round((down_cnt / n) * 100, 2),
-                "cleanup_success_rate_pct": round((clean_cnt / n) * 100, 2)
+                "cleanup_success_rate_pct": round((clean_cnt / n) * 100, 2),
+                "os_process_cleanup_rate_pct": round((os_proc_cnt / n) * 100, 2)
             },
             "latency_ms": {
                 "mean": round(sum(latencies) / n, 2),
@@ -326,6 +354,7 @@ def compute_fault_tolerance_summary(records: List[Dict[str, Any]]) -> Dict[str, 
         "overall_partial_result_preservation_rate_pct": round((total_partial_preserved / total_runs_all) * 100, 2) if total_runs_all else 0.0,
         "overall_downstream_protection_rate_pct": round((total_downstream_protected / total_runs_all) * 100, 2) if total_runs_all else 0.0,
         "overall_cleanup_success_rate_pct": round((total_cleanup_ok / total_runs_all) * 100, 2) if total_runs_all else 0.0,
+        "overall_os_process_cleanup_rate_pct": round((total_os_proc_cleaned / total_runs_all) * 100, 2) if total_runs_all else 0.0,
         "mean_latency_ms": round(sum(all_latencies) / len(all_latencies), 2) if all_latencies else 0.0
     }
 

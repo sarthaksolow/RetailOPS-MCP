@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "timestamp": "2026-09-18T06:23:40.807577",
+    "timestamp": "2026-09-18T07:00:15.595991",
     "total_runs": 60,
     "environment": {
       "os": "nt",
@@ -18,12 +18,13 @@
         "expected_behavior_rate_pct": 100.0,
         "partial_result_preservation_rate_pct": 100.0,
         "downstream_protection_rate_pct": 100.0,
-        "cleanup_success_rate_pct": 100.0
+        "cleanup_success_rate_pct": 100.0,
+        "os_process_cleanup_rate_pct": 100.0
       },
       "latency_ms": {
-        "mean": 4771.86,
-        "min": 4214.4,
-        "max": 5960.9
+        "mean": 2789.02,
+        "min": 2558.01,
+        "max": 3390.52
       },
       "primary_error_classifications": [
         "tool_level_exception"
@@ -38,12 +39,13 @@
         "expected_behavior_rate_pct": 100.0,
         "partial_result_preservation_rate_pct": 100.0,
         "downstream_protection_rate_pct": 100.0,
-        "cleanup_success_rate_pct": 100.0
+        "cleanup_success_rate_pct": 100.0,
+        "os_process_cleanup_rate_pct": 100.0
       },
       "latency_ms": {
-        "mean": 4613.19,
-        "min": 4056.77,
-        "max": 5299.05
+        "mean": 4508.98,
+        "min": 4142.24,
+        "max": 5063.63
       },
       "primary_error_classifications": [
         "tool_level_exception"
@@ -58,12 +60,13 @@
         "expected_behavior_rate_pct": 100.0,
         "partial_result_preservation_rate_pct": 100.0,
         "downstream_protection_rate_pct": 100.0,
-        "cleanup_success_rate_pct": 100.0
+        "cleanup_success_rate_pct": 100.0,
+        "os_process_cleanup_rate_pct": 100.0
       },
       "latency_ms": {
-        "mean": 5565.13,
-        "min": 5155.94,
-        "max": 6480.54
+        "mean": 6915.58,
+        "min": 6479.32,
+        "max": 7613.33
       },
       "primary_error_classifications": [
         "tool_level_exception"
@@ -78,12 +81,13 @@
         "expected_behavior_rate_pct": 100.0,
         "partial_result_preservation_rate_pct": 100.0,
         "downstream_protection_rate_pct": 100.0,
-        "cleanup_success_rate_pct": 100.0
+        "cleanup_success_rate_pct": 100.0,
+        "os_process_cleanup_rate_pct": 100.0
       },
       "latency_ms": {
-        "mean": 7755.23,
-        "min": 6849.51,
-        "max": 8762.15
+        "mean": 10241.71,
+        "min": 8920.61,
+        "max": 11373.94
       },
       "primary_error_classifications": [
         "tool_level_exception"
@@ -98,12 +102,13 @@
         "expected_behavior_rate_pct": 100.0,
         "partial_result_preservation_rate_pct": 100.0,
         "downstream_protection_rate_pct": 100.0,
-        "cleanup_success_rate_pct": 100.0
+        "cleanup_success_rate_pct": 100.0,
+        "os_process_cleanup_rate_pct": 100.0
       },
       "latency_ms": {
-        "mean": 7683.75,
-        "min": 7107.75,
-        "max": 8624.21
+        "mean": 10369.61,
+        "min": 9150.39,
+        "max": 11836.03
       },
       "primary_error_classifications": [
         "tool_level_exception"
@@ -118,12 +123,13 @@
         "expected_behavior_rate_pct": 100.0,
         "partial_result_preservation_rate_pct": 100.0,
         "downstream_protection_rate_pct": 100.0,
-        "cleanup_success_rate_pct": 100.0
+        "cleanup_success_rate_pct": 100.0,
+        "os_process_cleanup_rate_pct": 100.0
       },
       "latency_ms": {
-        "mean": 3242.08,
-        "min": 2943.54,
-        "max": 3794.98
+        "mean": 4531.95,
+        "min": 3427.96,
+        "max": 6134.15
       },
       "primary_error_classifications": [
         "subprocess_termination"
@@ -137,6 +143,7 @@
     "overall_partial_result_preservation_rate_pct": 100.0,
     "overall_downstream_protection_rate_pct": 100.0,
     "overall_cleanup_success_rate_pct": 100.0,
-    "mean_latency_ms": 5605.21
+    "overall_os_process_cleanup_rate_pct": 100.0,
+    "mean_latency_ms": 6559.48
   }
 }

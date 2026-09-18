@@ -238,6 +238,7 @@ class PersistentRetailOpsClient:
             if "error" in enrich_result:
                 errors.append(f"Enrichment: {enrich_result['error']}")
                 failed_steps.append("enrich")
+                workflow_status = "failed_enrichment"
                 state["category"] = "general"
                 service_calls.append(ServiceCallTelemetry(
                     service_name="Catalog Enricher",
@@ -266,6 +267,7 @@ class PersistentRetailOpsClient:
             t_s1_dur = round((time.perf_counter() - t_s1_start) * 1000, 2)
             errors.append(f"Enrichment: {e}")
             failed_steps.append("enrich")
+            workflow_status = "failed_enrichment"
             service_calls.append(ServiceCallTelemetry(
                 service_name="Catalog Enricher",
                 tool_name="enrichProduct",
@@ -279,18 +281,49 @@ class PersistentRetailOpsClient:
         # -------------------------------------------------------------
         # Stage 2: Forecasting
         # -------------------------------------------------------------
-        t_s2_iso = now_iso()
-        t_s2_start = time.perf_counter()
-        try:
-            forecast_result = await self.pool.call_tool_on_session(
-                "forecasting",
-                "getForecast",
-                {"category": state["category"], "days_ahead": state["days_ahead"]}
-            )
-            t_s2_dur = round((time.perf_counter() - t_s2_start) * 1000, 2)
+        if "failed" not in workflow_status:
+            t_s2_iso = now_iso()
+            t_s2_start = time.perf_counter()
+            try:
+                forecast_result = await self.pool.call_tool_on_session(
+                    "forecasting",
+                    "getForecast",
+                    {"category": state["category"], "days_ahead": state["days_ahead"]}
+                )
+                t_s2_dur = round((time.perf_counter() - t_s2_start) * 1000, 2)
 
-            if "error" in forecast_result:
-                errors.append(f"Forecasting: {forecast_result['error']}")
+                if "error" in forecast_result:
+                    errors.append(f"Forecasting: {forecast_result['error']}")
+                    failed_steps.append("forecast")
+                    workflow_status = "failed_forecast"
+                    service_calls.append(ServiceCallTelemetry(
+                        service_name="Forecasting",
+                        tool_name="getForecast",
+                        start_time=t_s2_iso,
+                        end_time=now_iso(),
+                        duration_ms=t_s2_dur,
+                        status="failure",
+                        error=forecast_result["error"]
+                    ).to_dict())
+                else:
+                    completed_steps.append("forecast")
+                    state["forecast_data"] = forecast_result
+                    state["base_forecast"] = forecast_result.get("base_forecast", 0.0)
+                    state["final_forecast"] = forecast_result.get("final_forecast", 0.0)
+                    state["seasonal_multiplier"] = forecast_result.get("seasonal_multiplier", 1.0)
+                    state["event"] = forecast_result.get("event", "None")
+                    state["forecast_narrative"] = forecast_result.get("narrative", "")
+                    service_calls.append(ServiceCallTelemetry(
+                        service_name="Forecasting",
+                        tool_name="getForecast",
+                        start_time=t_s2_iso,
+                        end_time=now_iso(),
+                        duration_ms=t_s2_dur,
+                        status="success"
+                    ).to_dict())
+            except Exception as e:
+                t_s2_dur = round((time.perf_counter() - t_s2_start) * 1000, 2)
+                errors.append(f"Forecasting: {e}")
                 failed_steps.append("forecast")
                 workflow_status = "failed_forecast"
                 service_calls.append(ServiceCallTelemetry(
@@ -300,43 +333,13 @@ class PersistentRetailOpsClient:
                     end_time=now_iso(),
                     duration_ms=t_s2_dur,
                     status="failure",
-                    error=forecast_result["error"]
+                    error=str(e)
                 ).to_dict())
-            else:
-                completed_steps.append("forecast")
-                state["forecast_data"] = forecast_result
-                state["base_forecast"] = forecast_result.get("base_forecast", 0.0)
-                state["final_forecast"] = forecast_result.get("final_forecast", 0.0)
-                state["seasonal_multiplier"] = forecast_result.get("seasonal_multiplier", 1.0)
-                state["event"] = forecast_result.get("event", "None")
-                state["forecast_narrative"] = forecast_result.get("narrative", "")
-                service_calls.append(ServiceCallTelemetry(
-                    service_name="Forecasting",
-                    tool_name="getForecast",
-                    start_time=t_s2_iso,
-                    end_time=now_iso(),
-                    duration_ms=t_s2_dur,
-                    status="success"
-                ).to_dict())
-        except Exception as e:
-            t_s2_dur = round((time.perf_counter() - t_s2_start) * 1000, 2)
-            errors.append(f"Forecasting: {e}")
-            failed_steps.append("forecast")
-            workflow_status = "failed_forecast"
-            service_calls.append(ServiceCallTelemetry(
-                service_name="Forecasting",
-                tool_name="getForecast",
-                start_time=t_s2_iso,
-                end_time=now_iso(),
-                duration_ms=t_s2_dur,
-                status="failure",
-                error=str(e)
-            ).to_dict())
 
         # -------------------------------------------------------------
         # Stage 3: Replenishment Decision
         # -------------------------------------------------------------
-        if workflow_status != "failed_forecast":
+        if "failed" not in workflow_status:
             t_s3_iso = now_iso()
             t_s3_start = time.perf_counter()
             try:
