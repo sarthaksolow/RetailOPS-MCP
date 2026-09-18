@@ -79,22 +79,22 @@ Both systems evaluate automated inventory replenishment:
 
 ## 5. Cross-System Research Gap
 
-A systematic review of the related literature reveals several significant research gaps that RetailOps directly addresses:
+The reviewed systems address different application and orchestration objectives. The reviewed sources do not establish a common experimental protocol for measuring service replacement effort, integration effort, process lifecycle overhead, and subprocess cleanup. RetailOps therefore evaluates these properties within its own implemented prototype using a paired tightly coupled baseline. The results are limited to the tested workloads and do not constitute a direct performance comparison with the external systems.
 
-| Research Gap | Flowr (2026) | WorkflowLLM (2025) | Agentic Replenishment (2025) | RetailOps Contribution |
+| Research Gap Area | Flowr (2026) | WorkflowLLM (2025) | Agentic Replenishment (2025) | RetailOps Evaluation |
 | :--- | :--- | :--- | :--- | :--- |
-| **Quantified Service Replacement Effort** | Not reported in reviewed source | Not reported in reviewed source | Not reported in reviewed source | **Task 04**: Empirically measured LOC churn (0 LOC existing services) when swapping domain implementations. |
-| **Quantified Extensibility Effort** | Not reported in reviewed source | Addressed via model fine-tuning / in-context learning | Not reported in reviewed source | **Task 08**: Empirically measured integration effort (0 LOC existing services, 183 LOC new service, 439 LOC orchestrator) when adding Supplier Intelligence. |
-| **Systems-Level IPC & Lifecycle Overhead** | Not reported in reviewed source | Not reported in reviewed source | Not reported in reviewed source | **Task 05 & 06**: Dissected process-per-call (11,489 ms) vs. persistent session pooling (37.75 ms) against a paired in-process baseline (0.94 ms). |
-| **Subprocess Fault Isolation & OS Cleanup** | Not established from reviewed source | Not established from reviewed source | Not established from reviewed source | **Task 07**: Rigorously evaluated across 6 failure modes with 100% downstream protection and psutil-verified zero zombie processes. |
+| **Quantified Service Replacement Effort** | Not reported in reviewed source | Not reported in reviewed source | Not reported in reviewed source | **Task 04**: Measured LOC churn (0 LOC existing services) when swapping domain implementations. |
+| **Quantified Extensibility Effort** | Not reported in reviewed source | Addressed via model fine-tuning / in-context learning | Not reported in reviewed source | **Task 08**: Measured integration effort (0 LOC existing services, 183 LOC new service, 439 LOC orchestrator) when adding Supplier Intelligence. |
+| **Process-per-Call Execution Overhead** | Not reported in reviewed source | Not reported in reviewed source | Not reported in reviewed source | **Task 05 & 06**: Dissected process-per-call execution overhead (including process startup, initialization, session setup, execution, and cleanup) vs. persistent session pooling against a paired in-process baseline. |
+| **Subprocess Fault Isolation & OS Cleanup** | Not established from reviewed source | Not established from reviewed source | Not established from reviewed source | **Task 07**: Evaluated across 6 failure modes with 100% downstream protection and psutil-verified zero zombie processes. |
 | **Paired Architectural Baseline** | Not established from reviewed source | Foundation model baselines (no paired architectural baseline) | Heuristic baselines (EOQ, ROP) | **Tasks 03–08**: Maintained an identical in-process Python baseline executing identical business algorithms to isolate orchestration overhead. |
-| **Public Telemetry & Reproducibility** | Complete code/data not established | Open code and dataset (WorkflowBench) | Code/data not established | **Tasks 01–08**: 100% local reproducible test suite, deterministic test harnesses, and raw JSONL execution telemetry. |
+| **Public Telemetry & Reproducibility** | Complete code/data not established | Open code and dataset (WorkflowBench) | Code/data not established | **Tasks 01–08**: Local test suite, deterministic test harnesses, and raw JSONL execution telemetry within the prototype repository. |
 
 ---
 
 ## 6. Implications for RetailOps
 
 The comparative analysis validates the core research proposition of RetailOps:
-1. **Instrumented Evaluation Framework:** While existing retail agent research focuses predominantly on high-level operational metrics (stockouts, compliance), RetailOps provides an instrumented systems-engineering framework to evaluate how these architectures behave as software systems.
-2. **Standardized Protocol Decoupling:** Both Flowr and RetailOps demonstrate the utility of MCP for breaking down monolithic LLM architectures. RetailOps experimentally quantifies the exact software engineering costs and runtime characteristics of this protocol decoupling.
-3. **Complementary Architectural Paradigms:** RetailOps (deterministic DAG orchestration with persistent MCP services) and Flowr (cognitive multi-agent reasoning with supervisory governance) represent complementary layers of the enterprise stack rather than conflicting alternatives. Bounded pipelines benefit from deterministic state machine guarantees, while open-ended strategic negotiations require cognitive agent coordination.
+1. **Instrumented Evaluation Framework:** While existing retail agent research focuses predominantly on high-level operational metrics (stockouts, compliance), RetailOps provides an instrumented systems-engineering framework to evaluate how these architectures behave as software systems within its own prototype.
+2. **Standardized Protocol Decoupling:** Both Flowr and RetailOps demonstrate the utility of MCP for breaking down monolithic LLM architectures. RetailOps experimentally quantifies the software engineering costs and runtime characteristics of this protocol decoupling in the evaluated environment.
+3. **Distinct Architectural Paradigms:** RetailOps (deterministic DAG orchestration with persistent MCP services) and Flowr (cognitive multi-agent reasoning with supervisory governance) represent distinct architectural paradigms tailored to different operational requirements. Bounded pipelines benefit from deterministic state machine guarantees, while open-ended strategic negotiations require cognitive agent coordination.

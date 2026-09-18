@@ -21,7 +21,7 @@
       "pool_shutdown_ms": 1458.25,
       "runs_evaluated": 30,
       "source_artifact": "experiments/persistent_mcp/summary.json",
-      "measurement_note": "The persistent MCP configuration reduced repeated process initialization costs compared with process-per-call execution in the evaluated environment. The measured latency includes session management and implementation-specific runtime costs and should not be interpreted as isolated MCP protocol overhead."
+      "measurement_note": "The persistent MCP configuration reduced repeated process initialization costs compared with process-per-call execution in the evaluated environment. Process-per-call execution overhead, including process startup, initialization, session setup, execution, and cleanup, is measured across independent subprocesses and should not be interpreted as isolated MCP protocol overhead. All measurements reflect results from our own prototype and tested workloads."
     },
     "task_07_fault_tolerance_and_cleanup": {
       "total_fault_runs": 60,
