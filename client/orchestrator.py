@@ -137,10 +137,13 @@ class MCPServerManager:
         if not server_path.exists():
             log(f"⚠️  Warning: Server not found at {server_path}")
             
+        server_env = os.environ.copy()
+        server_env["OPENROUTER_API_KEY"] = os.getenv("OPENROUTER_API_KEY", "")
+
         return StdioServerParameters(
             command=sys.executable,
             args=[str(server_path)],
-            env={"OPENROUTER_API_KEY": os.getenv("OPENROUTER_API_KEY", "")}
+            env=server_env
         )
 
     async def call_enrichment(self, product_name: str, telemetry_sink: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:

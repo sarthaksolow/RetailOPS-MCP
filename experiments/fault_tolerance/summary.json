@@ -1,0 +1,142 @@
+{
+  "metadata": {
+    "timestamp": "2026-09-18T06:23:40.807577",
+    "total_runs": 60,
+    "environment": {
+      "os": "nt",
+      "platform": "win32",
+      "python_version": "3.12.0"
+    }
+  },
+  "scenarios": {
+    "scenario_a_enricher_failure": {
+      "repetitions": 10,
+      "target_service": "enricher",
+      "failure_mode": "tool_error",
+      "metrics": {
+        "failure_detection_rate_pct": 100.0,
+        "expected_behavior_rate_pct": 100.0,
+        "partial_result_preservation_rate_pct": 100.0,
+        "downstream_protection_rate_pct": 100.0,
+        "cleanup_success_rate_pct": 100.0
+      },
+      "latency_ms": {
+        "mean": 4771.86,
+        "min": 4214.4,
+        "max": 5960.9
+      },
+      "primary_error_classifications": [
+        "tool_level_exception"
+      ]
+    },
+    "scenario_b_forecasting_failure": {
+      "repetitions": 10,
+      "target_service": "forecasting",
+      "failure_mode": "tool_error",
+      "metrics": {
+        "failure_detection_rate_pct": 100.0,
+        "expected_behavior_rate_pct": 100.0,
+        "partial_result_preservation_rate_pct": 100.0,
+        "downstream_protection_rate_pct": 100.0,
+        "cleanup_success_rate_pct": 100.0
+      },
+      "latency_ms": {
+        "mean": 4613.19,
+        "min": 4056.77,
+        "max": 5299.05
+      },
+      "primary_error_classifications": [
+        "tool_level_exception"
+      ]
+    },
+    "scenario_c_replenishment_failure": {
+      "repetitions": 10,
+      "target_service": "replenishment",
+      "failure_mode": "tool_error",
+      "metrics": {
+        "failure_detection_rate_pct": 100.0,
+        "expected_behavior_rate_pct": 100.0,
+        "partial_result_preservation_rate_pct": 100.0,
+        "downstream_protection_rate_pct": 100.0,
+        "cleanup_success_rate_pct": 100.0
+      },
+      "latency_ms": {
+        "mean": 5565.13,
+        "min": 5155.94,
+        "max": 6480.54
+      },
+      "primary_error_classifications": [
+        "tool_level_exception"
+      ]
+    },
+    "scenario_d_pricing_failure": {
+      "repetitions": 10,
+      "target_service": "pricing",
+      "failure_mode": "tool_error",
+      "metrics": {
+        "failure_detection_rate_pct": 100.0,
+        "expected_behavior_rate_pct": 100.0,
+        "partial_result_preservation_rate_pct": 100.0,
+        "downstream_protection_rate_pct": 100.0,
+        "cleanup_success_rate_pct": 100.0
+      },
+      "latency_ms": {
+        "mean": 7755.23,
+        "min": 6849.51,
+        "max": 8762.15
+      },
+      "primary_error_classifications": [
+        "tool_level_exception"
+      ]
+    },
+    "scenario_e_persistent_tool_failure": {
+      "repetitions": 10,
+      "target_service": "replenishment",
+      "failure_mode": "tool_error",
+      "metrics": {
+        "failure_detection_rate_pct": 100.0,
+        "expected_behavior_rate_pct": 100.0,
+        "partial_result_preservation_rate_pct": 100.0,
+        "downstream_protection_rate_pct": 100.0,
+        "cleanup_success_rate_pct": 100.0
+      },
+      "latency_ms": {
+        "mean": 7683.75,
+        "min": 7107.75,
+        "max": 8624.21
+      },
+      "primary_error_classifications": [
+        "tool_level_exception"
+      ]
+    },
+    "scenario_f_process_termination": {
+      "repetitions": 10,
+      "target_service": "forecasting",
+      "failure_mode": "crash_exit",
+      "metrics": {
+        "failure_detection_rate_pct": 100.0,
+        "expected_behavior_rate_pct": 100.0,
+        "partial_result_preservation_rate_pct": 100.0,
+        "downstream_protection_rate_pct": 100.0,
+        "cleanup_success_rate_pct": 100.0
+      },
+      "latency_ms": {
+        "mean": 3242.08,
+        "min": 2943.54,
+        "max": 3794.98
+      },
+      "primary_error_classifications": [
+        "subprocess_termination"
+      ]
+    }
+  },
+  "overall": {
+    "total_executions": 60,
+    "overall_failure_detection_rate_pct": 100.0,
+    "overall_expected_behavior_rate_pct": 100.0,
+    "overall_partial_result_preservation_rate_pct": 100.0,
+    "overall_downstream_protection_rate_pct": 100.0,
+    "overall_cleanup_success_rate_pct": 100.0,
+    "mean_latency_ms": 5605.21
+  }
+}

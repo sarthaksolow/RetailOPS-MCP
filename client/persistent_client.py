@@ -79,10 +79,12 @@ class PersistentMCPSessionPool:
 
         for name, path in self.server_paths.items():
             t_spawn_start = time.perf_counter()
+            server_env = os.environ.copy()
+            server_env["OPENROUTER_API_KEY"] = os.getenv("OPENROUTER_API_KEY", "")
             params = StdioServerParameters(
                 command=sys.executable,
                 args=[str(path)],
-                env={"OPENROUTER_API_KEY": os.getenv("OPENROUTER_API_KEY", "")}
+                env=server_env
             )
             read, write = await self.stack.enter_async_context(stdio_client(params))
             t_spawn_end = time.perf_counter()

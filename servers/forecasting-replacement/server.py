@@ -1,4 +1,4 @@
-﻿import json
+import json
 import pandas as pd
 from datetime import datetime
 from mcp.server.fastmcp import FastMCP
@@ -10,6 +10,11 @@ def log(message):
     print(f"[REPLACEMENT-FORECAST] {message}", file=sys.stderr, flush=True)
 
 log(">>> Loading Replacement Forecasting MCP Server (60-day MA & Seasonal)")
+
+from pathlib import Path
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
 
 # Initialize MCP server with clear experimental identifier
 mcp = FastMCP("replacement-forecasting-server")
@@ -88,6 +93,23 @@ async def getForecast(category: str, days_ahead: int = 30) -> dict:
     Preserves exact input and output schema contracts required by downstream stages.
     """
     log(f">>> replacement getForecast called for category: {category}, days_ahead requested: {days_ahead}")
+
+    # Check for test-only fault injection
+    try:
+        from experiments.fault_tolerance.failure_scenarios import should_inject_fault
+        fault = should_inject_fault("forecasting")
+        if fault:
+            mode = fault.get("mode", "tool_error")
+            msg = fault.get("message", "Injected deterministic error in Forecasting")
+            if mode == "crash_exit":
+                log(f">>> [FAULT INJECTION] Crashing forecasting process immediately: {msg}")
+                os._exit(1)
+            elif mode == "invalid_response":
+                return {"corrupt": True}
+            else:
+                return {"error": msg}
+    except ImportError:
+        pass
 
     # Use 60-day moving average window as deterministic alternative algorithm
     base = extended_moving_average(category, days=60)
