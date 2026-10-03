@@ -1,0 +1,370 @@
+{
+  "protocol": "PROTOCOL-EXP-FROZEN-V1",
+  "evaluation_scope": "forecasting_model_replacement_comparison",
+  "evaluation_date": "2026-10-03",
+  "reproducibility": {
+    "dataset": "servers/forecasting/data/sales_history.csv",
+    "train_split": "2024-09-01 to 2024-12-01 (92 observations/series)",
+    "test_split": "2024-12-02 to 2024-12-31 (30 observations/series)",
+    "num_series": 7,
+    "total_test_evaluations": 210,
+    "evaluation_horizon_days": 30,
+    "execution_environment": {
+      "os": "Windows 11 Enterprise (Build 26100)",
+      "python_version": "3.12.0",
+      "cpu_arch": "x86_64"
+    },
+    "random_seed": 42
+  },
+  "aggregate_accuracy": {
+    "baseline_30day_sma": {
+      "mean_mae": 5.841,
+      "mean_rmse": 7.1203,
+      "mean_mape_pct": 11.33
+    },
+    "holt_winters_replacement": {
+      "mean_mae": 6.9138,
+      "mean_rmse": 7.8944,
+      "mean_mape_pct": 14.02
+    },
+    "differences": {
+      "mae_diff": 1.0729,
+      "mae_pct_change": 18.37,
+      "mae_trend": "worsened",
+      "rmse_diff": 0.7741,
+      "rmse_pct_change": 10.87,
+      "rmse_trend": "worsened",
+      "mape_diff": 2.6871,
+      "mape_pct_change": 23.71,
+      "mape_trend": "worsened"
+    },
+    "evaluation_runtime_ms": 9.64
+  },
+  "modularity_and_integration_measurements": {
+    "existing_service_files_modified": 0,
+    "existing_service_loc_modified": 0,
+    "replacement_service_loc": 241,
+    "orchestration_loc_changed": 0,
+    "orchestration_change_mechanism": "Environment configuration variable RETAILOPS_FORECASTING_SERVER_PATH",
+    "schema_compatibility_rate": 1.0,
+    "downstream_consumption_rate": 1.0,
+    "verified_test_suite": "test_statistical_replacement.py (5/5 passed)"
+  },
+  "per_category_comparison": {
+    "tv": {
+      "training_samples": 92,
+      "test_samples": 30,
+      "train_date_range": [
+        "2024-09-01",
+        "2024-12-01"
+      ],
+      "test_date_range": [
+        "2024-12-02",
+        "2024-12-31"
+      ],
+      "baseline_sma": {
+        "daily_forecast": 10.0,
+        "mae": 1.3333,
+        "rmse": 1.633,
+        "mape_pct": 13.89
+      },
+      "holt_winters_replacement": {
+        "mean_daily_forecast": 10.59,
+        "mae": 1.5776,
+        "rmse": 1.8087,
+        "mape_pct": 17.15,
+        "model_parameters": {
+          "model_type": "holt_winters_additive",
+          "season_length": 7,
+          "alpha": 0.25,
+          "beta": 0.05,
+          "gamma": 0.2,
+          "final_level": 8.7245,
+          "final_trend": 0.0163,
+          "training_samples": 92
+        }
+      },
+      "differences": {
+        "mae_diff": 0.2442,
+        "mae_pct_change": 18.32,
+        "mae_trend": "worsened",
+        "rmse_diff": 0.1757,
+        "rmse_pct_change": 10.76,
+        "rmse_trend": "worsened",
+        "mape_diff": 3.2634,
+        "mape_pct_change": 23.5,
+        "mape_trend": "worsened"
+      }
+    },
+    "laptop": {
+      "training_samples": 92,
+      "test_samples": 30,
+      "train_date_range": [
+        "2024-09-01",
+        "2024-12-01"
+      ],
+      "test_date_range": [
+        "2024-12-02",
+        "2024-12-31"
+      ],
+      "baseline_sma": {
+        "daily_forecast": 6.33,
+        "mae": 1.11,
+        "rmse": 1.2472,
+        "mape_pct": 17.66
+      },
+      "holt_winters_replacement": {
+        "mean_daily_forecast": 6.86,
+        "mae": 1.3237,
+        "rmse": 1.4098,
+        "mape_pct": 22.5,
+        "model_parameters": {
+          "model_type": "holt_winters_additive",
+          "season_length": 7,
+          "alpha": 0.25,
+          "beta": 0.05,
+          "gamma": 0.2,
+          "final_level": 5.5651,
+          "final_trend": 0.0145,
+          "training_samples": 92
+        }
+      },
+      "differences": {
+        "mae_diff": 0.2137,
+        "mae_pct_change": 19.25,
+        "mae_trend": "worsened",
+        "rmse_diff": 0.1626,
+        "rmse_pct_change": 13.03,
+        "rmse_trend": "worsened",
+        "mape_diff": 4.8428,
+        "mape_pct_change": 27.43,
+        "mape_trend": "worsened"
+      }
+    },
+    "phone": {
+      "training_samples": 92,
+      "test_samples": 30,
+      "train_date_range": [
+        "2024-09-01",
+        "2024-12-01"
+      ],
+      "test_date_range": [
+        "2024-12-02",
+        "2024-12-31"
+      ],
+      "baseline_sma": {
+        "daily_forecast": 17.33,
+        "mae": 1.7767,
+        "rmse": 2.0548,
+        "mape_pct": 10.27
+      },
+      "holt_winters_replacement": {
+        "mean_daily_forecast": 18.16,
+        "mae": 2.1125,
+        "rmse": 2.3046,
+        "mape_pct": 12.7,
+        "model_parameters": {
+          "model_type": "holt_winters_additive",
+          "season_length": 7,
+          "alpha": 0.25,
+          "beta": 0.05,
+          "gamma": 0.2,
+          "final_level": 15.9274,
+          "final_trend": 0.0227,
+          "training_samples": 92
+        }
+      },
+      "differences": {
+        "mae_diff": 0.3358,
+        "mae_pct_change": 18.9,
+        "mae_trend": "worsened",
+        "rmse_diff": 0.2498,
+        "rmse_pct_change": 12.16,
+        "rmse_trend": "worsened",
+        "mape_diff": 2.4213,
+        "mape_pct_change": 23.57,
+        "mape_trend": "worsened"
+      }
+    },
+    "kitchen_appliances": {
+      "training_samples": 92,
+      "test_samples": 30,
+      "train_date_range": [
+        "2024-09-01",
+        "2024-12-01"
+      ],
+      "test_date_range": [
+        "2024-12-02",
+        "2024-12-31"
+      ],
+      "baseline_sma": {
+        "daily_forecast": 35.0,
+        "mae": 3.3333,
+        "rmse": 4.0825,
+        "mape_pct": 9.72
+      },
+      "holt_winters_replacement": {
+        "mean_daily_forecast": 36.48,
+        "mae": 3.9439,
+        "rmse": 4.5216,
+        "mape_pct": 11.88,
+        "model_parameters": {
+          "model_type": "holt_winters_additive",
+          "season_length": 7,
+          "alpha": 0.25,
+          "beta": 0.05,
+          "gamma": 0.2,
+          "final_level": 31.8114,
+          "final_trend": 0.0409,
+          "training_samples": 92
+        }
+      },
+      "differences": {
+        "mae_diff": 0.6106,
+        "mae_pct_change": 18.32,
+        "mae_trend": "worsened",
+        "rmse_diff": 0.4391,
+        "rmse_pct_change": 10.76,
+        "rmse_trend": "worsened",
+        "mape_diff": 2.1528,
+        "mape_pct_change": 22.14,
+        "mape_trend": "worsened"
+      }
+    },
+    "fashion": {
+      "training_samples": 92,
+      "test_samples": 30,
+      "train_date_range": [
+        "2024-09-01",
+        "2024-12-01"
+      ],
+      "test_date_range": [
+        "2024-12-02",
+        "2024-12-31"
+      ],
+      "baseline_sma": {
+        "daily_forecast": 60.0,
+        "mae": 6.6667,
+        "rmse": 8.165,
+        "mape_pct": 11.43
+      },
+      "holt_winters_replacement": {
+        "mean_daily_forecast": 62.97,
+        "mae": 7.8878,
+        "rmse": 9.0433,
+        "mape_pct": 14.03,
+        "model_parameters": {
+          "model_type": "holt_winters_additive",
+          "season_length": 7,
+          "alpha": 0.25,
+          "beta": 0.05,
+          "gamma": 0.2,
+          "final_level": 53.6227,
+          "final_trend": 0.0817,
+          "training_samples": 92
+        }
+      },
+      "differences": {
+        "mae_diff": 1.2211,
+        "mae_pct_change": 18.32,
+        "mae_trend": "worsened",
+        "rmse_diff": 0.8783,
+        "rmse_pct_change": 10.76,
+        "rmse_trend": "worsened",
+        "mape_diff": 2.5965,
+        "mape_pct_change": 22.72,
+        "mape_trend": "worsened"
+      }
+    },
+    "groceries": {
+      "training_samples": 92,
+      "test_samples": 30,
+      "train_date_range": [
+        "2024-09-01",
+        "2024-12-01"
+      ],
+      "test_date_range": [
+        "2024-12-02",
+        "2024-12-31"
+      ],
+      "baseline_sma": {
+        "daily_forecast": 225.0,
+        "mae": 16.6667,
+        "rmse": 20.4124,
+        "mape_pct": 7.5
+      },
+      "holt_winters_replacement": {
+        "mean_daily_forecast": 232.42,
+        "mae": 19.7195,
+        "rmse": 22.6081,
+        "mape_pct": 9.1,
+        "model_parameters": {
+          "model_type": "holt_winters_additive",
+          "season_length": 7,
+          "alpha": 0.25,
+          "beta": 0.05,
+          "gamma": 0.2,
+          "final_level": 209.0568,
+          "final_trend": 0.2043,
+          "training_samples": 92
+        }
+      },
+      "differences": {
+        "mae_diff": 3.0529,
+        "mae_pct_change": 18.32,
+        "mae_trend": "worsened",
+        "rmse_diff": 2.1957,
+        "rmse_pct_change": 10.76,
+        "rmse_trend": "worsened",
+        "mape_diff": 1.6011,
+        "mape_pct_change": 21.35,
+        "mape_trend": "worsened"
+      }
+    },
+    "electronics": {
+      "training_samples": 92,
+      "test_samples": 30,
+      "train_date_range": [
+        "2024-09-01",
+        "2024-12-01"
+      ],
+      "test_date_range": [
+        "2024-12-02",
+        "2024-12-31"
+      ],
+      "baseline_sma": {
+        "daily_forecast": 115.0,
+        "mae": 10.0,
+        "rmse": 12.2474,
+        "mape_pct": 8.85
+      },
+      "holt_winters_replacement": {
+        "mean_daily_forecast": 119.45,
+        "mae": 11.8317,
+        "rmse": 13.5649,
+        "mape_pct": 10.78,
+        "model_parameters": {
+          "model_type": "holt_winters_additive",
+          "season_length": 7,
+          "alpha": 0.25,
+          "beta": 0.05,
+          "gamma": 0.2,
+          "final_level": 105.4341,
+          "final_trend": 0.1226,
+          "training_samples": 92
+        }
+      },
+      "differences": {
+        "mae_diff": 1.8317,
+        "mae_pct_change": 18.32,
+        "mae_trend": "worsened",
+        "rmse_diff": 1.3174,
+        "rmse_pct_change": 10.76,
+        "rmse_trend": "worsened",
+        "mape_diff": 1.9316,
+        "mape_pct_change": 21.84,
+        "mape_trend": "worsened"
+      }
+    }
+  }
+}
