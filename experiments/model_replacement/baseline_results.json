@@ -1,0 +1,259 @@
+{
+  "evaluation_protocol": "PROTOCOL-EXP-FROZEN-V1",
+  "experiment": "model_replacement_baseline",
+  "generated_at": "2026-10-03T16:05:00+05:30",
+  "model_name": "30-day Simple Moving Average (Baseline)",
+  "dataset": "servers/forecasting/data/sales_history.csv",
+  "calendar_events": "servers/forecasting/data/events.json",
+  "surge_profiles": "servers/forecasting/data/surge_profile.json",
+  "num_series": 7,
+  "categories": [
+    "tv",
+    "laptop",
+    "phone",
+    "kitchen_appliances",
+    "fashion",
+    "groceries",
+    "electronics"
+  ],
+  "forecast_horizon_days": 30,
+  "train_split": {
+    "description": "First 92 daily observations per category",
+    "start_date": "2024-09-01",
+    "end_date": "2024-12-01",
+    "sample_count_per_series": 92
+  },
+  "test_split": {
+    "description": "Final 30 daily observations per category (H=30)",
+    "start_date": "2024-12-02",
+    "end_date": "2024-12-31",
+    "sample_count_per_series": 30
+  },
+  "runtime_ms": 4.44,
+  "primary_metric": "MAE",
+  "secondary_metrics": [
+    "RMSE",
+    "MAPE"
+  ],
+  "aggregate_metrics_base_sma": {
+    "mean_mae": 5.841,
+    "mean_rmse": 7.1203,
+    "mean_mape_pct": 11.33
+  },
+  "aggregate_metrics_event_adjusted": {
+    "mean_mae": 42.3633,
+    "mean_rmse": 42.9804,
+    "mean_mape_pct": 85.52
+  },
+  "contract_schema_compliance": {
+    "tool_name": "getForecast",
+    "required_keys": [
+      "category",
+      "base_forecast",
+      "seasonal_multiplier",
+      "historical_surge_factor",
+      "final_forecast",
+      "event",
+      "narrative"
+    ],
+    "compliance_rate": 1.0
+  },
+  "per_category_results": {
+    "tv": {
+      "training_samples": 92,
+      "test_samples": 30,
+      "train_date_range": [
+        "2024-09-01",
+        "2024-12-01"
+      ],
+      "test_date_range": [
+        "2024-12-02",
+        "2024-12-31"
+      ],
+      "base_forecast_daily": 10.0,
+      "final_forecast_daily": 20.8,
+      "seasonal_multiplier": 1.3,
+      "historical_surge_factor": 1.6,
+      "event": "Christmas",
+      "metrics_base_sma": {
+        "mae": 1.3333,
+        "rmse": 1.633,
+        "mape_pct": 13.89
+      },
+      "metrics_event_adjusted": {
+        "mae": 10.8,
+        "rmse": 10.9228,
+        "mape_pct": 113.78
+      },
+      "contract_valid": true
+    },
+    "laptop": {
+      "training_samples": 92,
+      "test_samples": 30,
+      "train_date_range": [
+        "2024-09-01",
+        "2024-12-01"
+      ],
+      "test_date_range": [
+        "2024-12-02",
+        "2024-12-31"
+      ],
+      "base_forecast_daily": 6.33,
+      "final_forecast_daily": 11.52,
+      "seasonal_multiplier": 1.3,
+      "historical_surge_factor": 1.4,
+      "event": "Christmas",
+      "metrics_base_sma": {
+        "mae": 1.11,
+        "rmse": 1.2472,
+        "mape_pct": 17.66
+      },
+      "metrics_event_adjusted": {
+        "mae": 5.1867,
+        "rmse": 5.3345,
+        "mape_pct": 88.8
+      },
+      "contract_valid": true
+    },
+    "phone": {
+      "training_samples": 92,
+      "test_samples": 30,
+      "train_date_range": [
+        "2024-09-01",
+        "2024-12-01"
+      ],
+      "test_date_range": [
+        "2024-12-02",
+        "2024-12-31"
+      ],
+      "base_forecast_daily": 17.33,
+      "final_forecast_daily": 31.54,
+      "seasonal_multiplier": 1.3,
+      "historical_surge_factor": 1.4,
+      "event": "Christmas",
+      "metrics_base_sma": {
+        "mae": 1.7767,
+        "rmse": 2.0548,
+        "mape_pct": 10.27
+      },
+      "metrics_event_adjusted": {
+        "mae": 14.2067,
+        "rmse": 14.3545,
+        "mape_pct": 84.5
+      },
+      "contract_valid": true
+    },
+    "kitchen_appliances": {
+      "training_samples": 92,
+      "test_samples": 30,
+      "train_date_range": [
+        "2024-09-01",
+        "2024-12-01"
+      ],
+      "test_date_range": [
+        "2024-12-02",
+        "2024-12-31"
+      ],
+      "base_forecast_daily": 35.0,
+      "final_forecast_daily": 68.25,
+      "seasonal_multiplier": 1.3,
+      "historical_surge_factor": 1.5,
+      "event": "Christmas",
+      "metrics_base_sma": {
+        "mae": 3.3333,
+        "rmse": 4.0825,
+        "mape_pct": 9.72
+      },
+      "metrics_event_adjusted": {
+        "mae": 33.25,
+        "rmse": 33.4997,
+        "mape_pct": 97.71
+      },
+      "contract_valid": true
+    },
+    "fashion": {
+      "training_samples": 92,
+      "test_samples": 30,
+      "train_date_range": [
+        "2024-09-01",
+        "2024-12-01"
+      ],
+      "test_date_range": [
+        "2024-12-02",
+        "2024-12-31"
+      ],
+      "base_forecast_daily": 60.0,
+      "final_forecast_daily": 117.0,
+      "seasonal_multiplier": 1.3,
+      "historical_surge_factor": 1.5,
+      "event": "Christmas",
+      "metrics_base_sma": {
+        "mae": 6.6667,
+        "rmse": 8.165,
+        "mape_pct": 11.43
+      },
+      "metrics_event_adjusted": {
+        "mae": 57.0,
+        "rmse": 57.5818,
+        "mape_pct": 98.71
+      },
+      "contract_valid": true
+    },
+    "groceries": {
+      "training_samples": 92,
+      "test_samples": 30,
+      "train_date_range": [
+        "2024-09-01",
+        "2024-12-01"
+      ],
+      "test_date_range": [
+        "2024-12-02",
+        "2024-12-31"
+      ],
+      "base_forecast_daily": 225.0,
+      "final_forecast_daily": 321.75,
+      "seasonal_multiplier": 1.3,
+      "historical_surge_factor": 1.1,
+      "event": "Christmas",
+      "metrics_base_sma": {
+        "mae": 16.6667,
+        "rmse": 20.4124,
+        "mape_pct": 7.5
+      },
+      "metrics_event_adjusted": {
+        "mae": 96.75,
+        "rmse": 98.8799,
+        "mape_pct": 44.19
+      },
+      "contract_valid": true
+    },
+    "electronics": {
+      "training_samples": 92,
+      "test_samples": 30,
+      "train_date_range": [
+        "2024-09-01",
+        "2024-12-01"
+      ],
+      "test_date_range": [
+        "2024-12-02",
+        "2024-12-31"
+      ],
+      "base_forecast_daily": 115.0,
+      "final_forecast_daily": 194.35,
+      "seasonal_multiplier": 1.3,
+      "historical_surge_factor": 1.3,
+      "event": "Christmas",
+      "metrics_base_sma": {
+        "mae": 10.0,
+        "rmse": 12.2474,
+        "mape_pct": 8.85
+      },
+      "metrics_event_adjusted": {
+        "mae": 79.35,
+        "rmse": 80.2896,
+        "mape_pct": 70.95
+      },
+      "contract_valid": true
+    }
+  }
+}
