@@ -128,6 +128,10 @@ The table below details supervisory gate activity, override behavior, and simula
 | **Mean Latency per Decision (Seconds)** | 0.00 s | 3.69 s |
 | **Mean Latency per Escalated Decision** | N/A | 15.00 s |
 
+> [!NOTE]
+> **Interpretation of "Prevented Policy Violations"**:  
+> In this evaluation, "prevented policy violations" refers strictly to proposals that breached the programmatic constraints of the simulated operator governance policy (e.g., single-order budget limit of $100.00, or late arrival past horizon $t + L > 28$) and were modified or cancelled accordingly. This metric measures compliance enforcement within the simulated rule system and does not represent real-world violations prevented by human subjects.
+
 ---
 
 ## 5. Scenario-by-Scenario Breakdown
@@ -249,7 +253,7 @@ Both `RetailOpsAutonomousProvider` and `RetailOpsSupervisedProvider` wrapped the
 ## 9. Methodological Limitations
 
 1. **Simulated Operator Policy**:  
-   The human operator was modeled as a deterministic heuristic rule set rather than human subjects. While this ensures scientific reproducibility and isolates governance effects, it does not capture human fatigue, inconsistent judgment, or cognitive biases.
+   The human operator was modeled as a deterministic heuristic rule set rather than human subjects. While this ensures scientific reproducibility and isolates governance effects, it does not capture human fatigue, inconsistent judgment, or cognitive biases. Consequently, all reported governance metrics—including "prevented policy violations" and "supervisory overrides"—reflect compliance enforcement against this programmatic rule set rather than real-world intervention by actual humans.
 2. **Finite-Horizon Boundary Effects**:  
    The 28-day simulation horizon creates artificial end-of-period boundary conditions where orders placed near the end cannot arrive before evaluation closes. In an infinite-horizon rolling setting, some late-arriving orders would serve subsequent demand cycles.
 3. **Fixed Deliberation Latency**:  
