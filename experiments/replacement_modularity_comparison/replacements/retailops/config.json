@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "forecasting": {
+      "command": "python",
+      "args": ["servers/forecasting-statistical/server.py"]
+    },
+    "replenishment": {
+      "command": "python",
+      "args": ["servers/replenishment/server.py"]
+    },
+    "pricing-strategy": {
+      "command": "python",
+      "args": ["servers/pricing-strategy/server.py"]
+    },
+    "catalog-enricher": {
+      "command": "python",
+      "args": ["servers/catalog-enricher/server.py"]
+    }
+  }
+}

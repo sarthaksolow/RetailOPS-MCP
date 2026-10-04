@@ -1,0 +1,27 @@
+{
+  "architecture_id": "retailops_mcp",
+  "architecture_name": "RetailOps MCP",
+  "pattern_description": "Microservice architecture communicating via Model Context Protocol (MCP) tool contracts over standard input/output streams.",
+  "relevant_files": [
+    "servers/forecasting/server.py",
+    "client/orchestrator.py"
+  ],
+  "total_relevant_files": 2,
+  "relevant_production_loc": 861,
+  "orchestration_loc": 726,
+  "service_model_loc": 135,
+  "interface_adapter_loc": 0,
+  "runtime_dependencies": [
+    "mcp",
+    "pydantic"
+  ],
+  "configuration_files": [
+    "client/config.json"
+  ],
+  "tests_covering_service": [
+    "test_statistical_replacement.py",
+    "servers/forecasting/test_comprehensive.py"
+  ],
+  "baseline_test_count": 18,
+  "baseline_execution_success": true
+}

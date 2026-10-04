@@ -125,7 +125,7 @@ Evaluated RQ1 and RQ2 by replacing the baseline **30-day Simple Moving Average (
 - **Unit & Contract Test Suite**: `test_statistical_replacement.py` passed 5/5.
 
 ### 5.4 Empirical Finding
-The MCP tool boundary enabled contract-preserving service replacement with zero modifications to existing production code or orchestration logic. However, the Holt-Winters replacement exhibited higher error metrics across all 7 evaluated categories (+18.37% MAE). This confirms that MCP enables modularity, but modular architecture does not dictate or guarantee algorithmic predictive performance.
+In this implementation, the MCP tool boundary supported contract-preserving service replacement with zero modifications to existing production code or orchestration logic. However, the Holt-Winters replacement exhibited higher error metrics across all 7 evaluated categories (+18.37% MAE). This demonstrates that while the RetailOps MCP interface supported modular substitution, architectural modularity does not dictate or guarantee algorithmic predictive performance.
 
 ---
 
@@ -296,7 +296,7 @@ To evaluate communication overhead, end-to-end execution latency was measured ac
 
 ## 12. Consolidated Findings
 
-1. **Modularity is Contract-Preserving**: MCP enabled seamless service replacement and service addition with 0 lines of existing production code changed.
+1. **MCP-Based Service Contracts Supported Contract-Preserving Forecasting Replacement**: Within the evaluated RetailOps implementation, MCP tool contracts supported substituting the forecasting service and adding a supplier intelligence service with 0 lines of existing production code modified.
 2. **Modularity is Decoupled from Accuracy**: Encapsulating a model within an MCP server does not enhance its algorithmic performance.
 3. **Multi-Agent Orchestration Modulates Stockout vs Cost Trade-offs**: Across diverse M5 demand series, RetailOps achieved 21.43% stockout rates compared to 26.29% for fixed thresholds, at the expense of higher procurement commitments ($245.89 vs $199.50).
 4. **Architectural Coordination Patterns Exhibit Distinct Operating Profiles**: Under identical simulation conditions, Flowr ($194.29 cost), WorkflowLLM ($196.51 cost), Agentic Replenishment ($200.52 cost), and RetailOps ($245.89 cost) occupied distinct positions along the fulfillment-cost spectrum.
@@ -341,7 +341,7 @@ All evaluations are fully reproducible using the pinned configuration and execut
 
 ## 16. What the Experiments Demonstrate
 
-- Standardizing retail enterprise tools via MCP enables zero-code service replacement and zero-code service addition.
+- In the evaluated RetailOps implementation, MCP-based service contracts supported zero-code service replacement and zero-code service addition.
 - An MCP orchestrator can detect subprocess failures and isolate crashes from cascading to other services.
 - Multi-agent orchestration successfully manages replenishment trade-offs across volatile, stressed, and normal demand regimes.
 - Programmatic supervisory gates can moderate replenishment expenditure without inducing stockouts.

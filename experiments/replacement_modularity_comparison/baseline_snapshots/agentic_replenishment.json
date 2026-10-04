@@ -1,0 +1,22 @@
+{
+  "architecture_id": "agentic_replenishment",
+  "architecture_name": "Agentic Inventory Replenishment Pattern",
+  "pattern_description": "Bounded reproduction of Direct Single-Domain Autonomous Replenishment pattern (Syed et al., ICBDT 2025): Single-node control loop directly coupling inventory perception, demand signals, and supplier constraints.",
+  "relevant_files": [
+    "experiments/same_repo_comparison/agentic_replenishment/direct_agent.py"
+  ],
+  "total_relevant_files": 1,
+  "relevant_production_loc": 88,
+  "orchestration_loc": 88,
+  "service_model_loc": 0,
+  "interface_adapter_loc": 0,
+  "runtime_dependencies": [
+    "typing"
+  ],
+  "configuration_files": [],
+  "tests_covering_service": [
+    "test_same_repo_comparison.py"
+  ],
+  "baseline_test_count": 12,
+  "baseline_execution_success": true
+}

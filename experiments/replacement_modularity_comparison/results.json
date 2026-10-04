@@ -1,0 +1,180 @@
+{
+  "experiment_title": "Controlled Cross-Architecture Service Replacement & Modularity Experiment",
+  "step": "Step 10 Revision",
+  "research_question": "How much effort and architectural disruption is required to replace an existing service/model while preserving the surrounding decision workflow?",
+  "evaluated_replacement": {
+    "baseline_model": "30-day Simple Moving Average / inline projection",
+    "replacement_model": "Holt-Winters Additive Triple Exponential Smoothing with weekly seasonality",
+    "replacement_service_contract": "Input: series/category + horizon; Output: lead-time demand projection"
+  },
+  "evaluation_criteria_predefined": [
+    "existing_files_changed",
+    "existing_loc_changed",
+    "new_integration_loc",
+    "interface_adapter_loc",
+    "orchestration_loc_changed",
+    "interface_signature_changes",
+    "dependencies_added",
+    "configuration_changes_count",
+    "regression_tests_impacted",
+    "service_isolation_level",
+    "developer_replacement_steps_count",
+    "replacement_burden_index",
+    "workflow_runs_to_completion"
+  ],
+  "burden_index_formula": "Existing_LOC + Adapter_LOC + 2*Orchestration_LOC + 10*Interface_Changes + 5*Config_Changes + 15*Tests_Impacted",
+  "architectures_evaluated": [
+    "retailops_mcp",
+    "flowr_coordinator",
+    "workflowllm_generative",
+    "agentic_replenishment"
+  ],
+  "modularity_measurements": {
+    "retailops_mcp": {
+      "architecture_id": "retailops_mcp",
+      "architecture_name": "RetailOps MCP",
+      "pattern_description": "Microservice architecture communicating via Model Context Protocol (MCP) tool contracts.",
+      "bounded_reproduction_disclaimer": "Reference native architecture under evaluation.",
+      "service_isolation_level": "Process / Network (FastMCP STDIO)",
+      "existing_files_changed": 0,
+      "existing_loc_changed": 0,
+      "new_integration_loc": 0,
+      "interface_adapter_loc": 0,
+      "orchestration_loc_changed": 0,
+      "interface_signature_changes": 0,
+      "dependencies_added": 0,
+      "configuration_changes_count": 1,
+      "regression_tests_impacted": 0,
+      "developer_replacement_steps_count": 2,
+      "developer_steps_description": [
+        "Implement replacement service satisfying getForecast FastMCP schema",
+        "Update server command path in client configuration file"
+      ],
+      "surrounding_workflow_impact": "Zero disruption; orchestrator and other microservices execute without code modifications.",
+      "replacement_burden_index": 5.0,
+      "workflow_runs_to_completion": true
+    },
+    "flowr_coordinator": {
+      "architecture_id": "flowr_coordinator",
+      "architecture_name": "Flowr Coordinator Pattern",
+      "pattern_description": "Centralized Reasoning Coordinator mediating modular domain functions (Bandara et al., 2026).",
+      "bounded_reproduction_disclaimer": "Bounded algorithmic pattern reproduction; not proprietary weights or production environment.",
+      "service_isolation_level": "Class / Method Override (In-process shared memory)",
+      "existing_files_changed": 0,
+      "existing_loc_changed": 0,
+      "new_integration_loc": 32,
+      "interface_adapter_loc": 24,
+      "orchestration_loc_changed": 8,
+      "interface_signature_changes": 0,
+      "dependencies_added": 0,
+      "configuration_changes_count": 0,
+      "regression_tests_impacted": 1,
+      "developer_replacement_steps_count": 4,
+      "developer_steps_description": [
+        "Implement adapted domain tools class inheriting FlowrDomainTools",
+        "Override forecast_demand static method with statistical model",
+        "Subclass FlowrCoordinatorDecisionProvider to rewire tool instance binding",
+        "Update call sites to instantiate adapted coordinator"
+      ],
+      "surrounding_workflow_impact": "Requires object-oriented subclassing or in-place method replacement; no runtime configuration layer.",
+      "replacement_burden_index": 55.0,
+      "workflow_runs_to_completion": true
+    },
+    "workflowllm_generative": {
+      "architecture_id": "workflowllm_generative",
+      "architecture_name": "WorkflowLLM Generative Pattern",
+      "pattern_description": "Plan-then-Execute Generative Workflow with dynamic parameter binding (Fan et al., ICLR 2025).",
+      "bounded_reproduction_disclaimer": "Bounded algorithmic pattern reproduction; not proprietary weights or production environment.",
+      "service_isolation_level": "Plan Schema & Dispatcher Binding (In-process generative dispatch)",
+      "existing_files_changed": 0,
+      "existing_loc_changed": 0,
+      "new_integration_loc": 88,
+      "interface_adapter_loc": 48,
+      "orchestration_loc_changed": 28,
+      "interface_signature_changes": 1,
+      "dependencies_added": 0,
+      "configuration_changes_count": 0,
+      "regression_tests_impacted": 2,
+      "developer_replacement_steps_count": 5,
+      "developer_steps_description": [
+        "Modify Phase 1 plan generation schema to insert explicit statistical forecast step",
+        "Update required inputs and output keys across plan steps",
+        "Add Phase 2 executor operation dispatch branch for statistical forecast",
+        "Rewire intermediate execution state parameter binding into downstream target synthesis",
+        "Update decision provider instantiation"
+      ],
+      "surrounding_workflow_impact": "Requires coordinated modifications across both Phase 1 plan schema and Phase 2 executor dispatch loop.",
+      "replacement_burden_index": 144.0,
+      "workflow_runs_to_completion": true
+    },
+    "agentic_replenishment": {
+      "architecture_id": "agentic_replenishment",
+      "architecture_name": "Agentic Inventory Replenishment Pattern",
+      "pattern_description": "Direct Single-Domain Autonomous Replenishment Loop (Syed et al., ICBDT 2025).",
+      "bounded_reproduction_disclaimer": "Bounded algorithmic pattern reproduction; not proprietary weights or production environment.",
+      "service_isolation_level": "Monolithic Code Duplication (Zero service isolation)",
+      "existing_files_changed": 0,
+      "existing_loc_changed": 0,
+      "new_integration_loc": 65,
+      "interface_adapter_loc": 45,
+      "orchestration_loc_changed": 48,
+      "interface_signature_changes": 0,
+      "dependencies_added": 0,
+      "configuration_changes_count": 0,
+      "regression_tests_impacted": 2,
+      "developer_replacement_steps_count": 4,
+      "developer_steps_description": [
+        "Subclass or duplicate monolithic agent class",
+        "Locate inline demand calculation equations within monolithic decide() method",
+        "Splice in statistical forecast calculation and adjust reorder point equations",
+        "Re-verify tightly-coupled downstream threshold and ordering logic"
+      ],
+      "surrounding_workflow_impact": "Lack of modular boundaries requires duplicating or rewriting the entire perception-action control loop.",
+      "replacement_burden_index": 171.0,
+      "workflow_runs_to_completion": true
+    }
+  },
+  "operational_verification": {
+    "retailops_mcp": {
+      "total_simulation_runs": 25,
+      "successful_simulation_runs": 25,
+      "workflow_execution_success": true,
+      "total_constraint_violations": 0,
+      "mean_stockout_rate": 21.4288,
+      "mean_service_level": 75.8116,
+      "mean_operating_cost": 245.89,
+      "simulation_runtime_seconds": 0.038
+    },
+    "flowr_coordinator": {
+      "total_simulation_runs": 25,
+      "successful_simulation_runs": 25,
+      "workflow_execution_success": true,
+      "total_constraint_violations": 0,
+      "mean_stockout_rate": 25.5712,
+      "mean_service_level": 71.6348,
+      "mean_operating_cost": 194.29,
+      "simulation_runtime_seconds": 0.026
+    },
+    "workflowllm_generative": {
+      "total_simulation_runs": 25,
+      "successful_simulation_runs": 25,
+      "workflow_execution_success": true,
+      "total_constraint_violations": 0,
+      "mean_stockout_rate": 25.4284,
+      "mean_service_level": 72.214,
+      "mean_operating_cost": 196.28,
+      "simulation_runtime_seconds": 0.052
+    },
+    "agentic_replenishment": {
+      "total_simulation_runs": 25,
+      "successful_simulation_runs": 25,
+      "workflow_execution_success": true,
+      "total_constraint_violations": 0,
+      "mean_stockout_rate": 24.8572,
+      "mean_service_level": 72.5792,
+      "mean_operating_cost": 200.52,
+      "simulation_runtime_seconds": 0.042
+    }
+  },
+  "timestamp": "2026-10-03 23:59:10"
+}

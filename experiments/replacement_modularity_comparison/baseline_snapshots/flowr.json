@@ -1,0 +1,22 @@
+{
+  "architecture_id": "flowr_coordinator",
+  "architecture_name": "Flowr Coordinator Pattern",
+  "pattern_description": "Bounded reproduction of Centralized Reasoning Coordinator pattern (Bandara et al., 2026): Operational Context -> Central Coordinator -> Modular Domain Functions -> Synthesized Decision.",
+  "relevant_files": [
+    "experiments/same_repo_comparison/flowr_coordinator/coordinator.py"
+  ],
+  "total_relevant_files": 1,
+  "relevant_production_loc": 175,
+  "orchestration_loc": 86,
+  "service_model_loc": 89,
+  "interface_adapter_loc": 0,
+  "runtime_dependencies": [
+    "typing"
+  ],
+  "configuration_files": [],
+  "tests_covering_service": [
+    "test_same_repo_comparison.py"
+  ],
+  "baseline_test_count": 12,
+  "baseline_execution_success": true
+}

@@ -1,0 +1,23 @@
+{
+  "architecture_id": "workflowllm_generative",
+  "architecture_name": "WorkflowLLM Generative Pattern",
+  "pattern_description": "Bounded reproduction of Plan-then-Execute Generative Workflow pattern (Fan et al., ICLR 2025): Phase 1 Plan Synthesis -> Phase 2 Step-by-Step Parameter Binding and Execution -> Synthesized Decision.",
+  "relevant_files": [
+    "experiments/same_repo_comparison/workflowllm_generative/generative_workflow.py"
+  ],
+  "total_relevant_files": 1,
+  "relevant_production_loc": 250,
+  "orchestration_loc": 154,
+  "service_model_loc": 96,
+  "interface_adapter_loc": 0,
+  "runtime_dependencies": [
+    "dataclasses",
+    "typing"
+  ],
+  "configuration_files": [],
+  "tests_covering_service": [
+    "test_same_repo_comparison.py"
+  ],
+  "baseline_test_count": 12,
+  "baseline_execution_success": true
+}
